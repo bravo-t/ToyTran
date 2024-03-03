@@ -29,6 +29,23 @@ NetlistParser::NetlistParser(const char* fileName)
     parseLine(line, nodeMap);
   }
   nodeMapToList(nodeMap, _nodes);
+
+  std::vector<size_t> devCounter(static_cast<unsigned char>(DeviceType::Total), 0);
+  for (const Device& dev : _devices) {
+    ++devCounter[static_cast<unsigned char>(dev._type)];
+  }
+  printf("Netlist file %s loaded, devices created:\n  %lu resistors\n  %lu capacitors\n  %lu inductors\n  %lu independent voltage sources\n  %lu independent current sources\n  %lu VCCS\n  %lu  VCVS\n  %lu CCCS\n  %lu CCVS\n", 
+    fileName, 
+    devCounter[static_cast<unsigned char>(DeviceType::Resistor)],
+    devCounter[static_cast<unsigned char>(DeviceType::Capacitor)], 
+    devCounter[static_cast<unsigned char>(DeviceType::Inductor)], 
+    devCounter[static_cast<unsigned char>(DeviceType::VoltageSource)], 
+    devCounter[static_cast<unsigned char>(DeviceType::CurrentSource)], 
+    devCounter[static_cast<unsigned char>(DeviceType::VCCS)], 
+    devCounter[static_cast<unsigned char>(DeviceType::VCVS)],
+    devCounter[static_cast<unsigned char>(DeviceType::CCCS)], 
+    devCounter[static_cast<unsigned char>(DeviceType::CCVS)]);
+
 }
 
 char 

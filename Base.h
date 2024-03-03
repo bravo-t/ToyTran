@@ -15,7 +15,9 @@ enum class DeviceType : unsigned char {
   VCCS, /// Voltage controlled current source, etc
   VCVS,
   CCCS,
-  CCVS
+  CCVS,
+
+  Total
 };
 
 struct Device {

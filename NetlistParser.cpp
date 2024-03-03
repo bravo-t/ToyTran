@@ -5,6 +5,17 @@
 
 namespace Tran {
 
+void
+nodeMapToList(const std::unordered_map<std::string, size_t>& nodeMap,
+              std::vector<std::string>& nodes)
+{
+  nodes.resize(nodeMap.size(), "");
+  for (const auto& kv : nodeMap) {
+    nodes[kv.second] = kv.first;
+  }
+}
+
+
 NetlistParser::NetlistParser(const char* fileName) 
 {
   std::ifstream infile(fileName);
@@ -12,10 +23,12 @@ NetlistParser::NetlistParser(const char* fileName)
     printf("ERROR: Cannot open %s\n", fileName);
     return;
   }
+  std::unordered_map<std::string, size_t> nodeMap;
   std::string line;
   while (std::getline(infile, line)) {
-    parseLine(line.data());
-  } 
+    parseLine(line, nodeMap);
+  }
+  nodeMapToList(nodeMap, _nodes);
 }
 
 char 
@@ -292,9 +305,9 @@ addCCCS(const std::string& /*line*/,
 }
 
 void
-NetlistParser::parseLine(const std::string& line)
+NetlistParser::parseLine(const std::string& line, 
+                         std::unordered_map<std::string, size_t>& nodeMap)
 {
-  std::unordered_map<std::string, size_t> nodeMap;
   char c = firstChar(line);
   switch (c) {
     case 'R':

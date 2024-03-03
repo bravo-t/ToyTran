@@ -10,14 +10,14 @@ SRC_LIST = $(wildcard $(SRC_DIR)/*.cpp)
 OBJ_LIST = $(subst .cpp,.o,$(SRC_LIST))
 OBJ_FULL_LIST = $(subst ./,./build/,$(OBJ_LIST))
 
-.PHONY: all clean $(PROG_NAME) compile
+.PHONY: all clean $(PROG_NAME)
 
 all: $(PROG_NAME)
 
 %.o: %.cpp
 	$(CC) $(CFLAG) -o $(BUILD_DIR)/$@ -c $<
 
-$(PROG_NAME): main.cpp $(OBJ_FULL_LIST)
+$(PROG_NAME): main.cpp $(OBJ_LIST)
 	$(LD) $(OBJ_FULL_LIST) -o $(BIN_DIR)/$@
 
 clean:

@@ -13,8 +13,10 @@ class NetlistParser {
     NetlistParser(const char* fileName);
     void parseLine(const std::string& line, 
                    std::unordered_map<std::string, size_t>& nodeMap);
-  private:
-
+  
+    std::vector<std::string> nodes() const { return _nodes; }
+    std::vector<Device> devices() const { return _devices; }
+    std::<PWLValue> PWLData() const { return _PWLData; }
 
   private:
     std::vector<std::string> _nodes;

@@ -32,6 +32,12 @@ struct Device {
   };
 };
 
+struct Node {
+  std::string _name;
+  std::vector<size_t> _posConnection;
+  std::vector<size_t> _negConnection;
+}
+
 struct PWLValue {
   std::vector<double> _time;
   std::vector<double> _value;

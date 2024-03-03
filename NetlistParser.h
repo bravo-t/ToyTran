@@ -16,7 +16,7 @@ class NetlistParser {
   
     std::vector<std::string> nodes() const { return _nodes; }
     std::vector<Device> devices() const { return _devices; }
-    std::<PWLValue> PWLData() const { return _PWLData; }
+    std::vector<PWLValue> PWLData() const { return _PWLData; }
 
   private:
     std::vector<std::string> _nodes;

@@ -13,7 +13,7 @@ Circuit::Circuit(const NetlistParser& parser)
     n._name = nodeName;
     _nodes.push_back(n);
   }
-  for (size_t i=0; i<_devices.size(); +i) {
+  for (size_t i=0; i<_devices.size(); ++i) {
     const Device& dev = _devices[i];
     size_t posNode = dev._posNode;
     _nodes[posNode]._posConnection.push_back(i);

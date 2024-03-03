@@ -12,7 +12,6 @@ class Circuit {
     Circuit(const NetlistParser& parser);
 
   private:
-    buildNode();
     
 
   private:

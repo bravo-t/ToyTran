@@ -19,14 +19,15 @@ enum class DeviceType : unsigned char {
 };
 
 struct Device {
-  size_t _node1 = 0;
-  size_t _node2 = 0;
+  std::string _name;
+  size_t _posNode = 0;
+  size_t _negNode = 0;
   DeviceType _type;
   bool _isPWLValue = false;
   union {
-    double _value = 0;
+    double _value;
     size_t _PWLData = 0;
-  }
+  };
 };
 
 struct PWLValue {
@@ -37,14 +38,14 @@ struct PWLValue {
 class NetlistParser {
   public:
     NetlistParser(const char* fileName);
-    void parseLine(const char* line);
+    void parseLine(const std::string& line);
   private:
 
 
   private:
     std::vector<std::string> _nodes;
     std::vector<Device>      _devices;
-    std::vector<PWLValue>     _PWLData;
+    std::vector<PWLValue>    _PWLData;
 
 };
 

@@ -9,6 +9,8 @@ LD          = g++
 CFLAG       = -Wall $(PRE_CFLAGS)
 PROG_NAME   = trans
 
+CFLAG+=-Isubmodule/eigen
+
 SRC_DIR     = .
 BUILD_DIR   = ./build
 BIN_DIR     = .

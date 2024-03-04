@@ -16,18 +16,21 @@ nodeMapToList(const std::unordered_map<std::string, size_t>& nodeMap,
 }
 
 static inline bool
-isLineClosed(const std::string& line, std::string& str)
+isLineClosed(std::string& line, size_t& parenCounter, std::string& str)
 {
-  str.append(" ");
-  str.append(line);
-  size_t parenCounter = 0;
   for (size_t i=0; i<line.size(); ++i) {
-    if (line[i] == '(') {
+    char& c = line[i];
+    if (c == '(') {
       ++parenCounter;
-    } else if (line[i] == ')') {
+    } else if (c == ')') {
       --parenCounter;
     }
+    if (iscntrl(c)) {
+      c = ' ';
+    }
   }
+  str.append(" ");
+  str.append(line);
   return parenCounter == 0;
 }
 
@@ -42,8 +45,9 @@ NetlistParser::NetlistParser(const char* fileName)
   std::unordered_map<std::string, size_t> nodeMap;
   std::string line;
   std::string content;
+  size_t parenCounter = 0;
   while (std::getline(infile, line)) {
-    while (isLineClosed(line, content) == false) {
+    while (isLineClosed(line, parenCounter, content) == false) {
       if (!std::getline(infile, line)) {
         break;
       }
@@ -322,6 +326,7 @@ addIndependentSource(DeviceType type, const std::string& line,
   } else if (strs.size() > 4 && 
             (strncmp(strs[3].data(), "PWL", 3) == 0 || 
              strncmp(strs[3].data(), "pwl", 3) == 0)) {
+    
     const PWLValue& pwlData = parsePWLData(strs, 3);
     Device dev;
     dev._type = type;

@@ -4,7 +4,9 @@
 namespace Tran {
 
 Circuit::Circuit(const NetlistParser& parser)
-: _devices(parser.devices()), _PWLData(parser.PWLData())
+: _devices(parser.devices()), 
+  _dependentDevices(parser.dependentDevices()),
+  _PWLData(parser.PWLData())
 {
   const std::vector<std::string>& nodeNames = parser.nodes();
   _nodes.reserve(nodeNames.size());
@@ -15,6 +17,13 @@ Circuit::Circuit(const NetlistParser& parser)
   }
   for (size_t i=0; i<_devices.size(); ++i) {
     const Device& dev = _devices[i];
+    size_t posNode = dev._posNode;
+    _nodes[posNode]._posConnection.push_back(i);
+    size_t negNode = dev._negNode;
+    _nodes[negNode]._negConnection.push_back(i);
+  }
+  for (size_t i=0; i<_dependentDevices.size(); ++i) {
+    const DependentDevice& dev = _dependentDevices[i];
     size_t posNode = dev._posNode;
     _nodes[posNode]._posConnection.push_back(i);
     size_t negNode = dev._negNode;

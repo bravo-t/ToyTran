@@ -15,6 +15,22 @@ nodeMapToList(const std::unordered_map<std::string, size_t>& nodeMap,
   }
 }
 
+static inline bool
+isLineClosed(const std::string& line, std::string& str)
+{
+  str.append(" ");
+  str.append(line);
+  size_t parenCounter = 0;
+  for (size_t i=0; i<line.size(); ++i) {
+    if (line[i] == '(') {
+      ++parenCounter;
+    } else if (line[i] == ')') {
+      --parenCounter;
+    }
+  }
+  return parenCounter == 0;
+}
+
 
 NetlistParser::NetlistParser(const char* fileName) 
 {
@@ -25,8 +41,15 @@ NetlistParser::NetlistParser(const char* fileName)
   }
   std::unordered_map<std::string, size_t> nodeMap;
   std::string line;
+  std::string content;
   while (std::getline(infile, line)) {
-    parseLine(line, nodeMap);
+    while (isLineClosed(line, content) == false) {
+      if (!std::getline(infile, line)) {
+        break;
+      }
+    }
+    parseLine(content, nodeMap);
+    content.clear();
   }
   nodeMapToList(nodeMap, _nodes);
 
@@ -41,7 +64,7 @@ NetlistParser::NetlistParser(const char* fileName)
          "  %lu independent voltage sources\n"
          "  %lu independent current sources\n"
          "  %lu VCCS\n"
-         "  %lu  VCVS\n"
+         "  %lu VCVS\n"
          "  %lu CCCS\n"
          "  %lu CCVS\n", 
     fileName, 
@@ -78,7 +101,32 @@ splitWithAny(const std::string& src, const char *delim,
   if (char* res1 = strtok_r(data, delim, &saveptr)) {
     strs.push_back(res1);
     while(char *res2 = strtok_r(nullptr, delim, &saveptr)) {
-      strs.push_back(std::string(res2));
+      std::string tempStr(res2);
+      size_t eraseLength = 0;
+      for (size_t i=0; i<tempStr.size(); ++i) {
+        if (isspace(tempStr[i]) || iscntrl(tempStr[i])) {
+          ++eraseLength;
+        } else {
+          break;
+        }
+      }
+      if (eraseLength > 0) {
+        tempStr.erase(0, eraseLength);
+      }
+      if (tempStr.empty()) {
+        continue;
+      }
+      char c = tempStr.back();
+      while (isspace(c) || iscntrl(c)) {
+        tempStr.pop_back();
+        if (tempStr.empty()) {
+          break;
+        }
+        c = tempStr.back();
+      }
+      if (tempStr.empty() == false) {
+        strs.push_back(std::string(tempStr));
+      } 
     }
   }
   ::free(data);
@@ -227,7 +275,7 @@ addResistor(const std::string& line, std::vector<Device>& devices,
             std::unordered_map<std::string, size_t>& nodeMap)
 {
   std::vector<std::string> strs;
-  splitWithAny(line, " ", strs);
+  splitWithAny(line, " \t\r", strs);
   if (strs.size() < 4) {
     printf("Unsupported syntax %s\n", line.data());
     return;
@@ -282,6 +330,7 @@ addIndependentSource(DeviceType type, const std::string& line,
     dev._negNode = findOrCreateNode(nodeMap, strs[2]); 
     dev._isPWLValue = true;
     dev._PWLData = PWLData.size();
+    devices.push_back(dev);
     PWLData.push_back(pwlData);
   } else {
     printf("Unsupported syntax %s\n", line.data());

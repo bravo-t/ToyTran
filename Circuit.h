@@ -13,13 +13,16 @@ class Circuit {
     Circuit(const NetlistParser& parser);
 
     Eigen::MatrixXd A() const;
-    Eigen::VectorXd RHS() const;
+    Eigen::VectorXd b() const;
+    size_t mSize() const;
+    size_t nSize() const;
+    size_t Asize() const;
   private:
     
 
   private:
     size_t                         _ASize = 0;
-    size_t                         _RHSSize = 0;
+    size_t                         _bSize = 0;
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;
     std::vector<DependentDevice>   _dependentDevices;

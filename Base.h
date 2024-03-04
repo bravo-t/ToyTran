@@ -32,6 +32,16 @@ struct Device {
   };
 };
 
+struct DependentDevice {
+  std::string _name;
+  size_t _posNode = 0;
+  size_t _negNode = 0;
+  size_t _posSampleNode = 0;
+  size_t _negSampleNode = 0;
+  DeviceType _type;
+  double _value;
+};
+
 struct Node {
   std::string _name;
   std::vector<size_t> _posConnection;

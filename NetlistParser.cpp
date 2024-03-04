@@ -34,7 +34,16 @@ NetlistParser::NetlistParser(const char* fileName)
   for (const Device& dev : _devices) {
     ++devCounter[static_cast<unsigned char>(dev._type)];
   }
-  printf("Netlist file %s loaded, devices created:\n  %lu resistors\n  %lu capacitors\n  %lu inductors\n  %lu independent voltage sources\n  %lu independent current sources\n  %lu VCCS\n  %lu  VCVS\n  %lu CCCS\n  %lu CCVS\n", 
+  printf("Netlist file %s loaded, devices created:\n"
+         "  %lu resistors\n"
+         "  %lu capacitors\n"
+         "  %lu inductors\n"
+         "  %lu independent voltage sources\n"
+         "  %lu independent current sources\n"
+         "  %lu VCCS\n"
+         "  %lu  VCVS\n"
+         "  %lu CCCS\n"
+         "  %lu CCVS\n", 
     fileName, 
     devCounter[static_cast<unsigned char>(DeviceType::Resistor)],
     devCounter[static_cast<unsigned char>(DeviceType::Capacitor)], 
@@ -186,6 +195,18 @@ findOrCreateNode(std::unordered_map<std::string, size_t>& nodeMap,
   }
 }
 
+static inline size_t 
+findNode(const std::unordered_map<std::string, size_t>& nodeMap, 
+         const std::string& nodeName)
+{
+  auto found = nodeMap.find(nodeName);
+  if (found == nodeMap.end()) {
+    return static_cast<size_t>(-1);
+  } else {
+    return found->second;
+  }
+}
+
 static void
 addTwoTermDevice(DeviceType type, 
                  std::vector<std::string>& strs,  
@@ -285,40 +306,88 @@ addCurrentSource(const std::string& line,
   addIndependentSource(DeviceType::CurrentSource, line, devices, PWLData, nodeMap);
 }
 
-static void 
-addVCVS(const std::string& /*line*/, 
-        std::vector<Device>& /*devices*/, 
-        std::vector<PWLValue>& /*PWLData*/, 
-        std::unordered_map<std::string, size_t>& /*nodeMap*/)
+static void
+addDependentDevice(DeviceType type,
+                   std::vector<std::string>& strs,
+                   std::vector<DependentDevice>& devices, 
+                   std::unordered_map<std::string, size_t>& nodeMap)
 {
-  printf("VCVS is not supported yet\n");
+  DependentDevice dev;
+  dev._name.assign(strs[0].begin() + 1, strs[0].end());
+  dev._posNode = findOrCreateNode(nodeMap, strs[1]); 
+  dev._negNode = findOrCreateNode(nodeMap, strs[2]); 
+  size_t posSampleNode = findNode(nodeMap, strs[3]);
+  size_t negSampleNode = findNode(nodeMap, strs[4]);
+  if (posSampleNode == static_cast<size_t>(-1)) {
+    printf("Referenced sampling node %s in device %s does not exist\n", strs[3].data(), strs[0].data());
+    return;
+  }
+  if (negSampleNode == static_cast<size_t>(-1)) {
+    printf("Referenced sampling node %s in device %s does not exist\n", strs[4].data(), strs[0].data());
+    return;
+  }
+  dev._value = numericalValue(strs[5]);
+  devices.push_back(dev);
 }
 
 static void 
-addVCCS(const std::string& /*line*/, 
-        std::vector<Device>& /*devices*/, 
-        std::vector<PWLValue>& /*PWLData*/, 
-        std::unordered_map<std::string, size_t>& /*nodeMap*/)
+addVCVS(const std::string& line, 
+        std::vector<DependentDevice>& devices, 
+        std::vector<PWLValue>& PWLData, 
+        std::unordered_map<std::string, size_t>& nodeMap)
 {
-  printf("VCCS is not supported yet\n");
+  std::vector<std::string> strs;
+  splitWithAny(line, " ", strs);
+  if (strs.size() != 6) {
+    printf("Unsupported syntax line\"%s\"\n", line.data());
+    return;
+  }
+  addDependentDevice(DeviceType::VCVS, strs, devices, nodeMap);
 }
 
 static void 
-addCCVS(const std::string& /*line*/, 
-        std::vector<Device>& /*devices*/, 
-        std::vector<PWLValue>& /*PWLData*/, 
-        std::unordered_map<std::string, size_t>& /*nodeMap*/)
+addVCCS(const std::string& line, 
+        std::vector<DependentDevice>& devices, 
+        std::vector<PWLValue>& PWLData, 
+        std::unordered_map<std::string, size_t>& nodeMap)
 {
-  printf("CCVS is not supported yet\n");
+  std::vector<std::string> strs;
+  splitWithAny(line, " ", strs);
+  if (strs.size() != 6) {
+    printf("Unsupported syntax line\"%s\"\n", line.data());
+    return;
+  }
+  addDependentDevice(DeviceType::VCCS, strs, devices, nodeMap);
 }
 
 static void 
-addCCCS(const std::string& /*line*/, 
-        std::vector<Device>& /*devices*/, 
-        std::vector<PWLValue>& /*PWLData*/, 
-        std::unordered_map<std::string, size_t>& /*nodeMap*/)
+addCCVS(const std::string& line, 
+        std::vector<DependentDevice>& devices, 
+        std::vector<PWLValue>& PWLData, 
+        std::unordered_map<std::string, size_t>& nodeMap)
 {
-  printf("CCCS is not supported yet\n");
+  std::vector<std::string> strs;
+  splitWithAny(line, " ", strs);
+  if (strs.size() != 6) {
+    printf("Unsupported syntax line\"%s\"\n", line.data());
+    return;
+  }
+  addDependentDevice(DeviceType::CCVS, strs, devices, nodeMap);
+}
+
+static void 
+addCCCS(const std::string& line, 
+        std::vector<DependentDevice>& devices, 
+        std::vector<PWLValue>& PWLData, 
+        std::unordered_map<std::string, size_t>& nodeMap)
+{
+  std::vector<std::string> strs;
+  splitWithAny(line, " ", strs);
+  if (strs.size() != 6) {
+    printf("Unsupported syntax line\"%s\"\n", line.data());
+    return;
+  }
+  addDependentDevice(DeviceType::CCCS, strs, devices, nodeMap);
 }
 
 void
@@ -349,19 +418,19 @@ NetlistParser::parseLine(const std::string& line,
       break;
     case 'E':
     case 'e':
-      addVCVS(line, _devices, _PWLData, nodeMap);
+      addVCVS(line, _dependentDevices, _PWLData, nodeMap);
       break;
     case 'F':
     case 'f':
-      addCCCS(line, _devices, _PWLData, nodeMap);
+      addCCCS(line, _dependentDevices, _PWLData, nodeMap);
       break;
     case 'G':
     case 'g':
-      addVCCS(line, _devices, _PWLData, nodeMap);
+      addVCCS(line, _dependentDevices, _PWLData, nodeMap);
       break;
     case 'H':
     case 'h':
-      addCCVS(line, _devices, _PWLData, nodeMap);
+      addCCVS(line, _dependentDevices, _PWLData, nodeMap);
       break;
     case '*':
       break;

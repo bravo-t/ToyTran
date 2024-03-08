@@ -1,5 +1,5 @@
-#ifndef _TRANS_NLPS_H_
-#define _TRANS_NLPS_H_
+#ifndef _TRAN_NLPS_H_
+#define _TRAN_NLPS_H_
 
 #include <vector>
 #include <string>
@@ -16,13 +16,11 @@ class NetlistParser {
   
     std::vector<std::string> nodes() const { return _nodes; }
     std::vector<Device> devices() const { return _devices; }
-    std::vector<DependentDevice> dependentDevices() const { return _dependentDevices; }
     std::vector<PWLValue> PWLData() const { return _PWLData; }
 
   private:
     std::vector<std::string>     _nodes;
     std::vector<Device>          _devices;
-    std::vector<DependentDevice> _dependentDevices;
     std::vector<PWLValue>        _PWLData;
 
 };

@@ -1,5 +1,5 @@
-#ifndef _TRANS_BASE_H_
-#define _TRANS_BASE_H_
+#ifndef _TRAN_BASE_H_
+#define _TRAN_BASE_H_
 
 #include <vector>
 #include <string>
@@ -22,8 +22,12 @@ enum class DeviceType : unsigned char {
 
 struct Device {
   std::string _name;
-  size_t _posNode = 0;
-  size_t _negNode = 0;
+  size_t _devId = static_cast<size_t>(-1);
+  size_t _posNode = static_cast<size_t>(-1);
+  size_t _negNode = static_cast<size_t>(-1);
+  size_t _posSampleNode = static_cast<size_t>(-1);
+  size_t _negSampleNode = static_cast<size_t>(-1);
+  size_t _sampleDevice = static_cast<size_t>(-1);
   DeviceType _type;
   bool _isPWLValue = false;
   union {
@@ -32,20 +36,10 @@ struct Device {
   };
 };
 
-struct DependentDevice {
-  std::string _name;
-  size_t _posNode = 0;
-  size_t _negNode = 0;
-  size_t _posSampleNode = 0;
-  size_t _negSampleNode = 0;
-  DeviceType _type;
-  double _value;
-};
-
 struct Node {
+  size_t _nodeId = static_cast<size_t>(-1);
   std::string _name;
-  std::vector<size_t> _posConnection;
-  std::vector<size_t> _negConnection;
+  std::vector<size_t> _connection;
 };
 
 struct PWLValue {

@@ -1,7 +1,6 @@
 #ifndef _TRAN_CKT_H_
 #define _TRAN_CKT_H_
 
-#include <Eigen/Core>
 #include "Base.h"
 
 namespace Tran {
@@ -12,20 +11,16 @@ class Circuit {
   public:
     Circuit(const NetlistParser& parser);
 
-    Eigen::MatrixXd A() const;
-    Eigen::VectorXd b() const;
-    size_t mSize() const;
-    size_t nSize() const;
-    size_t Asize() const;
-  private:
-    
+    std::vector<Node> nodes() const { return _nodes; }
+    std::vector<Device> devices() const { return _devices; }
+    std::vector<PWLValue> PWLData() const { return _PWLData; }
+    const PWLValue& PWLData(const Device& dev) const;
+    const Device& device(size_t id) const { return _devices[id]; }
+    const Node& node(size_t id) const { return _nodes[id]; }
 
   private:
-    size_t                         _ASize = 0;
-    size_t                         _bSize = 0;
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;
-    std::vector<DependentDevice>   _dependentDevices;
     std::vector<PWLValue>          _PWLData;
 }; 
 

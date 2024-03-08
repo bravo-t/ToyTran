@@ -363,10 +363,10 @@ addCurrentSource(const std::string& line,
 static void
 addDependentDevice(DeviceType type,
                    std::vector<std::string>& strs,
-                   std::vector<DependentDevice>& devices, 
+                   std::vector<Device>& devices, 
                    std::unordered_map<std::string, size_t>& nodeMap)
 {
-  DependentDevice dev;
+  Device dev;
   dev._name.assign(strs[0].begin() + 1, strs[0].end());
   dev._posNode = findOrCreateNode(nodeMap, strs[1]); 
   dev._negNode = findOrCreateNode(nodeMap, strs[2]); 
@@ -386,7 +386,7 @@ addDependentDevice(DeviceType type,
 
 static void 
 addVCVS(const std::string& line, 
-        std::vector<DependentDevice>& devices, 
+        std::vector<Device>& devices, 
         std::vector<PWLValue>& PWLData, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
@@ -401,7 +401,7 @@ addVCVS(const std::string& line,
 
 static void 
 addVCCS(const std::string& line, 
-        std::vector<DependentDevice>& devices, 
+        std::vector<Device>& devices, 
         std::vector<PWLValue>& PWLData, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
@@ -416,7 +416,7 @@ addVCCS(const std::string& line,
 
 static void 
 addCCVS(const std::string& line, 
-        std::vector<DependentDevice>& devices, 
+        std::vector<Device>& devices, 
         std::vector<PWLValue>& PWLData, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
@@ -431,7 +431,7 @@ addCCVS(const std::string& line,
 
 static void 
 addCCCS(const std::string& line, 
-        std::vector<DependentDevice>& devices, 
+        std::vector<Device>& devices, 
         std::vector<PWLValue>& PWLData, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
@@ -472,19 +472,19 @@ NetlistParser::parseLine(const std::string& line,
       break;
     case 'E':
     case 'e':
-      addVCVS(line, _dependentDevices, _PWLData, nodeMap);
+      addVCVS(line, _devices, _PWLData, nodeMap);
       break;
     case 'F':
     case 'f':
-      addCCCS(line, _dependentDevices, _PWLData, nodeMap);
+      addCCCS(line, _devices, _PWLData, nodeMap);
       break;
     case 'G':
     case 'g':
-      addVCCS(line, _dependentDevices, _PWLData, nodeMap);
+      addVCCS(line, _devices, _PWLData, nodeMap);
       break;
     case 'H':
     case 'h':
-      addCCVS(line, _dependentDevices, _PWLData, nodeMap);
+      addCCVS(line, _devices, _PWLData, nodeMap);
       break;
     case '*':
       break;

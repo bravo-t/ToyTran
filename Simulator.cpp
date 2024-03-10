@@ -219,6 +219,9 @@ Simulator::solveEquation()
   }
   ticks.push_back(prevTime + _simTick);
   values.insert(values.end(), x.begin(), x.end());
+  if (Debug::enabled()) {
+    Debug::printIterationSolution(prevTime+_simTick, x);
+  }
 }
 
 bool

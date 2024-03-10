@@ -1,4 +1,6 @@
-# ToyTran
+# ToyTran: A toy circuit (or rather, network) transient simulator
+
+## STILL UNDER DEVELOPMENT
 
 ## Supported devices
 Voltage: `Vname N+ N- value/pwl(t v t v ...)`

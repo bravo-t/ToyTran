@@ -2,13 +2,15 @@
 
 namespace Tran {
 
+size_t Debug::_level = 1;
+
 void 
 Debug::printEquation(const Eigen::MatrixXd& A, const Eigen::VectorXd& b)
 {
-  for (size_t i=0; i<A.rows(); ++i) {
+  for (Eigen::Index i=0; i<A.rows(); ++i) {
     printf("  | ");
-    for (size_t j=0; j<A.cols(); ++j) {
-      printf("%8.5g ", A(i, j));
+    for (Eigen::Index j=0; j<A.cols(); ++j) {
+      printf("%7.4g ", A(i, j));
     }
     printf("|  ");
     if (i == A.rows()/2) {
@@ -16,7 +18,7 @@ Debug::printEquation(const Eigen::MatrixXd& A, const Eigen::VectorXd& b)
     } else {
       printf("      ");
     }
-    printf(" | %8.5g | \n", b(i));
+    printf(" | %7.4g | \n", b(i));
   }
 }
 

@@ -2,8 +2,32 @@
 #include "Simulator.h"
 #include "Circuit.h"
 #include "MNAStamper.h"
+#include "Debug.h"
 
 namespace Tran {
+
+IntegrateMethod
+Simulator::integrateMethod() const
+{
+  if (_intMethod == IntegrateMethod::BackwardEuler) {
+    return IntegrateMethod::BackwardEuler;
+  } else if (_intMethod == IntegrateMethod::Gear2) {
+    if (_result._ticks.size() < 1) {
+      return IntegrateMethod::BackwardEuler;
+    } else {
+      return IntegrateMethod::Gear2;
+    }
+/*} else if (intMethod == IntegrateMethod::RK4) {
+    if (prevData._ticks.size() < 1) {
+      return IntegrateMethod::BackwardEuler;
+    } else if (prevData._ticks.size() < 3) {
+      return IntegrateMethod::Gear2;
+    } else {
+      return IntegrateMethod::RK4;
+    } */
+  }
+  return IntegrateMethod::Gear2;
+}
 
 static inline bool
 needExtraDim(const Device& dev) 
@@ -175,6 +199,9 @@ Simulator::formulateEquation()
   A.setZero(_eqnDim, _eqnDim);
   _b.setZero(_eqnDim);
   MNAStamper::stamp(A, _b, this);
+  if (Debug::enabled()) {
+    Debug::printEquation(A, _b);
+  }
   _Alu = A.fullPivLu();
 }
 

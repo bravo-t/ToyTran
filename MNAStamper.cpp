@@ -6,29 +6,6 @@
 
 namespace Tran {
 
-static inline IntegrateMethod
-chooseIntMethod(IntegrateMethod intMethod, const SimResult& prevData)
-{
-  if (intMethod == IntegrateMethod::BackwardEuler) {
-    return IntegrateMethod::BackwardEuler;
-  } else if (intMethod == IntegrateMethod::Gear2) {
-    if (prevData._ticks.size() < 1) {
-      return IntegrateMethod::BackwardEuler;
-    } else {
-      return IntegrateMethod::Gear2;
-    }
-/*} else if (intMethod == IntegrateMethod::RK4) {
-    if (prevData._ticks.size() < 1) {
-      return IntegrateMethod::BackwardEuler;
-    } else if (prevData._ticks.size() < 3) {
-      return IntegrateMethod::Gear2;
-    } else {
-      return IntegrateMethod::RK4;
-    } */
-  }
-  return IntegrateMethod::Gear2;
-}
-
 static inline void
 stampResistor(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
               const Device& dev, const Simulator* sim)
@@ -118,10 +95,8 @@ static inline void
 stampCapacitor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& cap, 
                const Simulator* simulator)
 {
-  IntegrateMethod userMethod = simulator->integrateMethod();
-  const SimResult& prevData = simulator->simulationResult();
-  IntegrateMethod actualMethod = chooseIntMethod(userMethod, prevData);
-  switch (actualMethod) {
+  IntegrateMethod intMethod = simulator->integrateMethod();
+  switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
       stampCapacitorBE(A, b, cap, simulator);
       break;
@@ -137,10 +112,8 @@ static inline void
 updatebCapacitor(Eigen::VectorXd& b, const Device& cap, 
                  const Simulator* simulator)
 {
-  IntegrateMethod userMethod = simulator->integrateMethod();
-  const SimResult& prevData = simulator->simulationResult();
-  IntegrateMethod actualMethod = chooseIntMethod(userMethod, prevData);
-  switch (actualMethod) {
+  IntegrateMethod intMethod = simulator->integrateMethod();
+  switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
       updatebCapacitorBE(b, cap, simulator);
       break;
@@ -227,10 +200,8 @@ static inline void
 stampInductor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& ind, 
               const Simulator* simulator)
 {
-  IntegrateMethod userMethod = simulator->integrateMethod();
-  const SimResult& prevData = simulator->simulationResult();
-  IntegrateMethod actualMethod = chooseIntMethod(userMethod, prevData);
-  switch (actualMethod) {
+  IntegrateMethod intMethod = simulator->integrateMethod();
+  switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
       stampInductorBE(A, b, ind, simulator);
       break;
@@ -246,10 +217,8 @@ static inline void
 updatebInductor(Eigen::VectorXd& b, const Device& ind, 
                 const Simulator* simulator)
 {
-  IntegrateMethod userMethod = simulator->integrateMethod();
-  const SimResult& prevData = simulator->simulationResult();
-  IntegrateMethod actualMethod = chooseIntMethod(userMethod, prevData);
-  switch (actualMethod) {
+  IntegrateMethod intMethod = simulator->integrateMethod();
+  switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
       updatebInductorBE(b, ind, simulator);
       break;

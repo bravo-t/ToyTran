@@ -66,7 +66,7 @@ class Simulator {
     double initialCondition(size_t /*nodeId*/) const { return 0; }
     const SimResult& simulationResult() const { return _result; }
     double simulationTick() const { return _simTick; }
-    IntegrateMethod integrateMethod() const { return _intMethod; }
+    IntegrateMethod integrateMethod() const;
     const Circuit& circuit() const { return _circuit; }
 
     void run();

@@ -188,6 +188,10 @@ Simulator::updateEquation()
     MNAStamper::updateA(_Alu, this);
   }
   MNAStamper::updateb(_b, this);
+  if (Debug::enabled()) {
+    double prevTime = _result._ticks.back();
+    Debug::printMatrix(prevTime+_simTick, "b", _b);
+  }
 }
 
 void 
@@ -220,7 +224,7 @@ Simulator::solveEquation()
   ticks.push_back(prevTime + _simTick);
   values.insert(values.end(), x.begin(), x.end());
   if (Debug::enabled()) {
-    Debug::printIterationSolution(prevTime+_simTick, x);
+    Debug::printMatrix(prevTime+_simTick, "x", x);
   }
 }
 

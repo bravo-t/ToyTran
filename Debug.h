@@ -10,7 +10,7 @@ class Debug {
     static bool enabled(size_t l = 0) { return _level > l; };
     static void setLevel(size_t l) { _level = l; }
     static void printEquation(const Eigen::MatrixXd& A, const Eigen::VectorXd& b);
-    static void printIterationSolution(double time, const Eigen::VectorXd& x);
+    static void printMatrix(double time, const char* name, const Eigen::VectorXd& x);
 
   private:
     static size_t _level;

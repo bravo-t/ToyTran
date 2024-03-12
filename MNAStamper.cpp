@@ -444,6 +444,7 @@ MNAStamper::updateb(Eigen::VectorXd& b, const Simulator* sim)
   updatebFunc[static_cast<size_t>(DeviceType::CCVS)] = updatebNoop;
   updatebFunc[static_cast<size_t>(DeviceType::CCCS)] = updatebNoop;
 
+  b.setZero();
   const std::vector<Device>& devices = sim->circuit().devices();
   for (const Device& device : devices) {
     updatebFunc[static_cast<size_t>(device._type)](b, device, sim);

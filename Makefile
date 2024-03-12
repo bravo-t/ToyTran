@@ -20,10 +20,10 @@ OBJ_FULL_LIST = $(subst ./,./build/,$(OBJ_LIST))
 
 default: $(PROG_NAME)
 
-%.o: %.cpp
-	$(CC) $(CFLAG) -o $(BUILD_DIR)/$@ -c $<
+$(BUILD_DIR)/%.o: %.cpp
+	$(CC) $(CFLAG) -o $(BUILD_DIR)/$*.o -c $<
 
-$(PROG_NAME): main.cpp $(OBJ_LIST)
+$(PROG_NAME): main.cpp $(OBJ_FULL_LIST)
 	$(LD) $(OBJ_FULL_LIST) -o $(BIN_DIR)/$@
 
 .PHONY: clean

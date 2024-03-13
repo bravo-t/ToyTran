@@ -14,8 +14,11 @@ CFLAG+=-Isubmodule/eigen
 SRC_DIR     = .
 BUILD_DIR   = ./build
 BIN_DIR     = .
-SRC_LIST = $(wildcard $(SRC_DIR)/*.cpp)
-OBJ_LIST = $(subst .cpp,.o,$(SRC_LIST))
+
+SRC_LIST = main.cpp TR0Writer.cpp Simulator.cpp Circuit.cpp MNAStamper.cpp  NetlistParser.cpp Debug.cpp
+
+SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))
+OBJ_LIST = $(subst .cpp,.o,$(SRC_LIST_TMP))
 OBJ_FULL_LIST = $(subst ./,./build/,$(OBJ_LIST))
 
 default: $(PROG_NAME)

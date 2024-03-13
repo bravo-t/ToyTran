@@ -2,7 +2,7 @@
 
 namespace Tran {
 
-size_t Debug::_level = 1;
+size_t Debug::_level = 0;
 
 const int debugDigits = 5;
 const int debugDigitLength = 8;

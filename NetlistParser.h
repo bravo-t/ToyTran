@@ -18,10 +18,19 @@ class NetlistParser {
     std::vector<Device> devices() const { return _devices; }
     std::vector<PWLValue> PWLData() const { return _PWLData; }
 
+    double simulationTime() const { return _simTime; }
+    double simulationTick() const { return _simTick; }
+
+  private:
+    void processCommands(const std::string& line);
+
+
   private:
     std::vector<std::string>     _nodes;
     std::vector<Device>          _devices;
     std::vector<PWLValue>        _PWLData;
+    double                       _simTick = 1e-15;
+    double                       _simTime = 2;
 
 };
 

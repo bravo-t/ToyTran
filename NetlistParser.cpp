@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <cstring>
 #include "NetlistParser.h"
+#include "Debug.h"
 
 namespace Tran {
 
@@ -137,11 +138,20 @@ splitWithAny(const std::string& src, const char *delim,
 }
 
 static inline double 
-findUnit(std::string& str)
+findUnit(std::string& str, const char* ignoreChars)
 {
   size_t lastIndex = str.size() - 1;
+  size_t actualLastIndex = lastIndex;
   char lastChar = str[lastIndex];
-  char unitStartIndex = lastIndex;
+  size_t ignoreLength = strlen(ignoreChars);
+  for (size_t i=0; i<ignoreLength; ++i) {
+    if (lastChar == ignoreChars[i]) {
+      actualLastIndex -= 1;
+      lastChar = str[actualLastIndex];
+      break;
+    }
+  }
+  char unitStartIndex = actualLastIndex;
   double scale = 1;
   switch (lastChar) {
     case 'F':
@@ -178,10 +188,10 @@ findUnit(std::string& str)
     case 'G':
     case 'g':
       if (str.size() > 3 && 
-         (str[lastIndex-2] == 'M' || str[lastIndex-2] == 'm') && 
-         (str[lastIndex-1] == 'E' || str[lastIndex-1] == 'e')) {
+         (str[actualLastIndex-2] == 'M' || str[actualLastIndex-2] == 'm') && 
+         (str[actualLastIndex-1] == 'E' || str[actualLastIndex-1] == 'e')) {
         scale = 1e6;
-        unitStartIndex = lastIndex - 2;   
+        unitStartIndex = actualLastIndex - 2;   
       } else {
         scale = 1e9;
       }
@@ -197,9 +207,9 @@ findUnit(std::string& str)
 }
 
 static inline double 
-numericalValue(std::string& str)
+numericalValue(std::string& str, const char* ignoreChars)
 {
-  double scale = findUnit(str);
+  double scale = findUnit(str, ignoreChars);
   return strtod(str.data(), nullptr) * scale;
 }
 
@@ -222,7 +232,7 @@ parsePWLData(std::vector<std::string>& strs, size_t startIndex)
       str.pop_back();
     }
     if (str.size() > 0) {
-      double value = numericalValue(str);
+      double value = numericalValue(str, "VvAa");
       if (((i - startIndex) & 0x1) == 0) {
         pwlData._time.push_back(value);
       } else {
@@ -263,6 +273,7 @@ static void
 addTwoTermDevice(DeviceType type, 
                  std::vector<std::string>& strs,  
                  std::vector<Device>& devices, 
+                 const char* units,
                  std::unordered_map<std::string, size_t>& nodeMap)
 {
   Device dev;
@@ -270,7 +281,7 @@ addTwoTermDevice(DeviceType type,
   dev._name.assign(strs[0].begin() + 1, strs[0].end());
   dev._posNode = findOrCreateNode(nodeMap, strs[1]); 
   dev._negNode = findOrCreateNode(nodeMap, strs[2]); 
-  dev._value = numericalValue(strs[3]);
+  dev._value = numericalValue(strs[3], units);
   devices.push_back(dev);
 }
 
@@ -284,7 +295,7 @@ addResistor(const std::string& line, std::vector<Device>& devices,
     printf("Unsupported syntax %s\n", line.data());
     return;
   }
-  addTwoTermDevice(DeviceType::Resistor, strs, devices, nodeMap);
+  addTwoTermDevice(DeviceType::Resistor, strs, devices, "", nodeMap);
 }
 
 static void 
@@ -297,7 +308,7 @@ addCapacitor(const std::string& line, std::vector<Device>& devices,
     printf("Unsupported syntax %s\n", line.data());
     return;
   }
-  addTwoTermDevice(DeviceType::Capacitor, strs, devices, nodeMap);
+  addTwoTermDevice(DeviceType::Capacitor, strs, devices, "", nodeMap);
 }
 
 static void 
@@ -310,7 +321,7 @@ addInductor(const std::string& line, std::vector<Device>& devices,
     printf("Unsupported syntax %s\n", line.data());
     return;
   }
-  addTwoTermDevice(DeviceType::Inductor, strs, devices, nodeMap);
+  addTwoTermDevice(DeviceType::Inductor, strs, devices, "hH", nodeMap);
 }
 
 void 
@@ -322,7 +333,7 @@ addIndependentSource(DeviceType type, const std::string& line,
   std::vector<std::string> strs;
   splitWithAny(line, " ", strs);
   if (strs.size() == 4) {
-    addTwoTermDevice(type, strs, devices, nodeMap);
+    addTwoTermDevice(type, strs, devices, "VvAa", nodeMap);
   } else if (strs.size() > 4 && 
             (strncmp(strs[3].data(), "PWL", 3) == 0 || 
              strncmp(strs[3].data(), "pwl", 3) == 0)) {
@@ -380,7 +391,7 @@ addDependentDevice(DeviceType type,
     printf("Referenced sampling node %s in device %s does not exist\n", strs[4].data(), strs[0].data());
     return;
   }
-  dev._value = numericalValue(strs[5]);
+  dev._value = numericalValue(strs[5], "");
   devices.push_back(dev);
 }
 
@@ -445,6 +456,22 @@ addCCCS(const std::string& line,
 }
 
 void
+NetlistParser::processCommands(const std::string& line) 
+{
+  std::vector<std::string> strs;
+  splitWithAny(line, " \t\r", strs);
+  if (strs[0] == ".tran") {
+    _simTick = numericalValue(strs[1], "sS");
+    _simTime = numericalValue(strs[2], "sS");
+  } else if (strs[0] == ".debug") {
+    Debug::setLevel(numericalValue(strs[1], ""));
+  } else if (strs[0] == ".end") {
+  } else {
+    printf("command line %s is ignored\n", line.data());
+  }
+}
+
+void
 NetlistParser::parseLine(const std::string& line, 
                          std::unordered_map<std::string, size_t>& nodeMap)
 {
@@ -487,6 +514,11 @@ NetlistParser::parseLine(const std::string& line,
       addCCVS(line, _devices, _PWLData, nodeMap);
       break;
     case '*':
+      break;
+    case '.':
+      processCommands(line);
+      break;
+    case '\0':
       break;
     default:
       printf("Ignoring line %s\n", line.data());

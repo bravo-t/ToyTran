@@ -161,6 +161,7 @@ findUnit(std::string& str, const char* ignoreChars)
     case 'P':
     case 'p':
       scale = 1e-12;
+      break;
     case 'N':
     case 'n':
       scale = 1e-9;
@@ -456,6 +457,28 @@ addCCCS(const std::string& line,
 }
 
 void
+NetlistParser::processOption(const std::string& line) 
+{
+  std::vector<std::string> strs;
+  splitWithAny(line, " =", strs);
+  /// strs[0] = ".option", discard
+  for (size_t i=1; i<strs.size(); ++i) {
+    if (strs[i].compare("method") == 0) {
+      ++i;
+      if (strs[i].compare("gear2") == 0) {
+        _intMethod = IntegrateMethod::Gear2;
+      } else if (strs[i].compare("euler") == 0) {
+        _intMethod = IntegrateMethod::BackwardEuler;
+      } else {
+        printf("Integrate method \"%s\" is not supported, using default gear2\n", strs[i].data());
+      }
+    } else {
+      printf("option \"%s\" is not supported and ignored\n", strs[i].data());
+    }
+  }
+}
+
+void
 NetlistParser::processCommands(const std::string& line) 
 {
   std::vector<std::string> strs;
@@ -464,6 +487,9 @@ NetlistParser::processCommands(const std::string& line)
     _simTick = numericalValue(strs[1], "sS");
     _simTime = numericalValue(strs[2], "sS");
   } else if (strs[0] == ".debug") {
+    Debug::setLevel(numericalValue(strs[1], ""));
+  } else if (strs[0] == ".option") {
+    processOption(line);
     Debug::setLevel(numericalValue(strs[1], ""));
   } else if (strs[0] == ".end") {
   } else {

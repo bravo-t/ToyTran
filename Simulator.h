@@ -5,15 +5,11 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <deque>
+#include "Base.h"
 
 namespace Tran {
 
 class Circuit;
-
-enum class IntegrateMethod : unsigned char {
-  BackwardEuler,
-  Gear2,
-};
 
 enum class SimResultType : unsigned char {
   Voltage,
@@ -58,8 +54,9 @@ class Simulator {
   public:
     Simulator(const Circuit& ckt)
     : _circuit(ckt) {}
-    void setSimTick(double simTick) { _simTick = simTick; }
-    void setSimulationEndTime(double t) { _simEnd = t; }
+    void setSimTick(double simTick);
+    void setSimulationEndTime(double t);
+    void setIntegrateMethod(IntegrateMethod intMethod);
 
     /// Normally initial conditions are computed by a DC OP simulation. 
     /// Here we use 0v for now

@@ -20,9 +20,11 @@ class NetlistParser {
 
     double simulationTime() const { return _simTime; }
     double simulationTick() const { return _simTick; }
+    IntegrateMethod integrateMethod() const { return _intMethod; }
 
   private:
     void processCommands(const std::string& line);
+    void processOption(const std::string& line);
 
 
   private:
@@ -31,6 +33,7 @@ class NetlistParser {
     std::vector<PWLValue>        _PWLData;
     double                       _simTick = 1e-15;
     double                       _simTime = 2;
+    IntegrateMethod              _intMethod = IntegrateMethod::Gear2;
 
 };
 

@@ -100,7 +100,7 @@ SimResult::nodeVoltage(size_t nodeId, size_t steps) const
   size_t nodeIndex = nodeVectorIndex(nodeId);
   assert(nodeIndex != static_cast<size_t>(-1) && "Incorrect nodeId");
   steps -= 1;
-  size_t resultIndex = (_ticks.size() - steps) * _map.size() + nodeIndex;
+  size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + nodeIndex;
   return _values[resultIndex];
 }
 
@@ -116,7 +116,7 @@ SimResult::deviceCurrent(size_t deviceId, size_t steps) const
   size_t devIndex = deviceVectorIndex(deviceId);
   assert(devIndex != static_cast<size_t>(-1) && "Incorrect deviceId");
   steps -= 1;
-  size_t resultIndex = (_ticks.size() - steps) * _map.size() + devIndex;
+  size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + devIndex;
   return _values[resultIndex];
 }
 
@@ -259,7 +259,36 @@ Simulator::run()
   }
 }
 
+void
+Simulator::setIntegrateMethod(IntegrateMethod intMethod)
+{
+  switch (intMethod) {
+    case IntegrateMethod::BackwardEuler:
+      printf("Backward Euler is chosen as the numerical integration method\n");
+      _intMethod = intMethod;
+      break;
+    case IntegrateMethod::Gear2:
+      printf("Gear2 (BDF2) is chosen as the numerical integration method\n");
+      _intMethod = intMethod;
+      break;
+    default:
+      printf("Unsupported numerical integration method, using default Gear2\n");
+      _intMethod = IntegrateMethod::Gear2;
+  }
+}
 
+void
+Simulator::setSimTick(double simTick) 
+{
+  printf("Simulation time step set to %g second\n", simTick);
+  _simTick = simTick;
+}
 
+void
+Simulator::setSimulationEndTime(double simTime)
+{
+  printf("Simulation end time set to %g second\n", simTime);
+  _simEnd = simTime;
+}
 
 }

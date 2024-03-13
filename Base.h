@@ -6,6 +6,11 @@
 
 namespace Tran {
 
+enum class IntegrateMethod : unsigned char {
+  BackwardEuler,
+  Gear2,
+};
+
 enum class DeviceType : unsigned char {
   Resistor,
   Capacitor,

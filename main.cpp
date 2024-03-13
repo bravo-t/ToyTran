@@ -33,12 +33,12 @@ int main(int argc, char** argv)
   }
 
   Tran::NetlistParser parser(argv[1]);
-  printf("Transient simualtion will be run for %g seconds with %g step\n", 
-    parser.simulationTime(), parser.simulationTick());
   Tran::Circuit circuit(parser);
   Tran::Simulator simulator(circuit);
-  simulator.setSimulationEndTime(parser.simulationTime());
   simulator.setSimTick(parser.simulationTick());
+  simulator.setSimulationEndTime(parser.simulationTime());
+  simulator.setIntegrateMethod(parser.integrateMethod());
+  printf("Starting transient simulation\n");
   simulator.run();
   printf("Simulation finished, writing data to %s\n", tr0File.data());
 

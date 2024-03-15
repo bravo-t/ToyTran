@@ -224,7 +224,7 @@ Simulator::solveEquation()
   ticks.push_back(prevTime + _simTick);
   values.insert(values.end(), x.begin(), x.end());
   if (Debug::enabled()) {
-    Debug::printVector(prevTime+_simTick, "x", x);
+    Debug::printSolution(prevTime+_simTick, "x", x, this);
   }
 }
 

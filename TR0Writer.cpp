@@ -95,10 +95,10 @@ writeHeader(std::ofstream& out, const Circuit& ckt, const SimResult& result)
     const auto& data = headerCol[i];
     if (data.first == 1) {
       if (i != 0 || data.second.compare("TIME") != 0) {
-        out << "v(";
+        out << "V(";
       }
     } else if (data.first == 8) {
-      out << "i(";
+      out << "I(";
     } else {
       assert(false && "Unrecognized header type value");
     }

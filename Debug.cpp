@@ -1,4 +1,6 @@
 #include "Debug.h"
+#include "Circuit.h"
+#include "Simulator.h"
 
 namespace Tran {
 
@@ -105,6 +107,51 @@ Debug::printVector(double time, const char* name, const Eigen::VectorXd& x)
       for (int c=0; c<spaceLength; ++c) printf(" ");
     }
     printf(" | % *.*g | \n", vectorElementLength, debugDigits, x(i));
+  }
+  for (int c=0; c<spaceLength; ++c) printf(" ");
+  printf(" --");
+  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  printf("--\n");
+}
+
+std::vector<std::string>
+rowName(const Simulator* sim)
+{
+  const SimResultMap& map = sim->simulationResult()._map;
+  const Circuit& ckt = sim->circuit();
+  std::vector<std::string> names(map.size()+1, "");
+  for (const auto& kv : map._nodeVoltageMap) {
+    size_t nodeId = kv.first;
+    size_t index = kv.second;
+    names[index] = "V(" + ckt.node(nodeId)._name + ")";
+  }
+  for (const auto& kv : map._deviceCurrentMap) {
+    size_t devId = kv.first;
+    size_t index = kv.second;
+    names[index] = "I(" + ckt.device(devId)._name + ")";
+  }
+  return names;
+}
+
+void 
+Debug::printSolution(double time, const char* name, const Eigen::VectorXd& x, const Simulator* sim)
+{
+  const std::vector<std::string>& names = rowName(sim);
+  int vectorElementLength = maxFloatLength(x);
+  int nameLength = strlen(name);
+  int spaceLength = vectorElementLength + nameLength + 6;
+  for (int c=0; c<spaceLength; ++c) printf(" ");
+  printf(" --");
+  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  printf("--\n");
+
+  for (Eigen::Index i=0; i<x.rows(); ++i) {
+    if (i == x.rows()/2) {
+      printf("%s @ % *.*g = ", name, vectorElementLength, debugDigits, time);
+    } else {
+      for (int c=0; c<spaceLength; ++c) printf(" ");
+    }
+    printf(" | % *.*g | -> %s\n", vectorElementLength, debugDigits, x(i), names[i].data());
   }
   for (int c=0; c<spaceLength; ++c) printf(" ");
   printf(" --");

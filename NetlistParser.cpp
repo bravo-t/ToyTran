@@ -233,14 +233,17 @@ parsePWLData(std::vector<std::string>& strs, size_t startIndex)
       str.pop_back();
     }
     if (str.size() > 0) {
-      double value = numericalValue(str, "VvAa");
-      if (((i - startIndex) & 0x1) == 0) {
+      if (((i - startIndex - 1) & 0x1) == 0) {
+        double value = numericalValue(str, "Ss");
         pwlData._time.push_back(value);
       } else {
+        double value = numericalValue(str, "VvAa");
         pwlData._value.push_back(value);
       }
     }
   }
+  assert(pwlData._time.size() == pwlData._value.size() &&
+        "Imbalanced PWL data\n");
   return pwlData;
 }
 

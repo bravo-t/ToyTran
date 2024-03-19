@@ -28,5 +28,7 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.option method=gear2`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler) and `gear2` (Gear2 or BDF2). More to come.
 
+`.plot V(NodeName) I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. Under developing.
+
 ## File format of tr0
 https://github.com/l-chang/gwave/blob/b362dd6d98c255b35a96d9a69a80563b26c2612c/doc/hspice-output.txt

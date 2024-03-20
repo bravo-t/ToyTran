@@ -18,6 +18,9 @@ class Circuit {
     const Device& device(size_t id) const { return _devices[id]; }
     const Node& node(size_t id) const { return _nodes[id]; }
 
+    const Device& findDeviceByName(const std::string& name) const;
+    const Node& findNodeByName(const std::string& name) const;
+
   private:
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;

@@ -22,6 +22,9 @@ class NetlistParser {
     double simulationTick() const { return _simTick; }
     IntegrateMethod integrateMethod() const { return _intMethod; }
 
+    const std::vector<std::string>& nodesToPlot() const  { return _nodeToPlot; }
+    const std::vector<std::string>& devicesToPlot() const  { return _deviceToPlot; }
+
   private:
     void processCommands(const std::string& line);
     void processOption(const std::string& line);
@@ -34,6 +37,8 @@ class NetlistParser {
     double                       _simTick = 1e-15;
     double                       _simTime = 2;
     IntegrateMethod              _intMethod = IntegrateMethod::Gear2;
+    std::vector<std::string>     _nodeToPlot;
+    std::vector<std::string>     _deviceToPlot;
 
 };
 

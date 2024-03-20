@@ -481,6 +481,72 @@ NetlistParser::processOption(const std::string& line)
   }
 }
 
+char 
+asciitolower(char in) 
+{
+  if (in <= 'Z' && in >= 'A')
+    return in - ('Z' - 'z');
+  return in;
+}
+
+void 
+toLower(std::string& line) 
+{
+  std::transform(line.begin(), line.end(), line.begin(), asciitolower);
+}
+
+void
+findNameInParenthesis(std::string& str, size_t& startIndex, size_t& endIndex)
+{
+  endIndex = 0;
+  startIndex = str.size();
+  for (size_t i=0; i<str.size(); ++i) {
+    if (str[i] == '(') {
+      startIndex = i;
+      conitnue;
+    }
+    if (startIndex != str.size() && str[i] == ')') {
+      endIndex = i;
+      break;
+    }
+  }
+}
+
+void 
+processPlot(const std::string& line, 
+            std::vector<std::string>& nodeToPlot, 
+            std::vector<std::string>& deviceToPlot)
+{
+  std::vector<std::string> strs;
+  splitWithAny(line, " ", strs);
+  /// strs[0] == .plot, discard
+  toLower(strs[1]);
+  if (strs[1].compare("tran") != 0) {
+    printf("Only tran mode is supported\n");
+    return;
+  }
+  for (size_t i=2; i<strs.size(); ++i) {
+    char c = firstChar(strs[i]);
+    std::vector<std::string>* destVec = nullptr;
+    if (c == 'V' || c == 'v') {
+      destVec = &nodeToPlot;
+    } else if (c == 'I' || c == 'i') {
+      destVec = &deviceToPlot;
+    } else {
+      printf("Unsupported type of metric %c\n", c);
+      conitnue;
+    }
+    size_t startIndex, endIndex;
+    findNameInParenthesis(strs[i], startIndex, endIndex);
+    if (startIndex == strs[i].size() || endIndex == 0) {
+      printf("Unsupported syntax in line \"%s\"", line.data());
+      return;
+    }
+    std::string str = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
+    destVec->push_back(str);
+  }
+}
+
 void
 NetlistParser::processCommands(const std::string& line) 
 {
@@ -493,7 +559,8 @@ NetlistParser::processCommands(const std::string& line)
     Debug::setLevel(numericalValue(strs[1], ""));
   } else if (strs[0] == ".option") {
     processOption(line);
-    Debug::setLevel(numericalValue(strs[1], ""));
+  } else if (strs[0] == ".plot") {
+    processPlot(line, _nodeToPlot, _deviceToPlot);
   } else if (strs[0] == ".end") {
   } else {
     printf("command line %s is ignored\n", line.data());

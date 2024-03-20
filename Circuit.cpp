@@ -71,5 +71,29 @@ Circuit::PWLData(const Device& dev) const
   return _PWLData[dev._PWLData];
 }
 
+const Device& 
+Circuit::findDeviceByName(const std::string& name) const
+{
+  for (const Device& dev : _devices) {
+    if (dev._name == name) {
+      return dev;
+    }
+  }
+  static Device empty;
+  empty._type = DeviceType::Total;
+  return empty;
+}
+
+const Node&
+Circuit::findNodeByName(const std::string& name) const
+{
+  for (const Node& node : _nodes) {
+    if (node._name == name) {
+      return node;
+    }
+  }
+  static Node empty;
+  return empty;
+}
 
 }

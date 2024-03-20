@@ -6,7 +6,7 @@ endif
 
 CC          = g++
 LD          = g++ 
-CFLAG       = -Wall $(PRE_CFLAGS)
+CFLAG       = -Wall -Wextra $(PRE_CFLAGS)
 PROG_NAME   = trans
 
 CFLAG+=-Isubmodule/eigen
@@ -15,7 +15,7 @@ SRC_DIR     = .
 BUILD_DIR   = ./build
 BIN_DIR     = .
 
-SRC_LIST = main.cpp TR0Writer.cpp Simulator.cpp Circuit.cpp MNAStamper.cpp  NetlistParser.cpp Debug.cpp
+SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp Simulator.cpp Circuit.cpp MNAStamper.cpp  NetlistParser.cpp Debug.cpp
 
 SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))
 OBJ_LIST = $(subst .cpp,.o,$(SRC_LIST_TMP))

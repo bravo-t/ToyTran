@@ -382,6 +382,7 @@ addDependentDevice(DeviceType type,
                    std::unordered_map<std::string, size_t>& nodeMap)
 {
   Device dev;
+  dev._type = type;
   dev._name.assign(strs[0].begin() + 1, strs[0].end());
   dev._posNode = findOrCreateNode(nodeMap, strs[1]); 
   dev._negNode = findOrCreateNode(nodeMap, strs[2]); 
@@ -402,7 +403,7 @@ addDependentDevice(DeviceType type,
 static void 
 addVCVS(const std::string& line, 
         std::vector<Device>& devices, 
-        std::vector<PWLValue>& PWLData, 
+        std::vector<PWLValue>& /*PWLData*/, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
   std::vector<std::string> strs;
@@ -417,7 +418,7 @@ addVCVS(const std::string& line,
 static void 
 addVCCS(const std::string& line, 
         std::vector<Device>& devices, 
-        std::vector<PWLValue>& PWLData, 
+        std::vector<PWLValue>& /*PWLData*/, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
   std::vector<std::string> strs;
@@ -432,7 +433,7 @@ addVCCS(const std::string& line,
 static void 
 addCCVS(const std::string& line, 
         std::vector<Device>& devices, 
-        std::vector<PWLValue>& PWLData, 
+        std::vector<PWLValue>& /*PWLData*/, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
   std::vector<std::string> strs;
@@ -447,7 +448,7 @@ addCCVS(const std::string& line,
 static void 
 addCCCS(const std::string& line, 
         std::vector<Device>& devices, 
-        std::vector<PWLValue>& PWLData, 
+        std::vector<PWLValue>& /*PWLData*/, 
         std::unordered_map<std::string, size_t>& nodeMap)
 {
   std::vector<std::string> strs;
@@ -503,7 +504,7 @@ findNameInParenthesis(std::string& str, size_t& startIndex, size_t& endIndex)
   for (size_t i=0; i<str.size(); ++i) {
     if (str[i] == '(') {
       startIndex = i;
-      conitnue;
+      continue;
     }
     if (startIndex != str.size() && str[i] == ')') {
       endIndex = i;
@@ -534,7 +535,7 @@ processPlot(const std::string& line,
       destVec = &deviceToPlot;
     } else {
       printf("Unsupported type of metric %c\n", c);
-      conitnue;
+      continue;
     }
     size_t startIndex, endIndex;
     findNameInParenthesis(strs[i], startIndex, endIndex);

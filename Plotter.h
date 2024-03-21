@@ -5,17 +5,17 @@ namespace Tran {
 
 class Circuit;
 class NetlistParser;
-struct SimulatorResult;
+struct SimResult;
 
 class Plotter {
   public:
-    Plotter(const NetlistParser& parser, const Circuit& ckt, const SimulatorResult& result); 
+    Plotter(const NetlistParser& parser, const Circuit& ckt, const SimResult& result); 
     void plot();
 
   private:
     const NetlistParser&   _parser;
     const Circuit&         _circuit;
-    const SimulatorResult& _result;
+    const SimResult& _result;
 };
 
 

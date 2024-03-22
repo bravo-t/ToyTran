@@ -21,27 +21,18 @@ Plotter::Plotter(const NetlistParser& parser, const Circuit& ckt, const SimResul
  : _parser(parser), _circuit(ckt), _result(result) {}
 
 std::vector<std::pair<double, double>>
-simData(const SimResult& result, size_t rowIndex, double& max, double& min, double& tick)
+simData(const SimResult& result, size_t rowIndex, double& max, double& min)
 {
   std::vector<std::pair<double, double>> data;
   max = std::numeric_limits<double>::lowest();
   min = std::numeric_limits<double>::max();
-  tick = std::numeric_limits<double>::max();
-  double prevTick = std::numeric_limits<double>::max();
   size_t resultVectorSize = result._map.size();
   for (size_t tIndex=0; tIndex<result._ticks.size(); ++tIndex) {
     size_t valueIndex = tIndex*resultVectorSize+rowIndex;
     double value = result._values[valueIndex];
     if (!std::isnan(value) && !std::isinf(value)) {
       max = std::max(max, value);
-      max = std::min(min, value);
-      if (prevTick == std::numeric_limits<double>::max()) {
-        prevTick = result._ticks[tIndex];
-      } else {
-        double interval = result._ticks[tIndex] - prevTick;
-        tick = std::min(tick, interval);
-        prevTick = result._ticks[tIndex];
-      }
+      min = std::min(min, value);
       data.push_back(std::make_pair(result._ticks[tIndex], value));
     }
   }
@@ -50,7 +41,7 @@ simData(const SimResult& result, size_t rowIndex, double& max, double& min, doub
 
 std::vector<std::pair<double, double>>
 nodeSimData(const SimResult& result, const std::string& nodeName, 
-            const Circuit& ckt, double& max, double& min, double& tick) 
+            const Circuit& ckt, double& max, double& min) 
 {
   const Node& node = ckt.findNodeByName(nodeName);
   if (node._nodeId == static_cast<size_t>(-1)) {
@@ -58,12 +49,12 @@ nodeSimData(const SimResult& result, const std::string& nodeName,
     return std::vector<std::pair<double, double>>();
   }
   size_t rowIndex = result.nodeVectorIndex(node._nodeId);
-  return simData(result, rowIndex, max, min, tick);
+  return simData(result, rowIndex, max, min);
 }
 
 std::vector<std::pair<double, double>>
 deviceSimData(const SimResult& result, const std::string& devName, 
-              const Circuit& ckt, double& max, double& min, double& tick) 
+              const Circuit& ckt, double& max, double& min) 
 {
   const Device& device = ckt.findDeviceByName(devName);
   if (device._devId == static_cast<size_t>(-1)) {
@@ -71,12 +62,12 @@ deviceSimData(const SimResult& result, const std::string& devName,
     return std::vector<std::pair<double, double>>();
   }
   size_t rowIndex = result.deviceVectorIndex(device._devId);
-  return simData(result, rowIndex, max, min, tick);
+  return simData(result, rowIndex, max, min);
 }
 
 void 
 plotData(const std::vector<std::pair<double, double>>& data, 
-         double max, double min, double tick)
+         double max, double min)
 {
   if (data.empty()) {
     return;
@@ -101,10 +92,13 @@ plotData(const std::vector<std::pair<double, double>>& data,
   width -= 1;
   height -= 2;
   double dataScale = (max - min) / height;
-  double timeScale = (data.back().first / tick) / width;
+  double timeScale = data.back().first / width;
   for (const auto& point : data) {
-    size_t y = (point.second - min) / dataScale;
+    double offsetValue = point.second - min;
+    size_t y = offsetValue / dataScale;
     size_t x = point.first / timeScale;
+    //printf("y value: %g, y div: %lu, x value: %g, x div: %lu, dataScale: %g, timeScale: %g\n", 
+    //  offsetValue, y, point.first, x, dataScale, timeScale);
     canvas[y][x] = '*';
   }
 
@@ -118,9 +112,9 @@ plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const SimResult
 {
   double max = 0;
   double min = 0;
-  double tick = 0;
-  auto data = nodeSimData(result, nodeName, ckt, max, min, tick);
-  plotData(data, max, min, tick);
+  auto data = nodeSimData(result, nodeName, ckt, max, min);
+  plotData(data, max, min);
+  //printf("Node %s, data size: %lu, max: %g, min: %g, last time: %g\n", nodeName.data(), data.size(), max, min, data.back().first);
   printf("  Voltage of node %s\n", nodeName.data());
 }
 
@@ -128,9 +122,8 @@ void plotDeviceCurrent(const std::string& devName, const Circuit& ckt, const Sim
 {
   double max = 0;
   double min = 0;
-  double tick = 0;
-  auto data = deviceSimData(result, devName, ckt, max, min, tick);
-  plotData(data, max, min, tick);
+  auto data = deviceSimData(result, devName, ckt, max, min);
+  plotData(data, max, min);
   printf("  Current of device %s\n", devName.data());
 }
 

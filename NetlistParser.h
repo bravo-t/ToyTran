@@ -25,6 +25,8 @@ class NetlistParser {
     const std::vector<std::string>& nodesToPlot() const  { return _nodeToPlot; }
     const std::vector<std::string>& devicesToPlot() const  { return _deviceToPlot; }
 
+    bool needPlot() const { return _nodeToPlot.empty() == false || _deviceToPlot.empty() == false; }
+
   private:
     void processCommands(const std::string& line);
     void processOption(const std::string& line);

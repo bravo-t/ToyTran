@@ -3,6 +3,7 @@
 #include "Circuit.h"
 #include "Simulator.h"
 #include "TR0Writer.h"
+#include "Plotter.h"
 
 std::string
 fileNameWithoutSuffix(const char* fname)
@@ -45,6 +46,11 @@ int main(int argc, char** argv)
   Tran::TR0Writer writer(circuit, tr0File);
   writer.adjustNumberWidth(parser.simulationTick(), parser.simulationTime());
   writer.writeData(simulator.simulationResult());
+
+  if (parser.needPlot()) {
+    Tran::Plotter plt(parser, circuit, simulator.simulationResult());
+    plt.plot();
+  }
 
   return 0;
 }

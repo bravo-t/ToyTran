@@ -9,3 +9,4 @@ L1 1 0 0.001
 
 .tran 1ps 1ns
 .debug 0
+.plot TRAN V(3) V(1) I(in) 

@@ -523,7 +523,7 @@ processPlot(const std::string& line,
   /// strs[0] == .plot, discard
   toLower(strs[1]);
   if (strs[1].compare("tran") != 0) {
-    printf("Only tran mode is supported\n");
+    printf("Only tran mode is supported in .plot command\n");
     return;
   }
   for (size_t i=2; i<strs.size(); ++i) {

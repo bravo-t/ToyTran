@@ -3,7 +3,5 @@ R1 1 2 1000
 R2 2 0 2000
 R3 2 0 2000
 
-.tran 1ns 10ns
-.option method=euler
+.tran 1ns 1000ns
 .debug 0
-.end

@@ -45,6 +45,9 @@ Circuit::Circuit(const NetlistParser& parser)
     _nodes[posNode]._connection.push_back(i);
     size_t negNode = dev._negNode;
     _nodes[negNode]._connection.push_back(i);
+    if (isAnySource(dev)) {
+      _nodes[negNode]._isGround = true;
+    }
   }
   for (size_t i=0; i<_devices.size(); ++i) {
     Device& dev = _devices[i];
@@ -59,6 +62,14 @@ Circuit::Circuit(const NetlistParser& parser)
       }
     }
   }
+
+  printf("Following node(s) are recognized as ground node(s):\n");
+  for (const Node& n : _nodes) {
+    if (n._isGround) {
+      printf("  %s\n", n._name.data());
+    }
+  }
+  
 }
 
 const PWLValue&

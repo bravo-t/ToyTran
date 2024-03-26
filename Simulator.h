@@ -66,6 +66,9 @@ class Simulator {
     IntegrateMethod integrateMethod() const;
     const Circuit& circuit() const { return _circuit; }
 
+    double nodeVoltage(size_t nodeId, size_t steps) const;
+    double deviceCurrent(size_t devId, size_t steps) const;
+
     void run();
 
   private:

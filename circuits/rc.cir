@@ -1,0 +1,7 @@
+VVDD 1 0 5
+R1 1 2 1k
+C2 2 0 1u
+
+.tran 1ps 30ps
+.plot tran V(2) V(0)
+.debug 1

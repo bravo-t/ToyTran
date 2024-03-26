@@ -134,7 +134,7 @@ updatebInductorBE(Eigen::VectorXd& b,
   double stampValue = ind._value / simTick;
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  double indCurrent = result.deviceCurrent(deviceIndex, 1);
+  double indCurrent = result.deviceCurrent(ind._devId, 1);
   double bValue = -stampValue * indCurrent;
   b(deviceIndex) += bValue;
 }
@@ -155,7 +155,7 @@ stampInductorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   A(negNodeIndex, deviceIndex) += -1;
   A(deviceIndex, negNodeIndex) += -1;
   A(deviceIndex, deviceIndex) += -stampValue;
-  double indCurrent = result.deviceCurrent(deviceIndex, 1);
+  double indCurrent = result.deviceCurrent(ind._devId, 1);
   double bValue = -stampValue * indCurrent;
   b(deviceIndex) += bValue;
 }
@@ -169,8 +169,8 @@ updatebInductorGear2(Eigen::VectorXd& b,
   double baseValue = ind._value / simTick;
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  double indCurrent1 = result.deviceCurrent(deviceIndex, 1);
-  double indCurrent2 = result.deviceCurrent(deviceIndex, 2);
+  double indCurrent1 = result.deviceCurrent(ind._devId, 1);
+  double indCurrent2 = result.deviceCurrent(ind._devId, 2);
   double bValue = -baseValue * (2 * indCurrent1 - 0.5 * indCurrent2);
   b(deviceIndex) += bValue;
 }

@@ -27,23 +27,24 @@ enum class DeviceType : unsigned char {
 
 struct Device {
   std::string _name;
-  size_t _devId = static_cast<size_t>(-1);
-  size_t _posNode = static_cast<size_t>(-1);
-  size_t _negNode = static_cast<size_t>(-1);
-  size_t _posSampleNode = static_cast<size_t>(-1);
-  size_t _negSampleNode = static_cast<size_t>(-1);
-  size_t _sampleDevice = static_cast<size_t>(-1);
-  DeviceType _type;
-  bool _isPWLValue = false;
+  size_t      _devId = static_cast<size_t>(-1);
+  size_t      _posNode = static_cast<size_t>(-1);
+  size_t      _negNode = static_cast<size_t>(-1);
+  size_t      _posSampleNode = static_cast<size_t>(-1);
+  size_t      _negSampleNode = static_cast<size_t>(-1);
+  size_t      _sampleDevice = static_cast<size_t>(-1);
+  DeviceType  _type;
+  bool        _isPWLValue = false;
   union {
-    double _value;
-    size_t _PWLData = 0;
+    double    _value;
+    size_t    _PWLData = 0;
   };
 };
 
 struct Node {
-  size_t _nodeId = static_cast<size_t>(-1);
-  std::string _name;
+  size_t              _nodeId = static_cast<size_t>(-1);
+  bool                _isGround = false;
+  std::string         _name;
   std::vector<size_t> _connection;
 };
 
@@ -51,6 +52,11 @@ struct PWLValue {
   std::vector<double> _time;
   std::vector<double> _value;
 };
+
+inline bool
+isAnySource(const Device& dev) {
+  return dev._type >= DeviceType::VoltageSource;
+}
 
 }
 

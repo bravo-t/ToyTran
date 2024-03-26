@@ -214,7 +214,7 @@ Simulator::solveEquation()
 {
   Eigen::VectorXd x(_eqnDim);
   x = _Alu.solve(_b);
-
+  
   std::vector<double>& ticks = _result._ticks;
   std::deque<double>& values = _result._values;
   double prevTime = 0;
@@ -289,6 +289,36 @@ Simulator::setSimulationEndTime(double simTime)
 {
   printf("Simulation end time set to %g second\n", simTime);
   _simEnd = simTime;
+}
+
+double
+Simulator::nodeVoltage(size_t nodeId, size_t steps) const
+{
+  const Node& node = _circuit.node(nodeId);
+  if (node._isGround) {
+    return .0f;
+  }
+  double voltage = std::numeric_limits<double>::lowest();
+  for (size_t devId : node._connection) {
+    const Device& dev = _circuit.device(devId);
+    if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
+      voltage = std::max(voltage, dev._value);
+    }
+  }
+  if (voltage != std::numeric_limits<double>::lowest()) {
+    return voltage;
+  } 
+  return _result.nodeVoltage(nodeId, steps);
+}
+
+double 
+Simulator::deviceCurrent(size_t deviceId, size_t steps) const
+{
+  const Device& dev = _circuit.device(deviceId);
+  if (dev._type == DeviceType::CurrentSource) {
+    return dev._value;
+  }
+  return _result.deviceCurrent(deviceId, steps);
 }
 
 }

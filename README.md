@@ -30,5 +30,7 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.plot V(NodeName) I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. Under developing.
 
+## Compile and run
+
 ## File format of tr0
 https://github.com/l-chang/gwave/blob/b362dd6d98c255b35a96d9a69a80563b26c2612c/doc/hspice-output.txt

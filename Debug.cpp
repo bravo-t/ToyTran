@@ -120,14 +120,18 @@ rowName(const Simulator* sim)
   const SimResultMap& map = sim->simulationResult()._map;
   const Circuit& ckt = sim->circuit();
   std::vector<std::string> names(map.size()+1, "");
-  for (const auto& kv : map._nodeVoltageMap) {
-    size_t nodeId = kv.first;
-    size_t index = kv.second;
+  for (size_t nodeId=0; nodeId<map._nodeVoltageMap.size(); ++nodeId) {
+    size_t index = map._nodeVoltageMap[nodeId];
+    if (index == SimResultMap::invalidValue()) {
+      continue;
+    }
     names[index] = "V(" + ckt.node(nodeId)._name + ")";
   }
-  for (const auto& kv : map._deviceCurrentMap) {
-    size_t devId = kv.first;
-    size_t index = kv.second;
+  for (size_t devId=0; devId<map._deviceCurrentMap.size(); ++devId) {
+    size_t index = map._deviceCurrentMap[devId];
+    if (index == SimResultMap::invalidValue()) {
+      continue;
+    }
     names[index] = "I(" + ckt.device(devId)._name + ")";
   }
   return names;

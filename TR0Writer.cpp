@@ -53,15 +53,19 @@ columnHeader(const SimResultMap& map, const Circuit& ckt)
   std::pair<int, std::string> initValue(0, "");
   std::vector<std::pair<int, std::string>> header(map.size()+1, initValue);
   header[0] = {1, "TIME"};
-  for (const auto& kv : map._nodeVoltageMap) {
-    size_t nodeId = kv.first;
-    size_t index = kv.second;
+  for (size_t nodeId=0; nodeId<map._nodeVoltageMap.size(); ++nodeId) {
+    size_t index = map._nodeVoltageMap[nodeId];
+    if (index == SimResultMap::invalidValue()) {
+      continue;
+    }
     std::pair<int, std::string> value(1, ckt.node(nodeId)._name);
     header[index+1] = value;
   }
-  for (const auto& kv : map._deviceCurrentMap) {
-    size_t devId = kv.first;
-    size_t index = kv.second;
+  for (size_t devId=0; devId<map._deviceCurrentMap.size(); ++devId) {
+    size_t index = map._deviceCurrentMap[devId];
+    if (devId == SimResultMap::invalidValue()) {
+      continue;
+    }
     std::pair<int, std::string> value(8, ckt.device(devId)._name);
     header[index+1] = value;
   }
@@ -71,7 +75,7 @@ columnHeader(const SimResultMap& map, const Circuit& ckt)
 static void
 writeHeader(std::ofstream& out, const Circuit& ckt, const SimResult& result) 
 {
-  int n = result._map.size();
+  int n = result._map.size() + 1;
   char buf[5];
   sprintf(buf, "%04d", n);
   out << buf << "000000000000000" << std::endl;

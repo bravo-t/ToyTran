@@ -49,6 +49,7 @@ nodeSimData(const SimResult& result, const std::string& nodeName,
     return std::vector<std::pair<double, double>>();
   }
   size_t rowIndex = result.nodeVectorIndex(node._nodeId);
+  printf("Node %s id %lu rowIndex: %lu\n", node._name.data(), node._nodeId, rowIndex);
   return simData(result, rowIndex, max, min);
 }
 

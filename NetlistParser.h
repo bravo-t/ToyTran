@@ -8,14 +8,26 @@
 
 namespace Tran {
 
+struct ParserDevice {
+  std::string _name;
+  std::string _posNode;
+  std::string _negNode;
+  std::string _posSampleNode;
+  std::string _negSampleNode;
+  DeviceType  _type;
+  bool        _isPWLValue = false;
+  union {
+    double    _value;
+    size_t    _PWLData = 0;
+  };
+};
+
 class NetlistParser {
   public:
     NetlistParser(const char* fileName);
-    void parseLine(const std::string& line, 
-                   std::unordered_map<std::string, size_t>& nodeMap);
+    void parseLine(const std::string& line);
   
-    std::vector<std::string> nodes() const { return _nodes; }
-    std::vector<Device> devices() const { return _devices; }
+    std::vector<ParserDevice> devices() const { return _devices; }
     std::vector<PWLValue> PWLData() const { return _PWLData; }
 
     double simulationTime() const { return _simTime; }
@@ -33,8 +45,7 @@ class NetlistParser {
 
 
   private:
-    std::vector<std::string>     _nodes;
-    std::vector<Device>          _devices;
+    std::vector<ParserDevice>          _devices;
     std::vector<PWLValue>        _PWLData;
     double                       _simTick = 1e-15;
     double                       _simTime = 2;

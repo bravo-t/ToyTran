@@ -6,6 +6,23 @@
 
 namespace Tran {
 
+size_t
+SimResultMap::size() const
+{
+  size_t count = 0;
+  for (size_t i : _nodeVoltageMap) {
+    if (i != invalidValue()) {
+      ++count;
+    }
+  }
+  for (size_t i : _deviceCurrentMap) {
+    if (i != invalidValue()) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 IntegrateMethod
 Simulator::integrateMethod() const
 {
@@ -44,12 +61,8 @@ needExtraDim(const Device& dev)
 size_t 
 SimResult::deviceVectorIndex(size_t deviceId) const 
 {
-  const std::unordered_map<size_t, size_t>& map = _map._deviceCurrentMap;
-  const auto& found = map.find(deviceId);
-  if (found != map.end()) {
-    return found->second;
-  }
-  return static_cast<size_t>(-1);
+  assert(deviceId < _map._deviceCurrentMap.size());
+  return _map._deviceCurrentMap[deviceId];
 }
 
 size_t 
@@ -64,13 +77,8 @@ branchDeviceMatrixIndex(const Device& dev, const Simulator* sim)
 size_t
 SimResult::nodeVectorIndex(size_t nodeId) const
 {
-  return nodeId;
-  const std::unordered_map<size_t, size_t>& map = _map._nodeVoltageMap;
-  const auto& found = map.find(nodeId);
-  if (found != map.end()) {
-    return found->second;
-  }
-  return static_cast<size_t>(-1);
+  assert(nodeId < _map._nodeVoltageMap.size());
+  return _map._nodeVoltageMap[nodeId];
 }
 
 double 
@@ -169,14 +177,19 @@ void
 initResultMap(const Circuit& ckt, SimResult& result)
 {
   const std::vector<Node>& nodes = ckt.nodes();
+  result._map._nodeVoltageMap.assign(nodes.size(), SimResultMap::invalidValue());
   size_t index = 0;
   for (const Node& node : nodes) {
-    result._map._nodeVoltageMap.insert({node._nodeId, index});
+    if (node._isGround) {
+      //continue;
+    }
+    result._map._nodeVoltageMap[node._nodeId] = index;
     ++index;
   }
+  result._map._deviceCurrentMap.assign(ckt.deviceNumber(), SimResultMap::invalidValue());
   const std::vector<size_t>& branchIds = branchDevices(ckt);
   for (size_t id : branchIds) {
-    result._map._deviceCurrentMap.insert({id, index});
+    result._map._deviceCurrentMap[id] = index;
     ++index;
   }
 }

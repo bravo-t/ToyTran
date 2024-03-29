@@ -20,10 +20,11 @@ enum class SimResultType : unsigned char {
 ///        the number
 ///        size() should be the dimention of vector x
 struct SimResultMap {
-  std::unordered_map<size_t, size_t> _nodeVoltageMap; /// node ID to matrix index
-  std::unordered_map<size_t, size_t> _deviceCurrentMap; /// device ID to matrix index
+  static size_t invalidValue() { return static_cast<size_t>(-1); }
+  std::vector<size_t> _nodeVoltageMap; /// node ID to matrix index
+  std::vector<size_t> _deviceCurrentMap; /// device ID to matrix index
 
-  size_t size() const { return _nodeVoltageMap.size() + _deviceCurrentMap.size(); }
+  size_t size() const;
 };
 
 /// @brief The solution data of every time step produced by solving Ax=b

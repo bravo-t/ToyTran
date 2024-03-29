@@ -10,6 +10,9 @@ class NetlistParser;
 class Circuit {
   public:
     Circuit(const NetlistParser& parser);
+    
+    size_t nodeNumber() const { return _nodes.size(); }
+    size_t deviceNumber() const { return _devices.size(); }
 
     std::vector<Node> nodes() const { return _nodes; }
     std::vector<Device> devices() const { return _devices; }
@@ -22,6 +25,7 @@ class Circuit {
     const Node& findNodeByName(const std::string& name) const;
 
   private:
+    size_t                         _groundNodeId;
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;
     std::vector<PWLValue>          _PWLData;

@@ -4,4 +4,4 @@ C2 2 0 1u
 
 .tran 1fs 20fs
 .plot tran V(2) V(0)
-.debug 0
+.debug 1

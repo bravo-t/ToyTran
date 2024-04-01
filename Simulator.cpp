@@ -181,7 +181,7 @@ initResultMap(const Circuit& ckt, SimResult& result)
   size_t index = 0;
   for (const Node& node : nodes) {
     if (node._isGround) {
-      //continue;
+      continue;
     }
     result._map._nodeVoltageMap[node._nodeId] = index;
     ++index;

@@ -307,11 +307,11 @@ Simulator::setSimulationEndTime(double simTime)
 double
 Simulator::nodeVoltage(size_t nodeId, size_t steps) const
 {
-  const Node& node = _circuit.node(nodeId);
-  if (node._isGround) {
+  if (circuit().isGroundNode(nodeId)) {
     return .0f;
   }
   double voltage = std::numeric_limits<double>::lowest();
+  const Node& node = _circuit.node(nodeId);
   for (size_t devId : node._connection) {
     const Device& dev = _circuit.device(devId);
     if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {

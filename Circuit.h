@@ -24,6 +24,8 @@ class Circuit {
     const Device& findDeviceByName(const std::string& name) const;
     const Node& findNodeByName(const std::string& name) const;
 
+    bool isGroundNode(size_t nodeId) const { return _groundNodeId == nodeId; }
+
   private:
     size_t                         _groundNodeId;
     std::vector<Node>              _nodes;

@@ -6,6 +6,12 @@
 
 namespace Tran {
 
+static inline bool 
+isNodeOmitted(const Simulator* sim, size_t nodeId)
+{
+  return sim->circuit().isGroundNode(nodeId);
+}
+
 static inline void
 stampResistor(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
               const Device& dev, const Simulator* sim)
@@ -14,10 +20,16 @@ stampResistor(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(dev._negNode);
-  A(posNodeIndex, posNodeIndex) += stampValue;
-  A(negNodeIndex, negNodeIndex) += stampValue;
-  A(posNodeIndex, negNodeIndex) += -stampValue;
-  A(negNodeIndex, posNodeIndex) += -stampValue;
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    A(posNodeIndex, posNodeIndex) += stampValue;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false) {
+    A(negNodeIndex, negNodeIndex) += stampValue;
+  }
+  if (isNodeOmitted(sim, dev._posNode) == false && isNodeOmitted(sim, dev._negNode) == false) {
+    A(posNodeIndex, negNodeIndex) += -stampValue;
+    A(negNodeIndex, posNodeIndex) += -stampValue;
+  }
 }
 
 static inline void
@@ -34,8 +46,12 @@ updatebCapacitorBE(Eigen::VectorXd& b,
   double negVoltage = result.nodeVoltage(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
   double bValue = stampValue * voltageDiff;
-  b(posNodeIndex) += -bValue;
-  b(negNodeIndex) += bValue;
+  if (isNodeOmitted(sim, cap._posNode) == false) {
+    b(posNodeIndex) += -bValue;
+  } 
+  if (isNodeOmitted(sim, cap._negNode) == false) {
+    b(negNodeIndex) += bValue;
+  }
 }
 
 static inline void
@@ -48,8 +64,16 @@ stampCapacitorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
-  A(posNodeIndex, posNodeIndex) += stampValue;
-  A(negNodeIndex, negNodeIndex) += stampValue;
+  if (isNodeOmitted(sim, cap._posNode) == false) {
+    A(posNodeIndex, posNodeIndex) += stampValue;
+  } 
+  if (isNodeOmitted(sim, cap._negNode) == false) {
+    A(negNodeIndex, negNodeIndex) += stampValue;
+  }
+  if (isNodeOmitted(sim, cap._posNode) == false && isNodeOmitted(sim, cap._negNode) == false) {
+    A(posNodeIndex, negNodeIndex) -= stampValue;
+    A(negNodeIndex, posNodeIndex) -= stampValue;
+  }
   updatebCapacitorBE(b, cap, sim);
 }
 
@@ -70,8 +94,12 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
   double bValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
-  b(posNodeIndex) += -bValue;
-  b(negNodeIndex) += bValue;
+  if (isNodeOmitted(sim, cap._posNode) == false) {
+    b(posNodeIndex) += -bValue;
+  } 
+  if (isNodeOmitted(sim, cap._negNode) == false) {
+    b(negNodeIndex) += bValue;
+  }
 }
 
 static inline void
@@ -86,8 +114,16 @@ stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
-  A(posNodeIndex, posNodeIndex) += stampValue;
-  A(negNodeIndex, negNodeIndex) += stampValue;
+  if (isNodeOmitted(sim, cap._posNode) == false) {
+    A(posNodeIndex, posNodeIndex) += stampValue;
+  } 
+  if (isNodeOmitted(sim, cap._negNode) == false) {
+    A(negNodeIndex, negNodeIndex) += stampValue;
+  }
+  if (isNodeOmitted(sim, cap._posNode) == false && isNodeOmitted(sim, cap._negNode) == false) {
+    A(posNodeIndex, negNodeIndex) -= stampValue;
+    A(negNodeIndex, posNodeIndex) -= stampValue;
+  }
   updatebCapacitorGear2(b, cap, sim);
 }
 
@@ -150,10 +186,14 @@ stampInductorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t posNodeIndex = result.nodeVectorIndex(ind._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  A(posNodeIndex, deviceIndex) += 1;
-  A(deviceIndex, posNodeIndex) += 1;
-  A(negNodeIndex, deviceIndex) += -1;
-  A(deviceIndex, negNodeIndex) += -1;
+  if (isNodeOmitted(sim, ind._posNode) == false) {
+    A(posNodeIndex, deviceIndex) += 1;
+    A(deviceIndex, posNodeIndex) += 1;
+  }
+  if (isNodeOmitted(sim, ind._negNode) == false) {
+    A(negNodeIndex, deviceIndex) += -1;
+    A(deviceIndex, negNodeIndex) += -1;
+  }
   A(deviceIndex, deviceIndex) += -stampValue;
   double indCurrent = result.deviceCurrent(ind._devId, 1);
   double bValue = -stampValue * indCurrent;
@@ -188,10 +228,14 @@ stampInductorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t posNodeIndex = result.nodeVectorIndex(ind._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  A(posNodeIndex, deviceIndex) += 1;
-  A(deviceIndex, posNodeIndex) += 1;
-  A(negNodeIndex, deviceIndex) += -1;
-  A(deviceIndex, negNodeIndex) += -1;
+  if (isNodeOmitted(sim, ind._posNode) == false) {
+    A(posNodeIndex, deviceIndex) += 1;
+    A(deviceIndex, posNodeIndex) += 1;
+  }
+  if (isNodeOmitted(sim, ind._negNode) == false) {
+    A(negNodeIndex, deviceIndex) += -1;
+    A(deviceIndex, negNodeIndex) += -1;
+  }
   A(deviceIndex, deviceIndex) += -stampValue;
   updatebInductorGear2(b, ind, sim);
 }
@@ -276,10 +320,14 @@ stampVoltageSource(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(dev._negNode);
   size_t deviceIndex = result.deviceVectorIndex(dev._devId);
-  A(posNodeIndex, deviceIndex) += 1;
-  A(deviceIndex, posNodeIndex) += 1;
-  A(negNodeIndex, deviceIndex) += -1;
-  A(deviceIndex, negNodeIndex) += -1;
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    A(posNodeIndex, deviceIndex) += 1;
+    A(deviceIndex, posNodeIndex) += 1;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false) {
+    A(negNodeIndex, deviceIndex) += -1;
+    A(deviceIndex, negNodeIndex) += -1;
+  }
   updatebVoltageSource(b, dev, sim);
 }
 
@@ -298,8 +346,12 @@ updatebCurrentSource(Eigen::VectorXd& b,
   }
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(dev._negNode);
-  b(posNodeIndex) = -value;
-  b(negNodeIndex) = value;
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    b(posNodeIndex) = -value;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false) {
+    b(negNodeIndex) = value;
+  }
 }
 
 static inline void
@@ -325,14 +377,18 @@ stampCCVS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t negNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
-  A(sampleDeviceIndex, posSampleNodeIndex) += 1;
-  A(sampleDeviceIndex, negSampleNodeIndex) += -1;
-  A(posSampleNodeIndex, sampleDeviceIndex) += 1;
-  A(negSampleNodeIndex, sampleDeviceIndex) += -1;
-  A(deviceIndex, posNodeIndex) += 1;
-  A(deviceIndex, negNodeIndex) += -1;
-  A(posNodeIndex, deviceIndex) += 1;
-  A(negNodeIndex, deviceIndex) += -1;
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    A(sampleDeviceIndex, posSampleNodeIndex) += 1;
+    A(posSampleNodeIndex, sampleDeviceIndex) += 1;
+    A(deviceIndex, posNodeIndex) += 1;
+    A(posNodeIndex, deviceIndex) += 1;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false) {
+    A(negSampleNodeIndex, sampleDeviceIndex) += -1;
+    A(sampleDeviceIndex, negSampleNodeIndex) += -1;
+    A(deviceIndex, negNodeIndex) += -1;
+    A(negNodeIndex, deviceIndex) += -1;
+  }
   A(deviceIndex, sampleDeviceIndex) += value;
 }
 
@@ -347,12 +403,16 @@ stampVCVS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t negNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
-  A(deviceIndex, posSampleNodeIndex) += -value;
-  A(deviceIndex, negSampleNodeIndex) += value;
-  A(deviceIndex, posNodeIndex) += 1;
-  A(deviceIndex, negNodeIndex) += 1;
-  A(posNodeIndex, deviceIndex) += 1;
-  A(negNodeIndex, deviceIndex) += 1;
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    A(deviceIndex, posSampleNodeIndex) += -value;
+    A(deviceIndex, posNodeIndex) += 1;
+    A(posNodeIndex, deviceIndex) += 1;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false) {
+    A(deviceIndex, negSampleNodeIndex) += value;
+    A(deviceIndex, negNodeIndex) += 1;
+    A(negNodeIndex, deviceIndex) += 1;
+  }
 }
 
 static inline void
@@ -370,12 +430,16 @@ stampCCCS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t negNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
-  A(sampleDeviceIndex, posSampleNodeIndex) += 1;
-  A(sampleDeviceIndex, negSampleNodeIndex) += -1;
-  A(posSampleNodeIndex, sampleDeviceIndex) += 1;
-  A(negSampleNodeIndex, sampleDeviceIndex) += -1;
-  A(posNodeIndex, sampleDeviceIndex) += value;
-  A(negNodeIndex, sampleDeviceIndex) += -value;
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    A(sampleDeviceIndex, posSampleNodeIndex) += 1;
+    A(posSampleNodeIndex, sampleDeviceIndex) += 1;
+    A(posNodeIndex, sampleDeviceIndex) += value;
+  }
+  if (isNodeOmitted(sim, dev._posNode) == false) {
+    A(negSampleNodeIndex, sampleDeviceIndex) += -1;
+    A(sampleDeviceIndex, negSampleNodeIndex) += -1;
+    A(negNodeIndex, sampleDeviceIndex) += -value;
+  }
 }
 
 static inline void
@@ -388,10 +452,22 @@ stampVCCS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t negNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
-  A(posNodeIndex, posSampleNodeIndex) += value;
-  A(posNodeIndex, negSampleNodeIndex) += -value;
-  A(negNodeIndex, posSampleNodeIndex) += -value;
-  A(negNodeIndex, negSampleNodeIndex) += value;
+  if (isNodeOmitted(sim, dev._posNode) == false && 
+      isNodeOmitted(sim, dev._posSampleNode) == false) {
+    A(posNodeIndex, posSampleNodeIndex) += value;
+   }
+  if (isNodeOmitted(sim, dev._posNode) == false && 
+      isNodeOmitted(sim, dev._negSampleNode) == false) {
+    A(posNodeIndex, negSampleNodeIndex) += -value;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false && 
+      isNodeOmitted(sim, dev._posSampleNode) == false) {
+    A(negNodeIndex, posSampleNodeIndex) += -value;
+  }
+  if (isNodeOmitted(sim, dev._negNode) == false && 
+      isNodeOmitted(sim, dev._negSampleNode) == false) {
+    A(negNodeIndex, negSampleNodeIndex) += value;
+  }
 }
 
 void

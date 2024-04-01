@@ -122,7 +122,7 @@ Circuit::Circuit(const NetlistParser& parser)
   std::vector<std::string> allNodeNames;
   const std::string& groundNodeName = findGroundNode(parserDevs, allNodeNames);
   std::unordered_map<std::string, size_t> nodeIdMap;
-  printf("Ground node identified as node %s\n", groundNodeName.data());
+  printf("Ground node identified as node \"%s\"\n", groundNodeName.data());
   _nodes.reserve(allNodeNames.size());
   Node ground;
   ground._name = groundNodeName;

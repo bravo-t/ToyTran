@@ -63,7 +63,7 @@ columnHeader(const SimResultMap& map, const Circuit& ckt)
   }
   for (size_t devId=0; devId<map._deviceCurrentMap.size(); ++devId) {
     size_t index = map._deviceCurrentMap[devId];
-    if (devId == SimResultMap::invalidValue()) {
+    if (index == SimResultMap::invalidValue()) {
       continue;
     }
     std::pair<int, std::string> value(8, ckt.device(devId)._name);

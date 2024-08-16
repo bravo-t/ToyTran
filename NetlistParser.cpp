@@ -245,6 +245,13 @@ parsePWLData(std::vector<std::string>& strs, size_t startIndex)
   return pwlData;
 }
 
+struct PWLValue
+pulseToPWLValue(double initValue, double puleValue, double delay, 
+                double riseTime, double fallTime, double width, double period)
+{
+  
+}
+
 static inline size_t 
 findOrCreateNode(std::unordered_map<std::string, size_t>& nodeMap, 
                  const std::string& nodeName)

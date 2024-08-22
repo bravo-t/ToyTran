@@ -1,6 +1,7 @@
 #include <sys/ioctl.h>
 #include <cstdio>
 #include <unistd.h>
+#include <algorithm>
 #include "Plotter.h"
 #include "NetlistParser.h"
 #include "Circuit.h"
@@ -8,13 +9,16 @@
 
 namespace Tran {
 
+static unsigned int widthLimit = 200;
+static unsigned int heightLimit = 100;
+
 static void
 terminalSize(size_t& width, size_t& height)
 {
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  width = w.ws_col;
-  height = w.ws_row;
+  width = w.ws_col > widthLimit ? widthLimit : w.ws_col;
+  height = w.ws_row > heightLimit ? heightLimit : w.ws_row;
 }
 
 Plotter::Plotter(const NetlistParser& parser, const Circuit& ckt, const SimResult& result)
@@ -82,12 +86,8 @@ plotData(const std::vector<std::pair<double, double>>& data,
 
   std::vector<std::string> canvas;
   canvas.resize(height);
-  for (size_t i=0; i<height; ++i) {
-    if (i == height - 1) {
-      canvas[i].resize(width, '-');
-    } else {
-      canvas[i].resize(width, ' ');
-    }
+  for (size_t i=0; i<height-1; ++i) {
+    canvas[i].resize(width, ' ');
     canvas[i][0] = '|';
   }
   width -= 1;
@@ -98,14 +98,18 @@ plotData(const std::vector<std::pair<double, double>>& data,
     double offsetValue = point.second - min;
     size_t y = offsetValue / dataScale;
     size_t x = point.first / timeScale;
-    //printf("y value: %g, y div: %lu, x value: %g, x div: %lu, dataScale: %g, timeScale: %g\n", 
-    //  offsetValue, y, point.first, x, dataScale, timeScale);
+    //printf("DEBUG: y value: %g, y div: %lu, x value: %g, x div: %lu, dataScale: %g, timeScale: %g\n", 
+    //  point.second, y, point.first, x, dataScale, timeScale);
     canvas[y][x] = '*';
   }
+  std::reverse(canvas.begin(), canvas.end());
 
   for (const auto& line : canvas) {
     printf("%s\n", line.data());
   }
+  std::string coor(width, '-');
+  coor[0] = '|';
+  printf("%s\n", coor.data());
 }
 
 void

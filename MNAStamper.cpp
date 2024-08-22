@@ -46,11 +46,14 @@ updatebCapacitorBE(Eigen::VectorXd& b,
   double negVoltage = sim->nodeVoltage(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
   double bValue = stampValue * voltageDiff;
+  printf("DEBUG: T@%G posNode: %lu (%lu), posVol: %G, negNode: %lu (%lu), negVol: %G, deltaV: %G, current: %G\n", 
+    sim->simulationResult().currentTime(), cap._posNode, posNodeIndex, posVoltage, 
+    cap._negNode, negNodeIndex, negVoltage, voltageDiff, bValue);
   if (isNodeOmitted(sim, cap._posNode) == false) {
-    b(posNodeIndex) += -bValue;
+    b(posNodeIndex) += bValue;
   } 
   if (isNodeOmitted(sim, cap._negNode) == false) {
-    b(negNodeIndex) += bValue;
+    b(negNodeIndex) += -bValue;
   }
 }
 
@@ -95,10 +98,10 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   double voltageDiff2 = posVoltage2 - negVoltage2;
   double bValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
   if (isNodeOmitted(sim, cap._posNode) == false) {
-    b(posNodeIndex) += -bValue;
+    b(posNodeIndex) += bValue;
   } 
   if (isNodeOmitted(sim, cap._negNode) == false) {
-    b(negNodeIndex) += bValue;
+    b(negNodeIndex) += -bValue;
   }
 }
 

@@ -112,6 +112,8 @@ createDevice(Device& dev, const ParserDevice& pDev, const StringIdMap& nodeIdMap
   } else {
     dev._value = pDev._value;
   }
+  printf("DEBUG: Dev %s, ID: %lu, posNode %s ID: %lu, negNode %s ID: %lu\n", dev._name.data(), dev._devId, 
+    pDev._posNode.data(), posNode, pDev._negNode.data(), negNode);
   return true;
 }
 
@@ -140,6 +142,7 @@ Circuit::Circuit(const NetlistParser& parser)
     n._nodeId = _nodes.size();
     n._isGround = false;
     _nodes.push_back(n);
+    printf("DEBUG: Node %s ID: %lu\n", n._name.data(), n._nodeId);
     nodeIdMap.insert({n._name, n._nodeId});
   }
 

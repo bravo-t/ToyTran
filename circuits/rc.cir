@@ -1,7 +1,11 @@
-VVDD 1 0 5
-R1 1 2 1k
-C2 2 0 1u
+VVDD POS GND 5
+RRes1 POS ResOUT 1k
+CCap2 ResOUT GND 1u
+*RRes2 3 4 1k
+*RRes3 4 0 1k
 
-.tran 1fs 20fs
-.plot tran V(2) V(0)
-.debug 1
+.tran 1us 4ms
+.option method=euler
+*.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
+.plot tran V(ResOUT)
+.debug 0

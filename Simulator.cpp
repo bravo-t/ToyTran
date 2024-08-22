@@ -249,7 +249,7 @@ Simulator::converged() const
     simTime = _result._ticks.back();
   }
   bool converge = true;
-  return simTime >= _simEnd && converge;
+  return simTime > _simEnd && converge;
 }
 
 void

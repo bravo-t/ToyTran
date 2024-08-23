@@ -45,10 +45,24 @@ updatebCapacitorBE(Eigen::VectorXd& b,
   double posVoltage = sim->nodeVoltage(cap._posNode, 1);
   double negVoltage = sim->nodeVoltage(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
+  //printf("DEBUG: T@%G posNode: %lu (%lu), posVol: %G, negNode: %lu (%lu), negVol: %G, deltaV: %G, current: %G\n", 
+  //  sim->simulationResult().currentTime(), cap._posNode, posNodeIndex, posVoltage, 
+  //  cap._negNode, negNodeIndex, negVoltage, voltageDiff, bValue);
+  /*
+  double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
+  double posVoltage2 = sim->nodeVoltage(cap._posNode, 2);
+  double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
+  double negVoltage2 = sim->nodeVoltage(cap._negNode, 2);
+  //double voltageDiff = (posVoltage1 - posVoltage2) - (negVoltage1 - negVoltage2);
+  double voltageDiff = (posVoltage1 - negVoltage1) - (posVoltage2 - negVoltage2);
   double bValue = stampValue * voltageDiff;
-  printf("DEBUG: T@%G posNode: %lu (%lu), posVol: %G, negNode: %lu (%lu), negVol: %G, deltaV: %G, current: %G\n", 
-    sim->simulationResult().currentTime(), cap._posNode, posNodeIndex, posVoltage, 
-    cap._negNode, negNodeIndex, negVoltage, voltageDiff, bValue);
+  printf("DEBUG: T@%G posNode: %lu, negNode: %lu, posDiff: %G-%G=%G, negDiff: %G-%G=%G, deltaV: %G, current: %G\n", 
+    sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
+      posVoltage1, posVoltage2, posVoltage1-posVoltage2, 
+      negVoltage1, negVoltage2, negVoltage1-negVoltage2,
+      voltageDiff, bValue);
+  */
+  double bValue = stampValue * voltageDiff;
   if (isNodeOmitted(sim, cap._posNode) == false) {
     b(posNodeIndex) += bValue;
   } 
@@ -94,8 +108,11 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
   double posVoltage2 = sim->nodeVoltage(cap._posNode, 2);
   double negVoltage2 = sim->nodeVoltage(cap._negNode, 2);
+  double posVoltage3 = sim->nodeVoltage(cap._posNode, 3);
+  double negVoltage3 = sim->nodeVoltage(cap._negNode, 3);
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
+  double voltageDiff3 = posVoltage3 - negVoltage3;
   double bValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
   if (isNodeOmitted(sim, cap._posNode) == false) {
     b(posNodeIndex) += bValue;

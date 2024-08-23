@@ -4,8 +4,8 @@ CCap2 ResOUT GND 1u
 *RRes2 3 4 1k
 *RRes3 4 0 1k
 
-.tran 1us 4ms
+.tran 1us 10us
 .option method=euler
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
-.plot tran V(ResOUT)
-.debug 0
+.plot tran V(ResOUT) I(Cap2) I(Res1)
+.debug 1

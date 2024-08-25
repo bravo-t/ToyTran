@@ -1,0 +1,8 @@
+VVDD Pos Gnd 5V
+LInd1 Pos IndOut 1k
+CCap1 IndOut Gnd 1u
+
+.tran 1us 1s
+.option method=euler
+.plot tran V(IndOut)
+.debug 0

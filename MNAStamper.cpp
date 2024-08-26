@@ -45,9 +45,6 @@ updatebCapacitorBE(Eigen::VectorXd& b,
   double posVoltage = sim->nodeVoltage(cap._posNode, 1);
   double negVoltage = sim->nodeVoltage(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
-  //printf("DEBUG: T@%G posNode: %lu (%lu), posVol: %G, negNode: %lu (%lu), negVol: %G, deltaV: %G, current: %G\n", 
-  //  sim->simulationResult().currentTime(), cap._posNode, posNodeIndex, posVoltage, 
-  //  cap._negNode, negNodeIndex, negVoltage, voltageDiff, bValue);
   /*
   double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
   double posVoltage2 = sim->nodeVoltage(cap._posNode, 2);
@@ -62,7 +59,10 @@ updatebCapacitorBE(Eigen::VectorXd& b,
       negVoltage1, negVoltage2, negVoltage1-negVoltage2,
       voltageDiff, bValue);
   */
-  double bValue = stampValue * voltageDiff;
+  double bValue = stampValue * voltageDiff; 
+  printf("DEBUG: T@%G BE posNode: %lu, negNode: %lu, diff: %G-%G=%G current: %G\n", 
+    sim->simulationResult().currentTime(), cap._posNode, cap._negNode, posVoltage, 
+    negVoltage, voltageDiff, bValue);
   if (isNodeOmitted(sim, cap._posNode) == false) {
     b(posNodeIndex) += bValue;
   } 
@@ -113,12 +113,17 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
   double voltageDiff3 = posVoltage3 - negVoltage3;
-  double bValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
+  double stampValue = baseValue * (1.5 * voltageDiff1 - 2 * voltageDiff2 + 0.5 * voltageDiff3);
+  printf("DEBUG: T@%G BDF posNode: %lu, negNode: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G, diff3: %G-%G=%G\n", 
+    sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
+      posVoltage1, negVoltage1, voltageDiff1, 
+      posVoltage2, negVoltage2, voltageDiff2,
+      posVoltage3, negVoltage3, voltageDiff3);
   if (isNodeOmitted(sim, cap._posNode) == false) {
-    b(posNodeIndex) += bValue;
+    b(posNodeIndex) += stampValue;
   } 
   if (isNodeOmitted(sim, cap._negNode) == false) {
-    b(negNodeIndex) += -bValue;
+    b(negNodeIndex) += -stampValue;
   }
 }
 
@@ -129,8 +134,8 @@ stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
 {
   printf("Gear2 to be implemeted\n");
   double simTick = sim->simulationTick();
-  double baseValue = cap._value /simTick;
-  double stampValue = 1.5 * baseValue;
+  double baseValue = 1.5 * cap._value /simTick;
+  double stampValue = baseValue;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
@@ -231,8 +236,9 @@ updatebInductorGear2(Eigen::VectorXd& b,
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
   double indCurrent1 = sim->deviceCurrent(ind._devId, 1);
   double indCurrent2 = sim->deviceCurrent(ind._devId, 2);
-  double bValue = -baseValue * (2 * indCurrent1 - 0.5 * indCurrent2);
-  b(deviceIndex) += bValue;
+  double indCurrent3 = sim->deviceCurrent(ind._devId, 3);
+  double stampValue = -baseValue * (1.5 * indCurrent1 - 2 * indCurrent2 + 0.5 * indCurrent3);
+  b(deviceIndex) += stampValue;
 }
 
 static inline void
@@ -243,7 +249,7 @@ stampInductorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   printf("Gear2 to be implemeted\n");
   double simTick = sim->simulationTick();
   double baseValue = ind._value / simTick;
-  double stampValue = 1.5 * baseValue;
+  double stampValue = baseValue;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(ind._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);

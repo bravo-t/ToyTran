@@ -26,7 +26,7 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.debug 1`: Enable debug output to print MNA matrix and RHS vector, as well as solution to each time step.
 
-`.option method=gear2`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler) and `gear2` (Gear2 or BDF2). More to come.
+`.option method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler) and `gear2` (Gear2 or BDF2). More to come. The diverging issue is still there for `gear2` method. 
 
 `.plot V(NodeName) I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. Under developing.
 

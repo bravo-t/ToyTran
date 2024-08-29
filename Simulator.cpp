@@ -30,7 +30,7 @@ Simulator::integrateMethod() const
   if (_intMethod == IntegrateMethod::BackwardEuler) {
     method = IntegrateMethod::BackwardEuler;
   } else if (_intMethod == IntegrateMethod::Gear2) {
-    if (_result._ticks.size() < 1) {
+    if (_result._ticks.size() < 3) {
       method = IntegrateMethod::BackwardEuler;
     } else {
       method= IntegrateMethod::Gear2;
@@ -44,7 +44,10 @@ Simulator::integrateMethod() const
       return IntegrateMethod::RK4;
     } */
   }
-  method = IntegrateMethod::Gear2;
+  if (method == IntegrateMethod::None)
+  {
+    method = IntegrateMethod::Gear2;
+  }
   return method;
 }
 
@@ -128,29 +131,6 @@ SimResult::deviceCurrent(size_t deviceId, size_t steps) const
   steps -= 1;
   size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + devIndex;
   return _values[resultIndex];
-}
-
-static inline IntegrateMethod
-chooseIntMethod(IntegrateMethod intMethod, const SimResult& prevData)
-{
-  if (intMethod == IntegrateMethod::BackwardEuler) {
-    return IntegrateMethod::BackwardEuler;
-  } else if (intMethod == IntegrateMethod::Gear2) {
-    if (prevData._ticks.size() < 1) {
-      return IntegrateMethod::BackwardEuler;
-    } else {
-      return IntegrateMethod::Gear2;
-    }
-/*} else if (intMethod == IntegrateMethod::RK4) {
-    if (prevData._ticks.size() < 1) {
-      return IntegrateMethod::BackwardEuler;
-    } else if (prevData._ticks.size() < 3) {
-      return IntegrateMethod::Gear2;
-    } else {
-      return IntegrateMethod::RK4;
-    } */
-  }
-  return IntegrateMethod::Gear2;
 }
 
 std::vector<size_t>

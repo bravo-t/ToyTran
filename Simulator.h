@@ -55,15 +55,19 @@ class Simulator {
   public:
     Simulator(const Circuit& ckt)
     : _circuit(ckt) {}
+    void initData();
     void setSimTick(double simTick);
     void setSimulationEndTime(double t);
     void setIntegrateMethod(IntegrateMethod intMethod);
+
+    bool needRebuildEquation() const { return _needRebuild; }
 
     /// Normally initial conditions are computed by a DC OP simulation. 
     /// Here we use 0v for now
     double initialCondition(size_t /*nodeId*/) const { return 0; }
     const SimResult& simulationResult() const { return _result; }
     double simulationTick() const { return _simTick; }
+    /// Choose integration method, and update _prevMethod;
     IntegrateMethod integrateMethod() const;
     const Circuit& circuit() const { return _circuit; }
 
@@ -78,14 +82,17 @@ class Simulator {
     bool converged() const;
     void adjustSimTick();
     void solveEquation();
+    void checkNeedRebuild();
 
   private:
     double           _simTick = 1e-15;
     double           _simEnd;
     size_t           _eqnDim = 0;
     bool             _needIterate = true;
+    bool             _needRebuild = false;
     bool             _needUpdateA = false;
     const Circuit&   _circuit;
+    IntegrateMethod  _prevMethod = IntegrateMethod::None;
     IntegrateMethod  _intMethod = IntegrateMethod::Gear2;
     SimResult        _result;
     Eigen::VectorXd  _b;

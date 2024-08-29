@@ -26,13 +26,14 @@ SimResultMap::size() const
 IntegrateMethod
 Simulator::integrateMethod() const
 {
+  IntegrateMethod method = IntegrateMethod::None;
   if (_intMethod == IntegrateMethod::BackwardEuler) {
-    return IntegrateMethod::BackwardEuler;
+    method = IntegrateMethod::BackwardEuler;
   } else if (_intMethod == IntegrateMethod::Gear2) {
     if (_result._ticks.size() < 1) {
-      return IntegrateMethod::BackwardEuler;
+      method = IntegrateMethod::BackwardEuler;
     } else {
-      return IntegrateMethod::Gear2;
+      method= IntegrateMethod::Gear2;
     }
 /*} else if (intMethod == IntegrateMethod::RK4) {
     if (prevData._ticks.size() < 1) {
@@ -43,7 +44,8 @@ Simulator::integrateMethod() const
       return IntegrateMethod::RK4;
     } */
   }
-  return IntegrateMethod::Gear2;
+  method = IntegrateMethod::Gear2;
+  return method;
 }
 
 static inline bool
@@ -197,21 +199,23 @@ initResultMap(const Circuit& ckt, SimResult& result)
 void 
 Simulator::updateEquation()
 {
-  if (_needUpdateA) {
-    MNAStamper::updateA(_Alu, this);
-  }
-  MNAStamper::updateb(_b, this);
-  if (Debug::enabled()) {
-    double prevTime = _result._ticks.back();
-    Debug::printVector(prevTime+_simTick, "b", _b);
+  //if (_needUpdateA) {
+  //  MNAStamper::updateA(_Alu, this);
+  //}
+  if (_needRebuild) {
+    formulateEquation();
+  } else {
+    MNAStamper::updateb(_b, this);
+    if (Debug::enabled()) {
+      double prevTime = _result._ticks.back();
+      Debug::printVector(prevTime+_simTick, "b", _b);
+    }
   }
 }
 
 void 
 Simulator::formulateEquation()
 {
-  initResultMap(_circuit, _result);
-  _eqnDim = _result._map.size();
   Eigen::MatrixXd A;
   A.setZero(_eqnDim, _eqnDim);
   _b.setZero(_eqnDim);
@@ -220,6 +224,13 @@ Simulator::formulateEquation()
     Debug::printEquation(A, _b);
   }
   _Alu = A.fullPivLu();
+}
+
+void 
+Simulator::initData()
+{
+  initResultMap(_circuit, _result);
+  _eqnDim = _result._map.size();
 }
 
 void 
@@ -263,9 +274,12 @@ Simulator::adjustSimTick()
 void 
 Simulator::run()
 {
+  initData();
   formulateEquation();
+  _prevMethod = integrateMethod();
   solveEquation();
   while (!converged()) {
+    checkNeedRebuild();
     adjustSimTick();
     updateEquation();
     solveEquation();
@@ -332,6 +346,14 @@ Simulator::deviceCurrent(size_t deviceId, size_t steps) const
     return dev._value;
   }
   return _result.deviceCurrent(deviceId, steps);
+}
+
+void
+Simulator::checkNeedRebuild() 
+{
+  if (_prevMethod != integrateMethod()) {
+    _needRebuild = true;
+  }
 }
 
 }

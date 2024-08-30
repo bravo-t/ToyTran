@@ -111,10 +111,10 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
   double stampValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
-  printf("DEBUG: T@%G BDF posNode: %lu, negNode: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G\n", 
-    sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
-      posVoltage1, negVoltage1, voltageDiff1, 
-      posVoltage2, negVoltage2, voltageDiff2);
+  //printf("DEBUG: T@%G BDF posNode: %lu, negNode: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G\n", 
+  //  sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
+  //    posVoltage1, negVoltage1, voltageDiff1, 
+  //    posVoltage2, negVoltage2, voltageDiff2);
   if (isNodeOmitted(sim, cap._posNode) == false) {
     b(posNodeIndex) += stampValue;
   } 
@@ -128,7 +128,6 @@ stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
                    const Device& cap, 
                    const Simulator* sim)
 {
-  printf("Gear2 to be implemeted\n");
   double simTick = sim->simulationTick();
   double baseValue = 1.5 * cap._value / simTick;
   double stampValue = baseValue;
@@ -232,8 +231,7 @@ updatebInductorGear2(Eigen::VectorXd& b,
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
   double indCurrent1 = sim->deviceCurrent(ind._devId, 1);
   double indCurrent2 = sim->deviceCurrent(ind._devId, 2);
-  double indCurrent3 = sim->deviceCurrent(ind._devId, 3);
-  double stampValue = -baseValue * (1.5 * indCurrent1 - 2 * indCurrent2 + 0.5 * indCurrent3);
+  double stampValue = -baseValue * (2 * indCurrent1 - 0.5 * indCurrent2);
   b(deviceIndex) += stampValue;
 }
 
@@ -242,9 +240,8 @@ stampInductorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
                    const Device& ind, 
                    const Simulator* sim)
 {
-  printf("Gear2 to be implemeted\n");
   double simTick = sim->simulationTick();
-  double baseValue = ind._value / simTick;
+  double baseValue = 1.5 * ind._value / simTick;
   double stampValue = baseValue;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(ind._posNode);

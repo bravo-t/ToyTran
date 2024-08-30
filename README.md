@@ -26,14 +26,18 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.debug 1`: Enable debug output to print MNA matrix and RHS vector, as well as solution to each time step.
 
-`.option method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler) and `gear2` (Gear2 or BDF2). More to come. The diverging issue is still there for `gear2` method. 
+`.option method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler) and `gear2` (Gear2 or BDF2). More to come. Update: The bugs in Gear2 method are fixed.
 
 `.plot V(NodeName) I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. Under developing.
 
 ## Compile and run
 `git clone --recurse-submodules` and `make` should be sufficient. The executable is generated under current code directory and named "trans".
 
-To run, just give the executable the spice deck you want to simulate. For example `./trans circuit/rc.cir`.
+To run, just give the executable the spice deck you want to simulate. 
+
+For example `./trans circuit/rc.cir` gives the exponential curve of a capacitor being charged, and `./trans circuit/lc.cir` produces a oscillation curve of an LC circuit.
 
 ## File format of tr0
 https://github.com/l-chang/gwave/blob/b362dd6d98c255b35a96d9a69a80563b26c2612c/doc/hspice-output.txt
+
+The output tr0 format still cannot be recognized by waveform viewer tools, not sure where the problem is.

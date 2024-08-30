@@ -45,24 +45,10 @@ updatebCapacitorBE(Eigen::VectorXd& b,
   double posVoltage = sim->nodeVoltage(cap._posNode, 1);
   double negVoltage = sim->nodeVoltage(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
-  /*
-  double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
-  double posVoltage2 = sim->nodeVoltage(cap._posNode, 2);
-  double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
-  double negVoltage2 = sim->nodeVoltage(cap._negNode, 2);
-  //double voltageDiff = (posVoltage1 - posVoltage2) - (negVoltage1 - negVoltage2);
-  double voltageDiff = (posVoltage1 - negVoltage1) - (posVoltage2 - negVoltage2);
-  double bValue = stampValue * voltageDiff;
-  printf("DEBUG: T@%G posNode: %lu, negNode: %lu, posDiff: %G-%G=%G, negDiff: %G-%G=%G, deltaV: %G, current: %G\n", 
-    sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
-      posVoltage1, posVoltage2, posVoltage1-posVoltage2, 
-      negVoltage1, negVoltage2, negVoltage1-negVoltage2,
-      voltageDiff, bValue);
-  */
   double bValue = stampValue * voltageDiff; 
-  printf("DEBUG: T@%G BE posNode: %lu, negNode: %lu, diff: %G-%G=%G current: %G\n", 
-    sim->simulationResult().currentTime(), cap._posNode, cap._negNode, posVoltage, 
-    negVoltage, voltageDiff, bValue);
+  //printf("DEBUG: T@%G BE posNode: %lu, negNode: %lu, diff: %G-%G=%G current: %G\n", 
+  //  sim->simulationResult().currentTime(), cap._posNode, cap._negNode, posVoltage, 
+  //  negVoltage, voltageDiff, bValue);
   if (isNodeOmitted(sim, cap._posNode) == false) {
     b(posNodeIndex) += bValue;
   } 

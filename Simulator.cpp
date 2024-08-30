@@ -30,7 +30,7 @@ Simulator::integrateMethod() const
   if (_intMethod == IntegrateMethod::BackwardEuler) {
     method = IntegrateMethod::BackwardEuler;
   } else if (_intMethod == IntegrateMethod::Gear2) {
-    if (_result._ticks.size() < 3) {
+    if (_result._ticks.size() < 2) {
       method = IntegrateMethod::BackwardEuler;
     } else {
       method= IntegrateMethod::Gear2;

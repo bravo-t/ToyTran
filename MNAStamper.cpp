@@ -100,7 +100,7 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
                       const Simulator* sim)
 {
   double simTick = sim->simulationTick();
-  double baseValue = cap._value /simTick;
+  double baseValue =  cap._value / simTick;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
@@ -108,17 +108,13 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
   double posVoltage2 = sim->nodeVoltage(cap._posNode, 2);
   double negVoltage2 = sim->nodeVoltage(cap._negNode, 2);
-  double posVoltage3 = sim->nodeVoltage(cap._posNode, 3);
-  double negVoltage3 = sim->nodeVoltage(cap._negNode, 3);
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
-  double voltageDiff3 = posVoltage3 - negVoltage3;
-  double stampValue = baseValue * (1.5 * voltageDiff1 - 2 * voltageDiff2 + 0.5 * voltageDiff3);
-  printf("DEBUG: T@%G BDF posNode: %lu, negNode: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G, diff3: %G-%G=%G\n", 
+  double stampValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
+  printf("DEBUG: T@%G BDF posNode: %lu, negNode: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G\n", 
     sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
       posVoltage1, negVoltage1, voltageDiff1, 
-      posVoltage2, negVoltage2, voltageDiff2,
-      posVoltage3, negVoltage3, voltageDiff3);
+      posVoltage2, negVoltage2, voltageDiff2);
   if (isNodeOmitted(sim, cap._posNode) == false) {
     b(posNodeIndex) += stampValue;
   } 
@@ -134,7 +130,7 @@ stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
 {
   printf("Gear2 to be implemeted\n");
   double simTick = sim->simulationTick();
-  double baseValue = 1.5 * cap._value /simTick;
+  double baseValue = 1.5 * cap._value / simTick;
   double stampValue = baseValue;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);

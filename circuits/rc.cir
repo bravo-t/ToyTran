@@ -7,5 +7,5 @@ CCap2 ResOUT GND 1u
 .tran 1us 10ms
 .option method=gear2
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
-.plot tran V(ResOUT) I(Cap2) I(Res1)
+.plot tran V(ResOUT) 
 .debug 0

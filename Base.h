@@ -9,6 +9,7 @@ namespace Tran {
 enum class IntegrateMethod : unsigned char {
   None,
   BackwardEuler,
+  Trapezoidal,
   Gear2,
 };
 

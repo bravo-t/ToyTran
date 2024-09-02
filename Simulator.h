@@ -49,6 +49,8 @@ struct SimResult {
   size_t deviceVectorIndex(size_t deviveId) const;
   /// @brief Get accumulated simulation time
   double currentTime() const;
+  /// @brief Get size of the simulation result
+  size_t size() const { return _ticks.size(); }
 };
 
 class Simulator {

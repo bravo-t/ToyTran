@@ -1,8 +1,8 @@
 VVDD Pos Gnd 5V
-LInd1 Pos IndOut 1k
+LInd1 Pos IndOut 1
 CCap1 IndOut Gnd 1u
 
-.tran 1us 1s
+.tran 100us 100ms
 .option method=gear2
 .plot tran V(IndOut)
 .debug 0

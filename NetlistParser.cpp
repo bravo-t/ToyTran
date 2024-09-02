@@ -458,8 +458,17 @@ NetlistParser::processOption(const std::string& line)
         _intMethod = IntegrateMethod::Gear2;
       } else if (strs[i].compare("euler") == 0) {
         _intMethod = IntegrateMethod::BackwardEuler;
+      } else if (strs[i].compare("trap") == 0) {
+        _intMethod = IntegrateMethod::Trapezoidal;
       } else {
         printf("Integrate method \"%s\" is not supported, using default gear2\n", strs[i].data());
+      }
+    } else if (strs[i].compare("post") == 0) {
+      ++i;
+      if (strs[i].compare("2") == 0) {
+        _saveData = true;
+      } else {
+        printf("Value provided to post is not supported and ignored\n");
       }
     } else {
       printf("option \"%s\" is not supported and ignored\n", strs[i].data());

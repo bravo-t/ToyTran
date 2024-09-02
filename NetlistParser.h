@@ -39,16 +39,19 @@ class NetlistParser {
 
     bool needPlot() const { return _nodeToPlot.empty() == false || _deviceToPlot.empty() == false; }
 
+    bool dumpData() const { return _saveData; }
+
   private:
     void processCommands(const std::string& line);
     void processOption(const std::string& line);
 
 
   private:
-    std::vector<ParserDevice>          _devices;
+    std::vector<ParserDevice>    _devices;
     std::vector<PWLValue>        _PWLData;
     double                       _simTick = 1e-15;
     double                       _simTime = 2;
+    double                       _saveData = false;
     IntegrateMethod              _intMethod = IntegrateMethod::Gear2;
     std::vector<std::string>     _nodeToPlot;
     std::vector<std::string>     _deviceToPlot;

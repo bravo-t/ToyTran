@@ -44,8 +44,7 @@ Simulator::integrateMethod() const
       return IntegrateMethod::RK4;
     } */
   }
-  if (method == IntegrateMethod::None)
-  {
+  if (method == IntegrateMethod::None) {
     method = IntegrateMethod::Gear2;
   }
   return method;

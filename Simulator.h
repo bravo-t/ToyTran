@@ -51,6 +51,10 @@ struct SimResult {
   double currentTime() const;
   /// @brief Get size of the simulation result
   size_t size() const { return _ticks.size(); }
+  /// @brief Get simulation time step size of previous n steps
+  ///        If steps is 0, it means the step size of previous 
+  ///        step to current step is returned
+  double stepSize(size_t steps) const;
 };
 
 class Simulator {
@@ -75,6 +79,13 @@ class Simulator {
 
     double nodeVoltage(size_t nodeId, size_t steps) const;
     double deviceCurrent(size_t devId, size_t steps) const;
+    
+    /// @brief Get derivative of voltage and current.
+    ///        order controls the order of derivative you need
+    ///        order should be postive, 2 mean 2nd derivative for example
+    double nodeVoltageDerivative(size_t posNodeId, size_t negNodeId, 
+                                 size_t order, size_t steps) const;
+    double deviceCurrentDerivative(size_t devId, size_t order, size_t steps) const;
 
     void run();
 

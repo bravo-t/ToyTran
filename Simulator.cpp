@@ -35,6 +35,12 @@ Simulator::integrateMethod() const
     } else {
       method= IntegrateMethod::Gear2;
     }
+  } else if (_intMethod == IntegrateMethod::Trapezoidal) {
+    if (_result._ticks.size() < 2) {
+      method = IntegrateMethod::BackwardEuler;
+    } else {
+      method= IntegrateMethod::Trapezoidal;
+    }
 /*} else if (intMethod == IntegrateMethod::RK4) {
     if (prevData._ticks.size() < 1) {
       return IntegrateMethod::BackwardEuler;
@@ -130,6 +136,16 @@ SimResult::deviceCurrent(size_t deviceId, size_t steps) const
   steps -= 1;
   size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + devIndex;
   return _values[resultIndex];
+}
+
+double 
+SimResult::stepSize(size_t steps) const
+{
+  if (_ticks.size() < steps + 2) {
+    return .0f;
+  }
+  size_t index = _ticks.size() - 1 - steps;
+  return _ticks[index] - _ticks[index-1];
 }
 
 std::vector<size_t>
@@ -277,6 +293,10 @@ Simulator::setIntegrateMethod(IntegrateMethod intMethod)
       printf("Gear2 (BDF2) is chosen as the numerical integration method\n");
       _intMethod = intMethod;
       break;
+    case IntegrateMethod::Trapezoidal:
+      printf("Trapezoidal method is chosen as the numerical integration method\n");
+      _intMethod = intMethod;
+      break;
     default:
       printf("Unsupported numerical integration method, using default Gear2\n");
       _intMethod = IntegrateMethod::Gear2;
@@ -325,6 +345,78 @@ Simulator::deviceCurrent(size_t deviceId, size_t steps) const
     return dev._value;
   }
   return _result.deviceCurrent(deviceId, steps);
+}
+
+double 
+calcDerivative(const std::vector<double>& y, 
+               const std::vector<double>& x)
+{
+  std::vector<double> derivative(y.begin(), y.end());
+  size_t xIndexOffset = 0;
+  while (derivative.size() > 1) {
+    for (size_t i=1; i<derivative.size(); ++i) {
+      double deltaY = derivative[i] - derivative[i-1];
+      size_t xIndex = xIndexOffset + i;
+      double deltaX = x[xIndex] - x[xIndex-1];
+      double derivativeValue = deltaY / deltaX;
+      derivative[i-1] = derivativeValue;
+    }
+    derivative.pop_back();
+    xIndexOffset += 1;
+  }
+  return derivative.back();
+}
+
+double 
+Simulator::nodeVoltageDerivative(size_t posNodeId, size_t negNodeId, 
+                                 size_t order, size_t steps) const
+{
+  if (steps == 0) {
+    return .0f;
+  }
+  size_t resultSize = _result._ticks.size();
+  if (resultSize <= steps+order) {
+    return .0f;
+  }
+
+  std::vector<double> voltage;
+  std::vector<double> time;
+  /// Iterate backward to make sure voltage and time are in correct order
+  for (size_t i=steps+order; i>=steps; --i) {
+    double volDiff = nodeVoltage(posNodeId, i) - nodeVoltage(negNodeId, i);
+    voltage.push_back(volDiff);
+  }
+  size_t timeEndIndex = resultSize - steps;
+  size_t timeStartIndex = timeEndIndex - order;
+  for (size_t i=timeStartIndex; i<=timeEndIndex; ++i) {
+    time.push_back(_result._ticks[i]);
+  }
+  return calcDerivative(voltage, time);
+}
+
+double 
+Simulator::deviceCurrentDerivative(size_t deviceId, size_t order, size_t steps) const
+{
+  if (steps == 0) {
+    return .0f;
+  }
+  size_t resultSize = _result._ticks.size();
+  if (resultSize <= steps+order) {
+    return .0f;
+  }
+
+  std::vector<double> current;
+  std::vector<double> time;
+  /// Iterate backward to make sure voltage and time are in correct order
+  for (size_t i=steps+order; i>=steps; --i) {
+    current.push_back(deviceCurrent(deviceId, i));
+  }
+  size_t timeEndIndex = resultSize - steps;
+  size_t timeStartIndex = timeEndIndex - order;
+  for (size_t i=timeStartIndex; i<=timeEndIndex; ++i) {
+    time.push_back(_result._ticks[i]);
+  }
+  return calcDerivative(current, time);
 }
 
 void

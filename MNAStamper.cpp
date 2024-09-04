@@ -134,6 +134,53 @@ stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
 }
 
 static inline void
+updatebCapacitorTrap(Eigen::VectorXd& b,
+                     const Device& cap, 
+                     const Simulator* sim)
+{
+  double simTick = sim->simulationTick();
+  double baseValue =  cap._value / simTick;
+  const SimResult& result = sim->simulationResult();
+  size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
+  size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
+  double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
+  double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
+  double dV1dt = sim->nodeVoltageDerivative(cap._posNode, cap._negNode, 1, 1);
+  double voltageDiff1 = posVoltage1 - negVoltage1;
+  double stampValue = 2 * baseValue * voltageDiff1 + cap._value * dV1dt;
+  if (isNodeOmitted(sim, cap._posNode) == false) {
+    b(posNodeIndex) += stampValue;
+  } 
+  if (isNodeOmitted(sim, cap._negNode) == false) {
+    b(negNodeIndex) += -stampValue;
+  }
+}
+
+static inline void
+stampCapacitorTrap(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+                   const Device& cap, 
+                   const Simulator* sim)
+{
+  double simTick = sim->simulationTick();
+  double baseValue = 2 * cap._value / simTick;
+  double stampValue = baseValue;
+  const SimResult& result = sim->simulationResult();
+  size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
+  size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
+  if (isNodeOmitted(sim, cap._posNode) == false) {
+    A(posNodeIndex, posNodeIndex) += stampValue;
+  } 
+  if (isNodeOmitted(sim, cap._negNode) == false) {
+    A(negNodeIndex, negNodeIndex) += stampValue;
+  }
+  if (isNodeOmitted(sim, cap._posNode) == false && isNodeOmitted(sim, cap._negNode) == false) {
+    A(posNodeIndex, negNodeIndex) -= stampValue;
+    A(negNodeIndex, posNodeIndex) -= stampValue;
+  }
+  updatebCapacitorTrap(b, cap, sim);
+}
+
+static inline void
 stampCapacitor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& cap, 
                const Simulator* simulator)
 {
@@ -144,6 +191,9 @@ stampCapacitor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& cap,
       break;
     case IntegrateMethod::Gear2:
       stampCapacitorGear2(A, b, cap, simulator);
+      break;
+    case IntegrateMethod::Trapezoidal:
+      stampCapacitorTrap(A, b, cap, simulator);
       break;
     default:
       assert(false && "Incorrect integrate method");
@@ -246,6 +296,45 @@ stampInductorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
 }
 
 static inline void
+updatebInductorTrap(Eigen::VectorXd& b,
+                    const Device& ind,
+                    const Simulator* sim)
+{
+  double simTick = sim->simulationTick();
+  double baseValue = ind._value / simTick;
+  const SimResult& result = sim->simulationResult();
+  size_t deviceIndex = result.deviceVectorIndex(ind._devId);
+  double indCurrent1 = sim->deviceCurrent(ind._devId, 1);
+  double dI1dt = sim->deviceCurrentDerivative(ind._devId, 1, 1);
+  double stampValue = -2 * baseValue * indCurrent1 - ind._value * dI1dt;
+  b(deviceIndex) += stampValue;
+}
+
+static inline void
+stampInductorTrap(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+                  const Device& ind, 
+                  const Simulator* sim)
+{
+  double simTick = sim->simulationTick();
+  double baseValue = 2 * ind._value / simTick;
+  double stampValue = baseValue;
+  const SimResult& result = sim->simulationResult();
+  size_t posNodeIndex = result.nodeVectorIndex(ind._posNode);
+  size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
+  size_t deviceIndex = result.deviceVectorIndex(ind._devId);
+  if (isNodeOmitted(sim, ind._posNode) == false) {
+    A(posNodeIndex, deviceIndex) += 1;
+    A(deviceIndex, posNodeIndex) += 1;
+  }
+  if (isNodeOmitted(sim, ind._negNode) == false) {
+    A(negNodeIndex, deviceIndex) += -1;
+    A(deviceIndex, negNodeIndex) += -1;
+  }
+  A(deviceIndex, deviceIndex) += -stampValue;
+  updatebInductorTrap(b, ind, sim);
+}
+
+static inline void
 stampInductor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& ind, 
               const Simulator* simulator)
 {
@@ -256,6 +345,9 @@ stampInductor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& ind,
       break;
     case IntegrateMethod::Gear2:
       stampInductorGear2(A, b, ind, simulator);
+      break;
+    case IntegrateMethod::Trapezoidal:
+      stampInductorTrap(A, b, ind, simulator);
       break;
     default:
       assert(false && "Incorrect integrate method");

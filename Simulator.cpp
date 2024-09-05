@@ -6,23 +6,6 @@
 
 namespace Tran {
 
-size_t
-SimResultMap::size() const
-{
-  size_t count = 0;
-  for (size_t i : _nodeVoltageMap) {
-    if (i != invalidValue()) {
-      ++count;
-    }
-  }
-  for (size_t i : _deviceCurrentMap) {
-    if (i != invalidValue()) {
-      ++count;
-    }
-  }
-  return count;
-}
-
 IntegrateMethod
 Simulator::integrateMethod() const
 {
@@ -66,86 +49,6 @@ needExtraDim(const Device& dev)
     return true;
   } 
   return false;
-}
-
-size_t 
-SimResult::deviceVectorIndex(size_t deviceId) const 
-{
-  assert(deviceId < _map._deviceCurrentMap.size());
-  return _map._deviceCurrentMap[deviceId];
-}
-
-size_t 
-branchDeviceMatrixIndex(const Device& dev, const Simulator* sim)
-{
-  if (!needExtraDim(dev)) {
-    return static_cast<size_t>(-1);
-  } 
-  return sim->simulationResult().deviceVectorIndex(dev._devId);
-}
-
-size_t
-SimResult::nodeVectorIndex(size_t nodeId) const
-{
-  assert(nodeId < _map._nodeVoltageMap.size());
-  return _map._nodeVoltageMap[nodeId];
-}
-
-double 
-SimResult::currentTime() const
-{
-  if (_ticks.size() == 0) {
-    return 0;
-  } 
-  return _ticks.back();
-}
-
-size_t 
-nodeMatrixIndex(const Node& node, const Simulator* sim)
-{
-  return sim->simulationResult().nodeVectorIndex(node._nodeId);
-}
-
-double
-SimResult::nodeVoltage(size_t nodeId, size_t steps) const
-{
-  assert(steps > 0 && "Incorrect input parameter");
-  if (_ticks.size() < steps) {
-    /// Initial condition. Normally this is computed with a DC OP analysis
-    /// For now we use 0
-    return 0;
-  }
-  size_t nodeIndex = nodeVectorIndex(nodeId);
-  assert(nodeIndex != static_cast<size_t>(-1) && "Incorrect nodeId");
-  steps -= 1;
-  size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + nodeIndex;
-  return _values[resultIndex];
-}
-
-double 
-SimResult::deviceCurrent(size_t deviceId, size_t steps) const
-{
-  assert(steps > 0 && "Incorrect input parameter");
-  if (_ticks.size() < steps) {
-    /// Initial condition. Normally this is computed with a DC OP analysis
-    /// For now we use 0
-    return 0;
-  }
-  size_t devIndex = deviceVectorIndex(deviceId);
-  assert(devIndex != static_cast<size_t>(-1) && "Incorrect deviceId");
-  steps -= 1;
-  size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + devIndex;
-  return _values[resultIndex];
-}
-
-double 
-SimResult::stepSize(size_t steps) const
-{
-  if (_ticks.size() < steps + 2) {
-    return .0f;
-  }
-  size_t index = _ticks.size() - 1 - steps;
-  return _ticks[index] - _ticks[index-1];
 }
 
 std::vector<size_t>

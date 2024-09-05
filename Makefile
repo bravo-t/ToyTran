@@ -15,7 +15,10 @@ SRC_DIR     = .
 BUILD_DIR   = ./build
 BIN_DIR     = .
 
-SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp SimResult.cpp Simulator.cpp Circuit.cpp MNAStamper.cpp  NetlistParser.cpp Debug.cpp
+SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp \
+		   SimResult.cpp LTE.cpp Simulator.cpp \
+		   Circuit.cpp MNAStamper.cpp  NetlistParser.cpp \
+		   Debug.cpp
 
 SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))
 OBJ_LIST = $(subst .cpp,.o,$(SRC_LIST_TMP))

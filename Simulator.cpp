@@ -271,8 +271,7 @@ calcDerivative(const std::vector<double>& y,
 }
 
 double 
-Simulator::nodeVoltageDerivative(size_t posNodeId, size_t negNodeId, 
-                                 size_t order, size_t steps) const
+Simulator::nodeVoltageDerivative(size_t nodeId, size_t order, size_t steps) const
 {
   if (steps == 0) {
     return .0f;
@@ -281,6 +280,36 @@ Simulator::nodeVoltageDerivative(size_t posNodeId, size_t negNodeId,
   if (resultSize <= steps+order) {
     return .0f;
   }
+
+  std::vector<double> voltage;
+  std::vector<double> time;
+  /// Iterate backward to make sure voltage and time are in correct order
+  for (size_t i=steps+order; i>=steps; --i) {
+    double vol = nodeVoltage(nodeId, i);
+    voltage.push_back(vol);
+  }
+  size_t timeEndIndex = resultSize - steps;
+  size_t timeStartIndex = timeEndIndex - order;
+  for (size_t i=timeStartIndex; i<=timeEndIndex; ++i) {
+    time.push_back(_result._ticks[i]);
+  }
+  return calcDerivative(voltage, time);
+}
+
+double 
+Simulator::deviceVoltageDerivative(const Device& device, 
+                                   size_t order, size_t steps) const
+{
+  if (steps == 0) {
+    return .0f;
+  }
+  size_t resultSize = _result._ticks.size();
+  if (resultSize <= steps+order) {
+    return .0f;
+  }
+
+  size_t posNodeId = device._posNode;
+  size_t negNodeId = device._negNode;
 
   std::vector<double> voltage;
   std::vector<double> time;

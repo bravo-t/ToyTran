@@ -145,7 +145,7 @@ updatebCapacitorTrap(Eigen::VectorXd& b,
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
   double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
   double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
-  double dV1dt = sim->nodeVoltageDerivative(cap._posNode, cap._negNode, 1, 1);
+  double dV1dt = sim->deviceVoltageDerivative(cap, 1, 1);
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double stampValue = 2 * baseValue * voltageDiff1 + cap._value * dV1dt;
   if (isNodeOmitted(sim, cap._posNode) == false) {

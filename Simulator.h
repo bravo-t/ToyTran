@@ -38,8 +38,11 @@ class Simulator {
     /// @brief Get derivative of voltage and current.
     ///        order controls the order of derivative you need
     ///        order should be postive, 2 mean 2nd derivative for example
-    double nodeVoltageDerivative(size_t posNodeId, size_t negNodeId, 
-                                 size_t order, size_t steps) const;
+    double nodeVoltageDerivative(size_t nodeId, size_t order, size_t steps) const;
+    /// deviceVoltageDerivative calculates the derivative of the voltage diff between
+    /// positive node and negative node of the given device
+    double deviceVoltageDerivative(const Device& device, 
+                                   size_t order, size_t steps) const;
     double deviceCurrentDerivative(size_t devId, size_t order, size_t steps) const;
 
     void run();

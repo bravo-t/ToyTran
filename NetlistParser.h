@@ -41,6 +41,8 @@ class NetlistParser {
 
     bool dumpData() const { return _saveData; }
 
+    double relTol() const { return _relTol; }
+
   private:
     void processCommands(const std::string& line);
     void processOption(const std::string& line);
@@ -51,7 +53,8 @@ class NetlistParser {
     std::vector<PWLValue>        _PWLData;
     double                       _simTick = 1e-15;
     double                       _simTime = 2;
-    double                       _saveData = false;
+    double                       _relTol = 1e-6;
+    bool                         _saveData = false;
     IntegrateMethod              _intMethod = IntegrateMethod::Gear2;
     std::vector<std::string>     _nodeToPlot;
     std::vector<std::string>     _deviceToPlot;

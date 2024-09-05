@@ -40,6 +40,8 @@ int main(int argc, char** argv)
   simulator.setSimTick(parser.simulationTick());
   simulator.setSimulationEndTime(parser.simulationTime());
   simulator.setIntegrateMethod(parser.integrateMethod());
+  simulator.setRelTol(parser.relTol());
+
   printf("Starting transient simulation\n");
   
   timespec start;

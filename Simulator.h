@@ -20,6 +20,7 @@ class Simulator {
     void setSimTick(double simTick);
     void setSimulationEndTime(double t);
     void setIntegrateMethod(IntegrateMethod intMethod);
+    void setRelTol(double val) { _relTol = val; }
 
     bool needRebuildEquation() const { return _needRebuild; }
 
@@ -43,7 +44,7 @@ class Simulator {
     /// positive node and negative node of the given device
     double deviceVoltageDerivative(const Device& device, 
                                    size_t order, size_t steps) const;
-    double deviceCurrentDerivative(size_t devId, size_t order, size_t steps) const;
+    double deviceCurrentDerivative(const Device& device, size_t order, size_t steps) const;
 
     void run();
 
@@ -58,6 +59,7 @@ class Simulator {
   private:
     double           _simTick = 1e-15;
     double           _simEnd;
+    double           _relTol;
     size_t           _eqnDim = 0;
     bool             _needIterate = true;
     bool             _needRebuild = false;

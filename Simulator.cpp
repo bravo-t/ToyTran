@@ -2,6 +2,7 @@
 #include "Simulator.h"
 #include "Circuit.h"
 #include "MNAStamper.h"
+#include "StepControl.h"
 #include "Debug.h"
 
 namespace Tran {
@@ -164,6 +165,10 @@ Simulator::converged() const
 void
 Simulator::adjustSimTick()
 {
+  double stepSizeLimit = StepControl::stepLimit(this, _relTol);
+  if (_simTick > stepSizeLimit) {
+    printf("WARNING: Current step size %G is larger the LTE limit %G\n", _simTick, stepSizeLimit);
+  }
   /// Implement LTE calculation and adjust _simTick based on it
   /// and set _needUpdateA to true
   return;
@@ -327,7 +332,7 @@ Simulator::deviceVoltageDerivative(const Device& device,
 }
 
 double 
-Simulator::deviceCurrentDerivative(size_t deviceId, size_t order, size_t steps) const
+Simulator::deviceCurrentDerivative(const Device& device, size_t order, size_t steps) const
 {
   if (steps == 0) {
     return .0f;
@@ -341,7 +346,7 @@ Simulator::deviceCurrentDerivative(size_t deviceId, size_t order, size_t steps) 
   std::vector<double> time;
   /// Iterate backward to make sure voltage and time are in correct order
   for (size_t i=steps+order; i>=steps; --i) {
-    current.push_back(deviceCurrent(deviceId, i));
+    current.push_back(deviceCurrent(device._devId, i));
   }
   size_t timeEndIndex = resultSize - steps;
   size_t timeStartIndex = timeEndIndex - order;

@@ -3,6 +3,6 @@ LInd1 Pos IndOut 1
 CCap1 IndOut Gnd 1u
 
 .tran 100us 100ms
-.option method=gear2
+.option method=trap
 .plot tran V(IndOut)
 .debug 0

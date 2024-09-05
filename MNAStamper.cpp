@@ -305,7 +305,7 @@ updatebInductorTrap(Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
   double indCurrent1 = sim->deviceCurrent(ind._devId, 1);
-  double dI1dt = sim->deviceCurrentDerivative(ind._devId, 1, 1);
+  double dI1dt = sim->deviceCurrentDerivative(ind, 1, 1);
   double stampValue = -2 * baseValue * indCurrent1 - ind._value * dI1dt;
   b(deviceIndex) += stampValue;
 }

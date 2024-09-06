@@ -93,6 +93,7 @@ initResultMap(const Circuit& ckt, SimResult& result)
     result._map._deviceCurrentMap[id] = index;
     ++index;
   }
+  result._map.setDimention(index);
 }
 
 void 
@@ -359,6 +360,7 @@ Simulator::deviceCurrentDerivative(const Device& device, size_t order, size_t st
 void
 Simulator::checkNeedRebuild() 
 {
+  _needRebuild = false;
   if (_prevMethod != integrateMethod()) {
     _needRebuild = true;
   }

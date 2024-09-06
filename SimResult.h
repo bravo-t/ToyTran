@@ -17,10 +17,12 @@ enum class SimResultType : unsigned char {
 ///        size() should be the dimention of vector x
 struct SimResultMap {
   static size_t invalidValue() { return static_cast<size_t>(-2); }
+  size_t _dimension = 0;
   std::vector<size_t> _nodeVoltageMap; /// node ID to matrix index
   std::vector<size_t> _deviceCurrentMap; /// device ID to matrix index
 
-  size_t size() const;
+  size_t size() const { return _dimension; }
+  void setDimention(size_t val) { _dimension = val; }
 };
 
 /// @brief The solution data of every time step produced by solving Ax=b

@@ -6,6 +6,7 @@
 #include <iomanip>
 #include "TR0Writer.h"
 #include "Simulator.h"
+#include "SimResult.h"
 #include "Circuit.h"
 
 namespace Tran {

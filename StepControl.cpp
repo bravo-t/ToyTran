@@ -119,6 +119,9 @@ static inline double
 capacitorStepSizeBE(const Device& cap, const Simulator* sim, double relTol)
 {
   double volDeriv = sim->deviceVoltageDerivative(cap, 2, 1);
+  if (volDeriv == 0) {
+    return 1e99;
+  }
   //double tick = sim->simulationTick();
   return std::sqrt(2 * relTol / std::abs(volDeriv));
   //return -tick * tick * volDeriv / 2;
@@ -128,6 +131,9 @@ static inline double
 capacitorStepSizeGear2(const Device& cap, const Simulator* sim, double relTol)
 {
   double volDeriv = sim->deviceVoltageDerivative(cap, 3, 1);
+  if (volDeriv == 0) {
+    return 1e99;
+  }
   //double tick = sim->simulationTick();
   return std::cbrt(3 * relTol / std::abs(volDeriv));
   //return tick * tick * tick * volDeriv / 3;
@@ -137,6 +143,9 @@ static inline double
 capacitorStepSizeTrap(const Device& cap, const Simulator* sim, double relTol)
 {
   double volDeriv = sim->deviceVoltageDerivative(cap, 3, 1);
+  if (volDeriv == 0) {
+    return 1e99;
+  }
   //double tick = sim->simulationTick();
   return std::cbrt(12 * relTol / std::abs(volDeriv));
   //return -tick * tick * tick * volDeriv / 12;
@@ -162,6 +171,9 @@ static inline double
 inductorStepSizeBE(const Device& ind, const Simulator* sim, double relTol)
 {
   double curDeriv = sim->deviceCurrentDerivative(ind, 2, 1);
+  if (curDeriv == 0) {
+    return 1e99;
+  }
   //double tick = sim->simulationTick();
   return std::sqrt(2 * relTol / std::abs(curDeriv));
   //return -tick * tick * curDeriv / 2;
@@ -171,6 +183,9 @@ static inline double
 inductorStepSizeGear2(const Device& ind, const Simulator* sim, double relTol)
 {
   double curDeriv = sim->deviceCurrentDerivative(ind, 3, 1);
+  if (curDeriv == 0) {
+    return 1e99;
+  }
   //double tick = sim->simulationTick();
   return std::cbrt(3 * relTol / std::abs(curDeriv));
   ///return tick * tick * tick * curDeriv / 3;
@@ -180,6 +195,9 @@ static inline double
 inductorStepSizeTrap(const Device& ind, const Simulator* sim, double relTol)
 {
   double curDeriv = sim->deviceCurrentDerivative(ind, 3, 1);
+  if (curDeriv == 0) {
+    return 1e99;
+  }
   //double tick = sim->simulationTick();
   return std::cbrt(12 * relTol / std::abs(curDeriv));
   ///return -tick * tick * tick * curDeriv / 12;
@@ -206,7 +224,7 @@ stepNoop(const Device& /*dev*/,
         const Simulator* /*sim*/, 
         double /*relTol*/)
 {
-  return .0;
+  return 1e99;
 }
 
 double

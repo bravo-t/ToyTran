@@ -3,23 +3,6 @@
 
 namespace Tran {
 
-size_t
-SimResultMap::size() const
-{
-  size_t count = 0;
-  for (size_t i : _nodeVoltageMap) {
-    if (i != invalidValue()) {
-      ++count;
-    }
-  }
-  for (size_t i : _deviceCurrentMap) {
-    if (i != invalidValue()) {
-      ++count;
-    }
-  }
-  return count;
-}
-
 size_t 
 SimResult::deviceVectorIndex(size_t deviceId) const 
 {

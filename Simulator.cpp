@@ -236,7 +236,7 @@ Simulator::setSimulationEndTime(double simTime)
 }
 
 double
-Simulator::nodeVoltage(size_t nodeId, size_t steps) const
+Simulator::nodeVoltage(size_t nodeId, size_t timeStep) const
 {
   if (circuit().isGroundNode(nodeId)) {
     return .0f;
@@ -252,17 +252,47 @@ Simulator::nodeVoltage(size_t nodeId, size_t steps) const
   if (voltage != std::numeric_limits<double>::lowest()) {
     return voltage;
   } 
-  return _result.nodeVoltage(nodeId, steps);
+  return _result.nodeVoltage(nodeId, timeStep);
 }
 
 double 
-Simulator::deviceCurrent(size_t deviceId, size_t steps) const
+Simulator::deviceCurrent(size_t deviceId, size_t timeStep) const
 {
   const Device& dev = _circuit.device(deviceId);
   if (dev._type == DeviceType::CurrentSource) {
     return dev._value;
   }
-  return _result.deviceCurrent(deviceId, steps);
+  return _result.deviceCurrent(deviceId, timeStep);
+}
+
+double
+Simulator::nodeVoltageBackstep(size_t nodeId, size_t steps) const
+{
+  if (circuit().isGroundNode(nodeId)) {
+    return .0f;
+  }
+  double voltage = std::numeric_limits<double>::lowest();
+  const Node& node = _circuit.node(nodeId);
+  for (size_t devId : node._connection) {
+    const Device& dev = _circuit.device(devId);
+    if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
+      voltage = std::max(voltage, dev._value);
+    }
+  }
+  if (voltage != std::numeric_limits<double>::lowest()) {
+    return voltage;
+  } 
+  return _result.nodeVoltageBackstep(nodeId, steps);
+}
+
+double 
+Simulator::deviceCurrentBackstep(size_t deviceId, size_t steps) const
+{
+  const Device& dev = _circuit.device(deviceId);
+  if (dev._type == DeviceType::CurrentSource) {
+    return dev._value;
+  }
+  return _result.deviceCurrentBackstep(deviceId, steps);
 }
 
 double 
@@ -300,7 +330,7 @@ Simulator::nodeVoltageDerivative(size_t nodeId, size_t order, size_t steps) cons
   std::vector<double> time;
   /// Iterate backward to make sure voltage and time are in correct order
   for (size_t i=steps+order; i>=steps; --i) {
-    double vol = nodeVoltage(nodeId, i);
+    double vol = nodeVoltageBackstep(nodeId, i);
     voltage.push_back(vol);
   }
   size_t timeEndIndex = resultSize - steps;
@@ -330,7 +360,7 @@ Simulator::deviceVoltageDerivative(const Device& device,
   std::vector<double> time;
   /// Iterate backward to make sure voltage and time are in correct order
   for (size_t i=steps+order; i>=steps; --i) {
-    double volDiff = nodeVoltage(posNodeId, i) - nodeVoltage(negNodeId, i);
+    double volDiff = nodeVoltageBackstep(posNodeId, i) - nodeVoltageBackstep(negNodeId, i);
     voltage.push_back(volDiff);
   }
   size_t timeEndIndex = resultSize - steps;
@@ -356,7 +386,7 @@ Simulator::deviceCurrentDerivative(const Device& device, size_t order, size_t st
   std::vector<double> time;
   /// Iterate backward to make sure voltage and time are in correct order
   for (size_t i=steps+order; i>=steps; --i) {
-    current.push_back(deviceCurrent(device._devId, i));
+    current.push_back(deviceCurrentBackstep(device._devId, i));
   }
   size_t timeEndIndex = resultSize - steps;
   size_t timeStartIndex = timeEndIndex - order;

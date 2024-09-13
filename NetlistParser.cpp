@@ -1,6 +1,8 @@
 #include <fstream>
 #include <unordered_map>
 #include <cstring>
+#include <cctype>  
+#include <algorithm> 
 #include "NetlistParser.h"
 #include "Debug.h"
 
@@ -245,12 +247,14 @@ parsePWLData(std::vector<std::string>& strs, size_t startIndex)
   return pwlData;
 }
 
+/*
 struct PWLValue
 pulseToPWLValue(double initValue, double puleValue, double delay, 
                 double riseTime, double fallTime, double width, double period)
 {
   
 }
+*/
 
 static inline size_t 
 findOrCreateNode(std::unordered_map<std::string, size_t>& nodeMap, 
@@ -490,21 +494,28 @@ toLower(std::string& line)
   std::transform(line.begin(), line.end(), line.begin(), asciitolower);
 }
 
-void
+/// returns true if given string is like "(XXX)" or "xxx"
+/// returns false if given string is like "(XXX" or "XXX)"
+bool
 findNameInParenthesis(std::string& str, size_t& startIndex, size_t& endIndex)
 {
+  bool foundOpen = false;
+  bool foundClose = false;
   endIndex = 0;
   startIndex = str.size();
   for (size_t i=0; i<str.size(); ++i) {
     if (str[i] == '(') {
       startIndex = i;
+      foundOpen = true;
       continue;
     }
     if (startIndex != str.size() && str[i] == ')') {
       endIndex = i;
+      foundClose = true;
       break;
     }
   }
+  return foundOpen == foundClose;
 }
 
 void 
@@ -532,14 +543,98 @@ processPlot(const std::string& line,
       continue;
     }
     size_t startIndex, endIndex;
-    findNameInParenthesis(strs[i], startIndex, endIndex);
-    if (startIndex == strs[i].size() || endIndex == 0) {
+    if (findNameInParenthesis(strs[i], startIndex, endIndex) == false || 
+        startIndex == strs[i].size() || endIndex == 0) {
       printf("Unsupported syntax in line \"%s\"", line.data());
       return;
     }
     std::string str = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
     destVec->push_back(str);
   }
+}
+
+bool ichar_equals(char a, char b)
+{
+  return std::tolower(static_cast<unsigned char>(a)) ==
+         std::tolower(static_cast<unsigned char>(b));
+}
+
+bool iequals(const std::string& a, const std::string& b)
+{
+  return a.size() == b.size() &&
+         std::equal(a.begin(), a.end(), b.begin(), ichar_equals);
+}
+
+void
+processMeasureCmds(const std::string& line, 
+                   std::vector<MeasurePoint>& meas)
+{
+  std::vector<std::string> strs;
+  splitWithAny(line, " =", strs);
+  /// line = 
+  /// .measure tran rise_delay trig V(POS)=2.5 targ V(ResOUT)=2.5
+  /// .measure tran rise_tran_10_90 trig V(ResOUT)=0.5 targ V(ResOUT)=4.5
+  /// strs[0] == .measure, discard
+  MeasurePoint mp;
+  bool inTriggerSection = false;
+  bool inTargetSection = false;
+  for (size_t i=1; i<strs.size(); ++i) {
+    if (iequals(strs[i], "tran")) {
+      continue;
+    }
+    if (iequals(strs[i], "trig")) {
+      inTriggerSection = 1;
+      continue;
+    }
+    if (iequals(strs[i], "targ")) {
+      inTriggerSection = 1;
+      continue;
+    }
+    if (!inTriggerSection && !inTargetSection) {
+      mp._variableName = strs[i];
+      continue;
+    }
+    if (inTriggerSection || inTargetSection) {
+      if (iequals(strs[i], "td")) {
+        if (inTargetSection) {
+          printf("Unsupported TD statement in targ of line \"%s\"", line.data());
+          return;
+        }
+        ++i;
+        mp._timeDelay = numericalValue(strs[i], "");
+        continue;
+      } else {
+        char c = firstChar(strs[i]);
+        SimResultType type = SimResultType::Voltage;
+        if (c == 'V' || c == 'v') {
+          type = SimResultType::Voltage;
+        } else if (c == 'I' || c == 'i') {
+          type = SimResultType::Current;
+        } else {
+          printf("Unsupported type of metric %c\n", c);
+          return;
+        }
+        size_t startIndex, endIndex;
+        if (findNameInParenthesis(strs[i], startIndex, endIndex) == false || 
+            startIndex == strs[i].size() || endIndex == 0) {
+          printf("Unsupported syntax in line \"%s\"", line.data());
+          return;
+        }
+        ++i;
+        if (inTargetSection) {
+          mp._target = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
+          mp._targetType = type;
+          mp._targetValue = numericalValue(strs[i], "");
+        } else if (inTriggerSection) {
+          mp._trigger = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
+          mp._triggerType = type;
+          mp._triggerValue = numericalValue(strs[i], "");
+        }
+        continue;
+      }
+    }
+  }
+  meas.push_back(mp);
 }
 
 void
@@ -556,6 +651,8 @@ NetlistParser::processCommands(const std::string& line)
     processOption(line);
   } else if (strs[0] == ".plot") {
     processPlot(line, _nodeToPlot, _deviceToPlot);
+  } else if (strs[0] == ".measure") {
+    processMeasureCmds(line, _measurePoints);
   } else if (strs[0] == ".end") {
   } else {
     printf("command line %s is ignored\n", line.data());

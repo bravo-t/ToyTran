@@ -15,7 +15,7 @@ SRC_DIR     = .
 BUILD_DIR   = ./build
 BIN_DIR     = .
 
-SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp Debug.cpp \
+SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp Debug.cpp Measure.cpp \
 		   SimResult.cpp StepControl.cpp Simulator.cpp \
 		   Circuit.cpp MNAStamper.cpp  NetlistParser.cpp 
 

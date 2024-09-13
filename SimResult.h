@@ -4,13 +4,9 @@
 #include <vector>
 #include <deque>
 #include <limits>
+#include "Base.h"
 
 namespace Tran {
-
-enum class SimResultType : unsigned char {
-  Voltage,
-  Current,
-};
 
 /// @brief The map between numbers in x of Ax=b, and the actual meaning of 
 ///        the number
@@ -31,16 +27,22 @@ struct SimResult {
   std::vector<double> _ticks;
   std::deque<double>  _values; /// size should be _map.size()*_ticks.size()
 
+  /// @brief Get voltage or current of given node id or device id
+  ///        This function returns the data in a forward manner
+  ///        Means a timeStep of 0 gives the voltage/current @ 0 tick
+  double nodeVoltage(size_t nodeId, size_t timeStep) const;
+  double deviceCurrent(size_t devId, size_t timeStep) const;
+
   /// @brief Get the voltage of given node id
   /// @param nodeId 
   /// @param steps: number of steps BACK with respect to current time
   ///               0 means 1 simTick previous to current time
   ///               if requested steps are not available, initial condition 
   ///               is returned
-  double nodeVoltage(size_t nodeId, size_t steps) const;
+  double nodeVoltageBackstep(size_t nodeId, size_t steps) const;
   /// @brief Get the current of given device id, parameters are interpreted 
-  ///        the same way as nodeVoltage
-  double deviceCurrent(size_t devId, size_t steps) const;
+  ///        the same way as nodeVoltageBackstep
+  double deviceCurrentBackstep(size_t devId, size_t steps) const;
   /// @brief Get the index of the result vector x, which is also the row and column
   ///        Index of matrix A, from given node/device id
   size_t nodeVectorIndex(size_t nodeId) const;

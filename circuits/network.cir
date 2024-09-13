@@ -674,4 +674,4 @@ CC152 NET:136 0 2.47927e-19
 *.option method=trap
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
 .plot tran V(0/09CK) 
-.debug 1
+.debug 0

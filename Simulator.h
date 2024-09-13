@@ -33,8 +33,11 @@ class Simulator {
     IntegrateMethod integrateMethod() const;
     const Circuit& circuit() const { return _circuit; }
 
-    double nodeVoltage(size_t nodeId, size_t steps) const;
-    double deviceCurrent(size_t devId, size_t steps) const;
+    /// Wrapper functions around the same functions in SimResult
+    double nodeVoltage(size_t nodeId, size_t timeStep) const;
+    double deviceCurrent(size_t devId, size_t timeStep) const;
+    double nodeVoltageBackstep(size_t nodeId, size_t steps) const;
+    double deviceCurrentBackstep(size_t devId, size_t steps) const;
     
     /// @brief Get derivative of voltage and current.
     ///        order controls the order of derivative you need

@@ -42,8 +42,8 @@ updatebCapacitorBE(Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
-  double posVoltage = sim->nodeVoltage(cap._posNode, 1);
-  double negVoltage = sim->nodeVoltage(cap._negNode, 1);
+  double posVoltage = sim->nodeVoltageBackstep(cap._posNode, 1);
+  double negVoltage = sim->nodeVoltageBackstep(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
   double bValue = stampValue * voltageDiff; 
   //printf("DEBUG: T@%G BE posNode: %lu, negNode: %lu, diff: %G-%G=%G current: %G\n", 
@@ -90,10 +90,10 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
-  double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
-  double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
-  double posVoltage2 = sim->nodeVoltage(cap._posNode, 2);
-  double negVoltage2 = sim->nodeVoltage(cap._negNode, 2);
+  double posVoltage1 = sim->nodeVoltageBackstep(cap._posNode, 1);
+  double negVoltage1 = sim->nodeVoltageBackstep(cap._negNode, 1);
+  double posVoltage2 = sim->nodeVoltageBackstep(cap._posNode, 2);
+  double negVoltage2 = sim->nodeVoltageBackstep(cap._negNode, 2);
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
   double stampValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
@@ -143,8 +143,8 @@ updatebCapacitorTrap(Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
-  double posVoltage1 = sim->nodeVoltage(cap._posNode, 1);
-  double negVoltage1 = sim->nodeVoltage(cap._negNode, 1);
+  double posVoltage1 = sim->nodeVoltageBackstep(cap._posNode, 1);
+  double negVoltage1 = sim->nodeVoltageBackstep(cap._negNode, 1);
   double dV1dt = sim->deviceVoltageDerivative(cap, 1, 1);
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double stampValue = 2 * baseValue * voltageDiff1 + cap._value * dV1dt;
@@ -226,7 +226,7 @@ updatebInductorBE(Eigen::VectorXd& b,
   double stampValue = ind._value / simTick;
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  double indCurrent = sim->deviceCurrent(ind._devId, 1);
+  double indCurrent = sim->deviceCurrentBackstep(ind._devId, 1);
   double bValue = -stampValue * indCurrent;
   b(deviceIndex) += bValue;
 }
@@ -251,7 +251,7 @@ stampInductorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b,
     A(deviceIndex, negNodeIndex) += -1;
   }
   A(deviceIndex, deviceIndex) += -stampValue;
-  double indCurrent = sim->deviceCurrent(ind._devId, 1);
+  double indCurrent = sim->deviceCurrentBackstep(ind._devId, 1);
   double bValue = -stampValue * indCurrent;
   b(deviceIndex) += bValue;
 }
@@ -265,8 +265,8 @@ updatebInductorGear2(Eigen::VectorXd& b,
   double baseValue = ind._value / simTick;
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  double indCurrent1 = sim->deviceCurrent(ind._devId, 1);
-  double indCurrent2 = sim->deviceCurrent(ind._devId, 2);
+  double indCurrent1 = sim->deviceCurrentBackstep(ind._devId, 1);
+  double indCurrent2 = sim->deviceCurrentBackstep(ind._devId, 2);
   double stampValue = -baseValue * (2 * indCurrent1 - 0.5 * indCurrent2);
   b(deviceIndex) += stampValue;
 }
@@ -304,7 +304,7 @@ updatebInductorTrap(Eigen::VectorXd& b,
   double baseValue = ind._value / simTick;
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
-  double indCurrent1 = sim->deviceCurrent(ind._devId, 1);
+  double indCurrent1 = sim->deviceCurrentBackstep(ind._devId, 1);
   double dI1dt = sim->deviceCurrentDerivative(ind, 1, 1);
   double stampValue = -2 * baseValue * indCurrent1 - ind._value * dI1dt;
   b(deviceIndex) += stampValue;

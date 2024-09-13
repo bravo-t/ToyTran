@@ -6,6 +6,11 @@
 
 namespace Tran {
 
+enum class SimResultType : unsigned char {
+  Voltage,
+  Current,
+};
+
 enum class IntegrateMethod : unsigned char {
   None,
   BackwardEuler,

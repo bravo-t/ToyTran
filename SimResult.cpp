@@ -27,7 +27,27 @@ SimResult::currentTime() const
 }
 
 double
-SimResult::nodeVoltage(size_t nodeId, size_t steps) const
+SimResult::nodeVoltage(size_t nodeId, size_t timeStep) const
+{
+  assert(_ticks.size() > timeStep);
+  size_t nodeIndex = nodeVectorIndex(nodeId);
+  assert(nodeIndex != static_cast<size_t>(-1) && "Incorrect nodeId");
+  size_t resultIndex = timeStep * _map.size() + nodeIndex;
+  return _values[resultIndex];
+}
+
+double 
+SimResult::deviceCurrent(size_t deviceId, size_t timeStep) const
+{
+  assert(_ticks.size() > timeStep);
+  size_t devIndex = deviceVectorIndex(deviceId);
+  assert(devIndex != static_cast<size_t>(-1) && "Incorrect deviceId");
+  size_t resultIndex = timeStep * _map.size() + devIndex;
+  return _values[resultIndex];
+}
+
+double
+SimResult::nodeVoltageBackstep(size_t nodeId, size_t steps) const
 {
   assert(steps > 0 && "Incorrect input parameter");
   if (_ticks.size() < steps) {
@@ -43,7 +63,7 @@ SimResult::nodeVoltage(size_t nodeId, size_t steps) const
 }
 
 double 
-SimResult::deviceCurrent(size_t deviceId, size_t steps) const
+SimResult::deviceCurrentBackstep(size_t deviceId, size_t steps) const
 {
   assert(steps > 0 && "Incorrect input parameter");
   if (_ticks.size() < steps) {

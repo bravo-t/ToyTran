@@ -22,6 +22,17 @@ struct ParserDevice {
   };
 };
 
+struct MeasurePoint {
+  std::string _variableName;
+  double _timeDelay = .0f;
+  std::string _trigger;
+  SimResultType _triggerType;
+  double _triggerValue;
+  std::string _target;
+  SimResultType _targetType;
+  double _targetValue;
+};
+
 class NetlistParser {
   public:
     NetlistParser(const char* fileName);
@@ -43,6 +54,9 @@ class NetlistParser {
 
     double relTol() const { return _relTol; }
 
+    bool haveMeasurePoints() const { return !_measurePoints.empty(); }
+    const std::vector<MeasurePoint>& measurePoints() const { return _measurePoints; }
+
   private:
     void processCommands(const std::string& line);
     void processOption(const std::string& line);
@@ -51,6 +65,7 @@ class NetlistParser {
   private:
     std::vector<ParserDevice>    _devices;
     std::vector<PWLValue>        _PWLData;
+    std::vector<MeasurePoint>     _measurePoints;
     double                       _simTick = 1e-15;
     double                       _simTime = 2;
     double                       _relTol = 1e-6;

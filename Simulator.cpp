@@ -121,15 +121,17 @@ Simulator::formulateEquation()
   A.setZero(_eqnDim, _eqnDim);
   _b.setZero(_eqnDim);
   MNAStamper::stamp(A, _b, this);
+  /*
   if (Debug::enabled()) {
     Debug::printEquation(A, _b);
     Eigen::EigenSolver<Eigen::MatrixXd> es(A);
     printf("Eigenvalues of A: \n");
-    for (size_t i=0; i<A.rows(); ++i) {
+    for (int i=0; i<A.rows(); ++i) {
       std::complex<double> value = es.eigenvalues().col(0)[i];
       printf("  %f+%fi\n", std::real(value), std::imag(value));
     }
   }
+  */
   _Alu = A.fullPivLu();
 }
 

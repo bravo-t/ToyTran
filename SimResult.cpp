@@ -88,7 +88,14 @@ SimResult::stepSize(size_t steps) const
   return _ticks[index] - _ticks[index-1];
 }
 
-
+double
+SimResult::stepTime(size_t step) const
+{
+  if (_ticks.size() <= step) {
+    return std::numeric_limits<double>::max();
+  }
+  return _ticks[step];
+}
 
 
 

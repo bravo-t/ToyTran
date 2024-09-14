@@ -669,7 +669,7 @@ CC150 NET:119 0 2.44145e-19
 CC151 NET:134 0 4.53735e-18
 CC152 NET:136 0 2.47927e-19
 
-.tran 0.1ps 5ps
+.tran 0.05ps 5ps
 .option method=gear2
 *.option method=trap
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)

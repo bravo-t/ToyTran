@@ -5,6 +5,7 @@
 #include "Simulator.h"
 #include "TR0Writer.h"
 #include "Plotter.h"
+#include "Measure.h"
 
 inline uint64_t
 timeDiffNs(const timespec& endTime, const timespec& startTime)
@@ -69,6 +70,11 @@ int main(int argc, char** argv)
   if (parser.needPlot()) {
     Tran::Plotter plt(parser, circuit, simulator.simulationResult());
     plt.plot();
+  }
+
+  if (parser.haveMeasurePoints()) {
+    Tran::Measure measure(simulator, parser.measurePoints());
+    measure.run();
   }
 
   return 0;

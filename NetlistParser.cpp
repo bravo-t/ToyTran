@@ -569,6 +569,7 @@ void
 processMeasureCmds(const std::string& line, 
                    std::vector<MeasurePoint>& meas)
 {
+  printf("DEBUG: Measure: %s\n", line.data());
   std::vector<std::string> strs;
   splitWithAny(line, " =", strs);
   /// line = 
@@ -584,10 +585,12 @@ processMeasureCmds(const std::string& line,
     }
     if (iequals(strs[i], "trig")) {
       inTriggerSection = 1;
+      inTargetSection = 0;
       continue;
     }
     if (iequals(strs[i], "targ")) {
-      inTriggerSection = 1;
+      inTriggerSection = 0;
+      inTargetSection = 1;
       continue;
     }
     if (!inTriggerSection && !inTargetSection) {
@@ -620,14 +623,15 @@ processMeasureCmds(const std::string& line,
           printf("Unsupported syntax in line \"%s\"", line.data());
           return;
         }
-        ++i;
         if (inTargetSection) {
           mp._target = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
           mp._targetType = type;
+          ++i;
           mp._targetValue = numericalValue(strs[i], "");
         } else if (inTriggerSection) {
           mp._trigger = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
           mp._triggerType = type;
+          ++i;
           mp._triggerValue = numericalValue(strs[i], "");
         }
         continue;

@@ -27,6 +27,8 @@ struct SimResult {
   std::vector<double> _ticks;
   std::deque<double>  _values; /// size should be _map.size()*_ticks.size()
 
+  /// Return Time of given step
+  double stepTime(size_t step) const;
   /// @brief Get voltage or current of given node id or device id
   ///        This function returns the data in a forward manner
   ///        Means a timeStep of 0 gives the voltage/current @ 0 tick

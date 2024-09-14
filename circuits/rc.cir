@@ -4,11 +4,11 @@ CCap2 ResOUT GND 1u
 *RRes2 3 4 1k
 *RRes3 4 0 1k
 
-.tran 1us 10us
+.tran 1us 3ms
 *.option method=gear2
 .option method=trap
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
 .plot tran V(ResOUT) 
-.debug 1
+.debug 0
 .measure tran rise_delay trig V(POS)=2.5 targ V(ResOUT)=2.5
 .measure tran rise_tran_10_90 trig V(ResOUT)=0.5 targ V(ResOUT)=4.5

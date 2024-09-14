@@ -30,6 +30,8 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.plot V(NodeName) I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. Under developing.
 
+`.measure tran variable_name trig V(node)/I(device)=trigger_value TD=xx targ V(node)/I(device)=target_value`: Measure the event time between trigger value happend and target value happend. 
+
 ## Compile and run
 `git clone --recurse-submodules` and `make` should be sufficient. The executable is generated under current code directory and named "trans".
 

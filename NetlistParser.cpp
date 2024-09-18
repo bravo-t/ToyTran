@@ -569,7 +569,6 @@ void
 processMeasureCmds(const std::string& line, 
                    std::vector<MeasurePoint>& meas)
 {
-  printf("DEBUG: Measure: %s\n", line.data());
   std::vector<std::string> strs;
   splitWithAny(line, " =", strs);
   /// line = 

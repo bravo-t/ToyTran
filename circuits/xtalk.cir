@@ -2,15 +2,16 @@ VVDD POS GND 5
 RRes POS ResOUT 1k
 CCap ResOUT GND 1u
 
-VXVDD XPOS GND pwl(0 0 2 0 2.5 5 3 5 4 0)
-RXRes XPOS XResOUT 1k
+VXVDD XPOS GND pwl(0s 0 2ms 0 2.5ms 5 3ms 0)
+RXRes XPOS XResOUT 10
 CXCap XResOUT ResOUT 1u
 
-.tran 1us 3ms
+.tran 1us 5ms
 *.option method=gear2
 .option method=trap
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
-.plot tran V(ResOUT) 
-.debug 0
+.plot tran V(ResOUT) V(XResOUT)
+.debug 1
 .measure tran rise_delay trig V(POS)=2.5 targ V(ResOUT)=2.5
 .measure tran rise_tran_10_90 trig V(ResOUT)=0.5 targ V(ResOUT)=4.5
+.measure tran aggr_rise_delay trig V(XPOS)=2.5 targ V(XResOUT)=2.5

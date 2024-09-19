@@ -212,6 +212,9 @@ updatebCapacitor(Eigen::VectorXd& b, const Device& cap,
     case IntegrateMethod::Gear2:
       updatebCapacitorGear2(b, cap, simulator);
       break;
+    case IntegrateMethod::Trapezoidal:
+      updatebCapacitorTrap(b, cap, simulator);
+      break;
     default:
       assert(false && "Incorrect integrate method");
   }
@@ -365,6 +368,9 @@ updatebInductor(Eigen::VectorXd& b, const Device& ind,
       break;
     case IntegrateMethod::Gear2:
       updatebInductorGear2(b, ind, simulator);
+      break;
+    case IntegrateMethod::Trapezoidal:
+      updatebInductorTrap(b, ind, simulator);
       break;
     default:
       assert(false && "Incorrect integrate method");

@@ -49,6 +49,8 @@ class NetlistParser {
     const std::vector<std::string>& devicesToPlot() const  { return _deviceToPlot; }
 
     bool needPlot() const { return _nodeToPlot.empty() == false || _deviceToPlot.empty() == false; }
+    int plotWidth() const { return _plotWidth; }
+    int plotHeight() const { return _plotHeight; }
 
     bool dumpData() const { return _saveData; }
 
@@ -69,8 +71,10 @@ class NetlistParser {
     double                       _simTick = 1e-15;
     double                       _simTime = 2;
     double                       _relTol = 1e-6;
-    bool                         _saveData = false;
     IntegrateMethod              _intMethod = IntegrateMethod::Gear2;
+    bool                         _saveData = false;
+    size_t                       _plotWidth = static_cast<size_t>(-1);
+    size_t                       _plotHeight = static_cast<size_t>(-1);
     std::vector<std::string>     _nodeToPlot;
     std::vector<std::string>     _deviceToPlot;
 

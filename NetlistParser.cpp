@@ -21,6 +21,7 @@ nodeMapToList(const std::unordered_map<std::string, size_t>& nodeMap,
 static inline bool
 isLineClosed(std::string& line, size_t& parenCounter, std::string& str)
 {
+  bool tailingPlus = false;
   for (size_t i=0; i<line.size(); ++i) {
     char& c = line[i];
     if (c == '(') {
@@ -31,10 +32,16 @@ isLineClosed(std::string& line, size_t& parenCounter, std::string& str)
     if (iscntrl(c)) {
       c = ' ';
     }
+    if (c == '+') {
+      tailingPlus = true;
+    }
+    if (tailingPlus && std::isalnum(c) && c != '+') {
+      tailingPlus = false;
+    }
   }
   str.append(" ");
   str.append(line);
-  return parenCounter == 0;
+  return parenCounter == 0 && tailingPlus == false;
 }
 
 
@@ -521,10 +528,11 @@ findNameInParenthesis(std::string& str, size_t& startIndex, size_t& endIndex)
 void 
 processPlot(const std::string& line, 
             std::vector<std::string>& nodeToPlot, 
-            std::vector<std::string>& deviceToPlot)
+            std::vector<std::string>& deviceToPlot, 
+            size_t& plotWidth, size_t& plotHeight)
 {
   std::vector<std::string> strs;
-  splitWithAny(line, " ", strs);
+  splitWithAny(line, " =", strs);
   /// strs[0] == .plot, discard
   toLower(strs[1]);
   if (strs[1].compare("tran") != 0) {
@@ -539,8 +547,19 @@ processPlot(const std::string& line,
     } else if (c == 'I' || c == 'i') {
       destVec = &deviceToPlot;
     } else {
-      printf("Unsupported type of metric %c\n", c);
-      continue;
+      toLower(strs[i]);
+      if (strs[i].compare("width") == 0) {
+        ++i;
+        plotWidth = numericalValue(strs[i], "");
+        continue;
+      } else if (strs[i].compare("height") == 0) {
+        ++i;
+        plotHeight = numericalValue(strs[i], "");
+        continue;
+      } else {
+        printf("Unsupported type of metric %c\n", c);
+        continue;
+      }
     }
     size_t startIndex, endIndex;
     if (findNameInParenthesis(strs[i], startIndex, endIndex) == false || 
@@ -653,7 +672,7 @@ NetlistParser::processCommands(const std::string& line)
   } else if (strs[0] == ".option") {
     processOption(line);
   } else if (strs[0] == ".plot") {
-    processPlot(line, _nodeToPlot, _deviceToPlot);
+    processPlot(line, _nodeToPlot, _deviceToPlot, _plotWidth, _plotHeight);
   } else if (strs[0] == ".measure") {
     processMeasureCmds(line, _measurePoints);
   } else if (strs[0] == ".end") {

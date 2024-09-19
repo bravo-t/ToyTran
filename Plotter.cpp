@@ -72,18 +72,17 @@ deviceSimData(const SimResult& result, const std::string& devName,
 
 void 
 plotData(const std::vector<std::pair<double, double>>& data, 
-         double max, double min)
+         double max, double min, size_t width, size_t height)
 {
   if (data.empty()) {
     return;
   }
-  size_t width = 0;
-  size_t height = 0;
-  terminalSize(width, height);
-  if (width == 0 || height == 0) {
-    return;
+  if (width == static_cast<size_t>(-1) || height == static_cast<size_t>(-1)) {
+    terminalSize(width, height);
+    if (width == 0 || height == 0) {
+      return;
+    }
   }
-
   std::vector<std::string> canvas;
   canvas.resize(height);
   for (size_t i=0; i<height-1; ++i) {
@@ -113,27 +112,28 @@ plotData(const std::vector<std::pair<double, double>>& data,
 }
 
 void
-plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const SimResult& result)
+Plotter::plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const SimResult& result) const
 {
   double max = 0;
   double min = 0;
   auto data = nodeSimData(result, nodeName, ckt, max, min);
-  plotData(data, max, min);
+  plotData(data, max, min, _parser.plotWidth(), _parser.plotHeight());
   //printf("Node %s, data size: %lu, max: %g, min: %g, last time: %g\n", nodeName.data(), data.size(), max, min, data.back().first);
   printf("  Voltage of node %s\n", nodeName.data());
 }
 
-void plotDeviceCurrent(const std::string& devName, const Circuit& ckt, const SimResult& result)
+void 
+Plotter::plotDeviceCurrent(const std::string& devName, const Circuit& ckt, const SimResult& result) const
 {
   double max = 0;
   double min = 0;
   auto data = deviceSimData(result, devName, ckt, max, min);
-  plotData(data, max, min);
+  plotData(data, max, min, _parser.plotWidth(), _parser.plotHeight());
   printf("  Current of device %s\n", devName.data());
 }
 
 void
-Plotter::plot()
+Plotter::plot() const
 {
   const std::vector<std::string>& nodes = _parser.nodesToPlot();
   const std::vector<std::string>& devices = _parser.devicesToPlot();

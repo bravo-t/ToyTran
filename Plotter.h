@@ -8,6 +8,7 @@ namespace Tran {
 class Circuit;
 class NetlistParser;
 struct SimResult;
+struct PlotData;
 
 class Plotter {
   public:
@@ -17,6 +18,7 @@ class Plotter {
   private:
     void plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const SimResult& result) const;
     void plotDeviceCurrent(const std::string& devName, const Circuit& ckt, const SimResult& result) const;
+    void plot(const PlotData& data) const;
 
   private:
     const NetlistParser&   _parser;

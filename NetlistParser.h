@@ -33,6 +33,12 @@ struct MeasurePoint {
   double _targetValue;
 };
 
+struct PlotData {
+  std::string              _canvasName;
+  std::vector<std::string> _nodeToPlot;
+  std::vector<std::string> _deviceToPlot;
+};
+
 class NetlistParser {
   public:
     NetlistParser(const char* fileName);
@@ -45,10 +51,10 @@ class NetlistParser {
     double simulationTick() const { return _simTick; }
     IntegrateMethod integrateMethod() const { return _intMethod; }
 
-    const std::vector<std::string>& nodesToPlot() const  { return _nodeToPlot; }
-    const std::vector<std::string>& devicesToPlot() const  { return _deviceToPlot; }
+    const std::vector<PlotData>& plotData() const { return _plotData; }
+    std::vector<PlotData>& plotData() { return _plotData; }
 
-    bool needPlot() const { return _nodeToPlot.empty() == false || _deviceToPlot.empty() == false; }
+    bool needPlot() const { return _plotData.empty() == false; }
     int plotWidth() const { return _plotWidth; }
     int plotHeight() const { return _plotHeight; }
 
@@ -75,9 +81,7 @@ class NetlistParser {
     bool                         _saveData = false;
     size_t                       _plotWidth = static_cast<size_t>(-1);
     size_t                       _plotHeight = static_cast<size_t>(-1);
-    std::vector<std::string>     _nodeToPlot;
-    std::vector<std::string>     _deviceToPlot;
-
+    std::vector<PlotData>        _plotData;
 };
 
 }

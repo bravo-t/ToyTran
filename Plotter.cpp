@@ -43,7 +43,9 @@ simData(const SimResult& result, size_t rowIndex, double& max, double& min)
   return data;
 }
 
-std::vector<std::pair<double, double>>
+typedef std::pair<double, double> SimTimeData;
+
+std::vector<SimTimeData>
 nodeSimData(const SimResult& result, const std::string& nodeName, 
             const Circuit& ckt, double& max, double& min) 
 {
@@ -53,11 +55,10 @@ nodeSimData(const SimResult& result, const std::string& nodeName,
     return std::vector<std::pair<double, double>>();
   }
   size_t rowIndex = result.nodeVectorIndex(node._nodeId);
-  printf("Node %s id %lu rowIndex: %lu\n", node._name.data(), node._nodeId, rowIndex);
   return simData(result, rowIndex, max, min);
 }
 
-std::vector<std::pair<double, double>>
+std::vector<SimTimeData>
 deviceSimData(const SimResult& result, const std::string& devName, 
               const Circuit& ckt, double& max, double& min) 
 {
@@ -70,45 +71,96 @@ deviceSimData(const SimResult& result, const std::string& devName,
   return simData(result, rowIndex, max, min);
 }
 
-void 
-plotData(const std::vector<std::pair<double, double>>& data, 
-         double max, double min, size_t width, size_t height)
+void
+initCanvas(size_t width, size_t height, 
+           std::vector<std::string>& canvas)
 {
-  if (data.empty()) {
-    return;
-  }
   if (width == static_cast<size_t>(-1) || height == static_cast<size_t>(-1)) {
     terminalSize(width, height);
     if (width == 0 || height == 0) {
       return;
     }
   }
-  std::vector<std::string> canvas;
-  canvas.resize(height);
+  canvas.reserve(height);
   for (size_t i=0; i<height-1; ++i) {
-    canvas[i].resize(width, ' ');
-    canvas[i][0] = '|';
+    std::string line(width, ' ');
+    line[0] = '|';
+    canvas.push_back(line);
   }
-  width -= 1;
-  height -= 2;
+  std::string coor(width, '-');
+  coor[0] = '|';
+  canvas.push_back(coor);
+}
+
+void 
+plotData(const std::vector<std::pair<double, double>>& data, 
+         double max, double min, 
+         std::vector<std::string>& canvas, char marker)
+{
+  size_t width = canvas[0].size() - 1;
+  size_t height = canvas.size() - 2;
   double dataScale = (max - min) / height;
   double timeScale = data.back().first / width;
   for (const auto& point : data) {
     double offsetValue = point.second - min;
     size_t y = offsetValue / dataScale;
+    y = height - y;
     size_t x = point.first / timeScale;
     //printf("DEBUG: y value: %g, y div: %lu, x value: %g, x div: %lu, dataScale: %g, timeScale: %g\n", 
     //  point.second, y, point.first, x, dataScale, timeScale);
-    canvas[y][x] = '*';
+    canvas[y][x] = marker;
   }
-  std::reverse(canvas.begin(), canvas.end());
+}
 
-  for (const auto& line : canvas) {
+void
+Plotter::plot(const PlotData& data) const
+{
+  double max = std::numeric_limits<double>::lowest();
+  double min = std::numeric_limits<double>::max();
+  
+  std::vector<char> markers = {'*', 'o', 'x', '+'};
+  std::vector<std::string> legend;
+
+  size_t plotCounter = 0;
+  std::vector<std::vector<SimTimeData>> simData;
+  for (const std::string& nodeName : data._nodeToPlot) {
+    double nodeMax = 0;
+    double nodeMin = 0;
+    const std::vector<SimTimeData>& nodeData = nodeSimData(_result, nodeName, _circuit, nodeMax, nodeMin);
+    simData.push_back(nodeData);
+    max = std::max(max, nodeMax);
+    min = std::min(min, nodeMin);
+    std::string l(1, markers[plotCounter]);
+    l += ": Voltage of node ";
+    l += nodeName;
+    legend.push_back(l);
+    ++plotCounter;
+  }
+  for (const std::string& devName : data._deviceToPlot) {
+    double devMax = 0;
+    double devMin = 0;
+    const std::vector<SimTimeData>& devData = deviceSimData(_result, devName, _circuit, devMax, devMin);
+    simData.push_back(devData);
+    max = std::max(max, devMax);
+    min = std::min(min, devMin);
+    std::string l(1, markers[plotCounter]);
+    l += ": Current of device ";
+    l += devName;
+    legend.push_back(l);
+    ++plotCounter;
+  }
+  std::vector<std::string> canvas;
+  initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
+  for (size_t i=0; i<simData.size(); ++i) {
+    char marker = markers[i];
+    plotData(simData[i], max, min, canvas, marker);
+  }
+  for (const std::string& line : canvas) {
     printf("%s\n", line.data());
   }
-  std::string coor(width, '-');
-  coor[0] = '|';
-  printf("%s\n", coor.data());
+  for (const std::string& line : legend) {
+    printf("  %s\n", line.data());
+  }
 }
 
 void
@@ -117,8 +169,12 @@ Plotter::plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const 
   double max = 0;
   double min = 0;
   auto data = nodeSimData(result, nodeName, ckt, max, min);
-  plotData(data, max, min, _parser.plotWidth(), _parser.plotHeight());
-  //printf("Node %s, data size: %lu, max: %g, min: %g, last time: %g\n", nodeName.data(), data.size(), max, min, data.back().first);
+  std::vector<std::string> canvas;
+  initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
+  plotData(data, max, min, canvas, '*');
+  for (const std::string& line : canvas) {
+    printf("%s\n", line.data());
+  }
   printf("  Voltage of node %s\n", nodeName.data());
 }
 
@@ -128,22 +184,33 @@ Plotter::plotDeviceCurrent(const std::string& devName, const Circuit& ckt, const
   double max = 0;
   double min = 0;
   auto data = deviceSimData(result, devName, ckt, max, min);
-  plotData(data, max, min, _parser.plotWidth(), _parser.plotHeight());
+  std::vector<std::string> canvas;
+  initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
+  plotData(data, max, min, canvas, '*');
+  for (const std::string& line : canvas) {
+    printf("%s\n", line.data());
+  }
   printf("  Current of device %s\n", devName.data());
 }
 
 void
 Plotter::plot() const
 {
-  const std::vector<std::string>& nodes = _parser.nodesToPlot();
-  const std::vector<std::string>& devices = _parser.devicesToPlot();
+  const std::vector<PlotData>& plotCmds = _parser.plotData();
 
-  for (const std::string& nodeName : nodes) {
-    plotNodeVoltage(nodeName, _circuit, _result);
+  for (const PlotData& cmd : plotCmds) {
+    if (cmd._canvasName == "") {
+      for (const std::string& nodeName : cmd._nodeToPlot) {
+        plotNodeVoltage(nodeName, _circuit, _result);
+      }
+      for (const std::string& devName : cmd._deviceToPlot) {
+        plotDeviceCurrent(devName, _circuit, _result);
+      }
+    } else {
+      plot(cmd);
+    }
   }
-  for (const std::string& devName : devices) {
-    plotDeviceCurrent(devName, _circuit, _result);
-  }
+
 }
 
 

@@ -16,7 +16,7 @@ BUILD_DIR   = ./build
 BIN_DIR     = .
 
 SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp Debug.cpp Measure.cpp \
-		   SimResult.cpp StepControl.cpp Simulator.cpp \
+		   Simulator.cpp StepControl.cpp SimResult.cpp \
 		   Circuit.cpp MNAStamper.cpp  NetlistParser.cpp 
 
 SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))

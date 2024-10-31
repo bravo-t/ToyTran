@@ -56,6 +56,25 @@ struct Node {
 };
 
 struct PWLValue {
+  double valueAtTime(double time) const
+  {
+    if (time < _time[0]) {
+      return 0;
+    }
+    for (size_t i=1; i<_time.size(); ++i) {
+      if (time < _time[i]) {
+        double v1 = _value[i-1];
+        double v2 = _value[i];
+        double t1 = _time[i-1];
+        double t2 = _time[i];
+        //printf("DEBUG: time %g goes into [%g, %g] interval, voltage: [%g, %g], interpolated voltage: %g\n", 
+        //  time, t1, t2, v1, v2, v1 + (v2-v1)/(t2-t1)*(time-t1));
+        return v1 + (v2-v1)/(t2-t1)*(time-t1);
+      }
+    }
+    return _value.back();
+  }
+
   std::vector<double> _time;
   std::vector<double> _value;
 };

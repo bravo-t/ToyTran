@@ -18,6 +18,17 @@ nodeMapToList(const std::unordered_map<std::string, size_t>& nodeMap,
   }
 }
 
+char 
+firstChar(const std::string& line)
+{
+  for (size_t i=0; i<line.size(); ++i) {
+    if (std::isspace(line[i]) == false) {
+      return line[i];
+    }
+  }
+  return '\0';
+}
+
 static inline bool
 isLineClosed(std::string& line, size_t& parenCounter, std::string& str)
 {
@@ -39,11 +50,53 @@ isLineClosed(std::string& line, size_t& parenCounter, std::string& str)
       tailingPlus = false;
     }
   }
+  if (tailingPlus) {
+    while (line.back() != '+') {
+      line.pop_back();
+    }
+    line.pop_back();
+  }
+  size_t startOffset = static_cast<size_t>(-1);
+  if (firstChar(line) == '+') {
+    for (size_t i=0; i<line.size(); ++i) {
+      if (line[i] == '+') {
+        startOffset = i;
+        break;
+      }
+    }
+  }
   str.append(" ");
-  str.append(line);
+  str.insert(str.end(), line.begin()+startOffset+1, line.end());
   return parenCounter == 0 && tailingPlus == false;
 }
 
+static bool
+getClosedLine(std::ifstream& infile, std::string& content)
+{
+  std::string line;
+  size_t parenCounter = 0;
+  while (std::getline(infile, line)) {
+    if (isLineClosed(line, parenCounter, content)) {
+      break;
+    }
+  }
+  while (std::getline(infile, line)) {
+    if (firstChar(line) == '+') {
+      size_t offset = static_cast<size_t>(-1);
+      for (size_t i=0; i<line.size(); ++i) {
+        if (line[i] == '+') {
+          offset = i+1;
+          break;
+        }
+      }
+      content.insert(content.end(), line.begin()+offset, line.end());
+    } else {
+      infile.seekg(-line.size()-1, std::ios_base::cur);
+      break;
+    }
+  }
+  return infile.peek() != EOF;
+}
 
 NetlistParser::NetlistParser(const char* fileName) 
 {
@@ -54,13 +107,7 @@ NetlistParser::NetlistParser(const char* fileName)
   }
   std::string line;
   std::string content;
-  size_t parenCounter = 0;
-  while (std::getline(infile, line)) {
-    while (isLineClosed(line, parenCounter, content) == false) {
-      if (!std::getline(infile, line)) {
-        break;
-      }
-    }
+  while (getClosedLine(infile, content)) {
     parseLine(content);
     content.clear();
   }
@@ -90,17 +137,6 @@ NetlistParser::NetlistParser(const char* fileName)
     devCounter[static_cast<unsigned char>(DeviceType::CCCS)], 
     devCounter[static_cast<unsigned char>(DeviceType::CCVS)]);
 
-}
-
-char 
-firstChar(const std::string& line)
-{
-  for (size_t i=0; i<line.size(); ++i) {
-    if (std::isspace(line[i]) == false) {
-      return line[i];
-    }
-  }
-  return '\0';
 }
 
 static inline void
@@ -647,11 +683,11 @@ processMeasureCmds(const std::string& line,
     if (inTriggerSection || inTargetSection) {
       if (iequals(strs[i], "td")) {
         if (inTargetSection) {
-          printf("Unsupported TD statement in targ of line \"%s\"", line.data());
+          printf("Unsupported TD statement in targ of line \"%s\"\n", line.data());
           return;
         }
         ++i;
-        mp._timeDelay = numericalValue(strs[i], "");
+        mp._timeDelay = numericalValue(strs[i], "Ss");
         continue;
       } else {
         char c = firstChar(strs[i]);

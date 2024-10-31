@@ -245,6 +245,14 @@ Simulator::nodeVoltage(size_t nodeId, size_t timeStep) const
   for (size_t devId : node._connection) {
     const Device& dev = _circuit.device(devId);
     if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
+      if (dev._isPWLValue) {
+        const Circuit& ckt = circuit();
+        double simTime = simulationResult().stepTime(timeStep);
+        const PWLValue& pwlData = ckt.PWLData(dev);
+        voltage = pwlData.valueAtTime(simTime);
+      } else {
+        voltage = dev._value;
+      }
       voltage = std::max(voltage, dev._value);
     }
   }
@@ -259,7 +267,14 @@ Simulator::deviceCurrent(size_t deviceId, size_t timeStep) const
 {
   const Device& dev = _circuit.device(deviceId);
   if (dev._type == DeviceType::CurrentSource) {
-    return dev._value;
+    if (dev._isPWLValue) {
+      const Circuit& ckt = circuit();
+      double simTime = simulationResult().stepTime(timeStep);
+      const PWLValue& pwlData = ckt.PWLData(dev);
+      return pwlData.valueAtTime(simTime);
+    } else {
+      return dev._value;
+    }
   }
   return _result.deviceCurrent(deviceId, timeStep);
 }

@@ -377,26 +377,6 @@ updatebInductor(Eigen::VectorXd& b, const Device& ind,
   }
 }
 
-static inline double
-PWLDataAtTime(const PWLValue& pwlData, double time)
-{
-  if (time < pwlData._time[0]) {
-    return 0;
-  }
-  for (size_t i=1; i<pwlData._time.size(); ++i) {
-    if (time < pwlData._time[i]) {
-      double v1 = pwlData._value[i-1];
-      double v2 = pwlData._value[i];
-      double t1 = pwlData._time[i-1];
-      double t2 = pwlData._time[i];
-      //printf("DEBUG: time %g goes into [%g, %g] interval, voltage: [%g, %g], interpolated voltage: %g\n", 
-      //  time, t1, t2, v1, v2, v1 + (v2-v1)/(t2-t1)*(time-t1));
-      return v1 + (v2-v1)/(t2-t1)*(time-t1);
-    }
-  }
-  return pwlData._value.back();
-}
-
 static inline void
 updatebVoltageSource(Eigen::VectorXd& b,
                      const Device& dev,
@@ -406,7 +386,7 @@ updatebVoltageSource(Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   if (dev._isPWLValue) {
     const PWLValue& pwlData = sim->circuit().PWLData(dev);
-    value = PWLDataAtTime(pwlData, result.currentTime());
+    value = pwlData.valueAtTime(result.currentTime());
   } else {
     value = dev._value;
   }
@@ -443,7 +423,7 @@ updatebCurrentSource(Eigen::VectorXd& b,
   const SimResult& result = sim->simulationResult();
   if (dev._isPWLValue) {
     const PWLValue& pwlData = sim->circuit().PWLData(dev);
-    value = PWLDataAtTime(pwlData, result.currentTime());
+    value = pwlData.valueAtTime(result.currentTime());
   } else {
     value = dev._value;
   }

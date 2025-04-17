@@ -729,7 +729,9 @@ NetlistParser::processCommands(const std::string& line)
 {
   std::vector<std::string> strs;
   splitWithAny(line, " \t\r", strs);
-  if (strs[0] == ".tran") {
+  if (strs[0] == ".gnd") {
+    _groundNet = strs[1];
+  } else if (strs[0] == ".tran") {
     _simTick = numericalValue(strs[1], "sS");
     _simTime = numericalValue(strs[2], "sS");
   } else if (strs[0] == ".debug") {

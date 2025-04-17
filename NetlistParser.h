@@ -65,6 +65,8 @@ class NetlistParser {
     bool haveMeasurePoints() const { return !_measurePoints.empty(); }
     const std::vector<MeasurePoint>& measurePoints() const { return _measurePoints; }
 
+    const std::string& userGroundNet() const { return _groundNet; }
+
   private:
     void processCommands(const std::string& line);
     void processOption(const std::string& line);
@@ -81,6 +83,7 @@ class NetlistParser {
     bool                         _saveData = false;
     size_t                       _plotWidth = static_cast<size_t>(-1);
     size_t                       _plotHeight = static_cast<size_t>(-1);
+    std::string                  _groundNet;
     std::vector<PlotData>        _plotData;
 };
 

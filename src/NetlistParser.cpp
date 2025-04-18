@@ -1,5 +1,6 @@
 #include <fstream>
 #include <unordered_map>
+#include <string>
 #include <cstring>
 #include <cctype>  
 #include <algorithm> 
@@ -75,7 +76,9 @@ getClosedLine(std::ifstream& infile, std::string& content)
 {
   std::string line;
   size_t parenCounter = 0;
+  std::streampos curPos;
   while (std::getline(infile, line)) {
+    curPos = infile.tellg();
     if (isLineClosed(line, parenCounter, content)) {
       break;
     }
@@ -91,7 +94,12 @@ getClosedLine(std::ifstream& infile, std::string& content)
       }
       content.insert(content.end(), line.begin()+offset, line.end());
     } else {
-      infile.seekg(-line.size()-1, std::ios_base::cur);
+      if (infile.tellg() == -1) {
+        infile.clear();
+        infile.seekg(curPos, std::ios_base::beg);
+      } else {
+        infile.seekg(-line.size()-1, std::ios_base::cur);
+      }
       break;
     }
   }

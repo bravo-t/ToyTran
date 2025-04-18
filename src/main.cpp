@@ -35,8 +35,19 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  timespec parseStart;
+  clock_gettime(CLOCK_REALTIME, &parseStart);
   Tran::NetlistParser parser(argv[1]);
+  timespec parseEnd;
+  clock_gettime(CLOCK_REALTIME, &parseEnd);
+  timespec cktStart;
+  clock_gettime(CLOCK_REALTIME, &cktStart);
   Tran::Circuit circuit(parser);
+  timespec cktEnd;
+  clock_gettime(CLOCK_REALTIME, &cktEnd);
+  printf("Time spent in netlist parsing: %.3f milliseconds\n"
+         "Time spent in building circuit: %.3f milliseconds\n", 
+         1e-6*timeDiffNs(parseEnd, parseStart), 1e-6*timeDiffNs(cktEnd, cktStart));
   Tran::Simulator simulator(circuit);
   simulator.setSimTick(parser.simulationTick());
   simulator.setSimulationEndTime(parser.simulationTime());

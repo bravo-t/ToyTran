@@ -17,7 +17,8 @@ stampResistor(Eigen::MatrixXd& G,
               Eigen::MatrixXd& /*C*/, 
               Eigen::VectorXd& /*b*/, 
               const Device& dev, 
-              const Simulator* sim)
+              const Simulator* sim, 
+              bool /*isSDomain*/)
 {
   double stampValue = 1.0 / dev._value;
   const SimResult& result = sim->simulationResult();
@@ -65,10 +66,14 @@ stampCapacitorBE(Eigen::MatrixXd& /*G*/,
                  Eigen::MatrixXd& C, 
                  Eigen::VectorXd& b, 
                  const Device& cap, 
-                 const Simulator* sim)
+                 const Simulator* sim,
+                 bool isSDomain)
 {
   double simTick = sim->simulationTick();
   double stampValue = cap._value / simTick;
+  if (isSDomain) {
+    stampValue = cap._value;
+  }
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
@@ -82,7 +87,9 @@ stampCapacitorBE(Eigen::MatrixXd& /*G*/,
     C(posNodeIndex, negNodeIndex) -= stampValue;
     C(negNodeIndex, posNodeIndex) -= stampValue;
   }
-  updatebCapacitorBE(b, cap, sim);
+  if (isSDomain == false) {
+    updatebCapacitorBE(b, cap, sim);
+  }
 }
 
 static inline void
@@ -192,12 +199,17 @@ stampCapacitorTrap(Eigen::MatrixXd& /*G*/,
 static inline void
 stampCapacitor(Eigen::MatrixXd& G, Eigen::MatrixXd& C, 
                Eigen::VectorXd& b, const Device& cap, 
-               const Simulator* simulator)
+               const Simulator* simulator, 
+               bool isSDomain)
 {
+  if (isSDomain) {
+    stampCapacitorBE(G, C, b, cap, simulator, isSDomain);
+    return;
+  }
   IntegrateMethod intMethod = simulator->integrateMethod();
   switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
-      stampCapacitorBE(G, C, b, cap, simulator);
+      stampCapacitorBE(G, C, b, cap, simulator, false);
       break;
     case IntegrateMethod::Gear2:
       stampCapacitorGear2(G, C, b, cap, simulator);
@@ -212,8 +224,11 @@ stampCapacitor(Eigen::MatrixXd& G, Eigen::MatrixXd& C,
 
 static inline void
 updatebCapacitor(Eigen::VectorXd& b, const Device& cap, 
-                 const Simulator* simulator)
+                 const Simulator* simulator, bool isSDomain)
 {
+  if (isSDomain) {
+    return;
+  }
   IntegrateMethod intMethod = simulator->integrateMethod();
   switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
@@ -249,10 +264,14 @@ stampInductorBE(Eigen::MatrixXd& /*G*/,
                 Eigen::MatrixXd& C, 
                 Eigen::VectorXd& b, 
                 const Device& ind, 
-                const Simulator* sim)
+                const Simulator* sim,
+                bool isSDomain)
 {
   double simTick = sim->simulationTick();
   double stampValue = ind._value / simTick;
+  if (isSDomain) {
+    stampValue = ind._value;
+  }
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(ind._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
@@ -266,9 +285,9 @@ stampInductorBE(Eigen::MatrixXd& /*G*/,
     C(deviceIndex, negNodeIndex) += -1;
   }
   C(deviceIndex, deviceIndex) += -stampValue;
-  double indCurrent = sim->deviceCurrentBackstep(ind._devId, 1);
-  double bValue = -stampValue * indCurrent;
-  b(deviceIndex) += bValue;
+  if (isSDomain == false) {
+    updatebInductorBE(b, ind, sim);
+  }
 }
 
 static inline void
@@ -356,12 +375,16 @@ stampInductorTrap(Eigen::MatrixXd& /*G*/,
 static inline void
 stampInductor(Eigen::MatrixXd& G, Eigen::MatrixXd& C,
               Eigen::VectorXd& b, const Device& ind, 
-              const Simulator* simulator)
+              const Simulator* simulator, bool isSDomain)
 {
+  if (isSDomain) {
+    stampInductorBE(G, C, b, ind, simulator, isSDomain);
+    return;
+  }
   IntegrateMethod intMethod = simulator->integrateMethod();
   switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
-      stampInductorBE(G, C, b, ind, simulator);
+      stampInductorBE(G, C, b, ind, simulator, false);
       break;
     case IntegrateMethod::Gear2:
       stampInductorGear2(G, C, b, ind, simulator);
@@ -376,8 +399,11 @@ stampInductor(Eigen::MatrixXd& G, Eigen::MatrixXd& C,
 
 static inline void
 updatebInductor(Eigen::VectorXd& b, const Device& ind, 
-                const Simulator* simulator)
+                const Simulator* simulator, bool isSDomain)
 {
+  if (isSDomain) {
+    return;
+  }
   IntegrateMethod intMethod = simulator->integrateMethod();
   switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
@@ -397,7 +423,8 @@ updatebInductor(Eigen::VectorXd& b, const Device& ind,
 static inline void
 updatebVoltageSource(Eigen::VectorXd& b,
                      const Device& dev,
-                     const Simulator* sim)
+                     const Simulator* sim, 
+                     bool isSDomain)
 {
   double value;
   const SimResult& result = sim->simulationResult();
@@ -406,6 +433,9 @@ updatebVoltageSource(Eigen::VectorXd& b,
     value = pwlData.valueAtTime(result.currentTime());
   } else {
     value = dev._value;
+  }
+  if (isSDomain) {
+    value = 1;
   }
   size_t deviceIndex = result.deviceVectorIndex(dev._devId);
   b(deviceIndex) += value;
@@ -416,7 +446,8 @@ stampVoltageSource(Eigen::MatrixXd& G,
                    Eigen::MatrixXd& /*C*/,
                    Eigen::VectorXd& b, 
                    const Device& dev, 
-                   const Simulator* sim)
+                   const Simulator* sim, 
+                   bool isSDomain)
 {
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
@@ -430,13 +461,14 @@ stampVoltageSource(Eigen::MatrixXd& G,
     G(negNodeIndex, deviceIndex) += -1;
     G(deviceIndex, negNodeIndex) += -1;
   }
-  updatebVoltageSource(b, dev, sim);
+  updatebVoltageSource(b, dev, sim, isSDomain);
 }
 
 static inline void
 updatebCurrentSource(Eigen::VectorXd& b,
                      const Device& dev,
-                     const Simulator* sim)
+                     const Simulator* sim, 
+                     bool isSDomain)
 {
   double value;
   const SimResult& result = sim->simulationResult();
@@ -445,6 +477,9 @@ updatebCurrentSource(Eigen::VectorXd& b,
     value = pwlData.valueAtTime(result.currentTime());
   } else {
     value = dev._value;
+  }
+  if (isSDomain) {
+    value = 1;
   }
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(dev._negNode);
@@ -461,9 +496,10 @@ stampCurrentSource(Eigen::MatrixXd& /*G*/,
                    Eigen::MatrixXd& /*C*/, 
                    Eigen::VectorXd& b, 
                    const Device& dev, 
-                   const Simulator* sim)
+                   const Simulator* sim, 
+                   bool isSDomain)
 {
-  updatebCurrentSource(b, dev, sim);
+  updatebCurrentSource(b, dev, sim, isSDomain);
 }
 
 static inline void
@@ -471,8 +507,10 @@ stampCCVS(Eigen::MatrixXd& G,
           Eigen::MatrixXd& /*C*/, 
           Eigen::VectorXd& /*b*/, 
           const Device& dev, 
-          const Simulator* sim)
+          const Simulator* sim, 
+          bool isSDomain)
 {
+  assert(isSDomain == false);
   const Device& sampleDevice = sim->circuit().device(dev._sampleDevice);
   double value = dev._value;
   if (sampleDevice._posNode == dev._negSampleNode) {
@@ -505,8 +543,10 @@ stampVCVS(Eigen::MatrixXd& G,
           Eigen::MatrixXd& /*C*/, 
           Eigen::VectorXd& /*b*/, 
           const Device& dev, 
-          const Simulator* sim)
+          const Simulator* sim, 
+          bool isSDomain)
 {
+  assert(isSDomain == false);
   double value = dev._value;
   const SimResult& result = sim->simulationResult();
   size_t deviceIndex = result.deviceVectorIndex(dev._devId);
@@ -531,8 +571,10 @@ stampCCCS(Eigen::MatrixXd& G,
           Eigen::MatrixXd& /*C*/,
           Eigen::VectorXd& /*b*/, 
           const Device& dev, 
-          const Simulator* sim)
+          const Simulator* sim, 
+          bool isSDomain)
 {
+  assert(isSDomain == false);
   const Device& sampleDevice = sim->circuit().device(dev._sampleDevice);
   double value = dev._value;
   if (sampleDevice._posNode == dev._negSampleNode) {
@@ -561,8 +603,10 @@ stampVCCS(Eigen::MatrixXd& G,
           Eigen::MatrixXd& /*C*/, 
           Eigen::VectorXd& /*b*/, 
           const Device& dev, 
-          const Simulator* sim)
+          const Simulator* sim, 
+          bool isSDomain)
 {
+  assert(isSDomain == false);
   double value = dev._value;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
@@ -595,7 +639,7 @@ MNAStamper::stamp(Eigen::MatrixXd& G,
 {
   static void (*stampFunc[static_cast<size_t>(DeviceType::Total)])(
         Eigen::MatrixXd& G, Eigen::MatrixXd& C, Eigen::VectorXd& b, 
-        const Device& dev, const Simulator* sim);
+        const Device& dev, const Simulator* sim, bool isSDomain);
 
   stampFunc[static_cast<size_t>(DeviceType::Resistor)] = stampResistor;
   stampFunc[static_cast<size_t>(DeviceType::Capacitor)] = stampCapacitor;
@@ -609,20 +653,15 @@ MNAStamper::stamp(Eigen::MatrixXd& G,
 
   const std::vector<Device>& devices = sim->circuit().devices();
   for (const Device& device : devices) {
-    stampFunc[static_cast<size_t>(device._type)](G, C, b, device, sim);
+    stampFunc[static_cast<size_t>(device._type)](G, C, b, device, sim, _isSDomain);
   }
-}
-
-void
-MNAStamper::updateA(Eigen::FullPivLU<Eigen::MatrixXd>& /*ALU*/, const Simulator* /*sim*/) {
-  printf("incremental building and LU decomposing A is not supported right now\n");
-  return;
 }
 
 static void
 updatebNoop(Eigen::VectorXd& /*b*/, 
             const Device& /*dev*/, 
-            const Simulator* /*sim*/)
+            const Simulator* /*sim*/, 
+            bool /*isSDomain*/)
 {
   return;
 }
@@ -631,7 +670,7 @@ void
 MNAStamper::updateb(Eigen::VectorXd& b, const Simulator* sim)
 {
   static void (*updatebFunc[static_cast<size_t>(DeviceType::Total)])(
-        Eigen::VectorXd& b, const Device& dev, const Simulator* sim);
+        Eigen::VectorXd& b, const Device& dev, const Simulator* sim, bool isSDomain);
 
   updatebFunc[static_cast<size_t>(DeviceType::Resistor)] = updatebNoop;
   updatebFunc[static_cast<size_t>(DeviceType::Capacitor)] = updatebCapacitor;
@@ -646,7 +685,7 @@ MNAStamper::updateb(Eigen::VectorXd& b, const Simulator* sim)
   b.setZero();
   const std::vector<Device>& devices = sim->circuit().devices();
   for (const Device& device : devices) {
-    updatebFunc[static_cast<size_t>(device._type)](b, device, sim);
+    updatebFunc[static_cast<size_t>(device._type)](b, device, sim, _isSDomain);
   }
 
 }

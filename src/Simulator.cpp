@@ -106,7 +106,8 @@ Simulator::updateEquation()
   if (_needRebuild) {
     formulateEquation();
   } else {
-    MNAStamper::updateb(_b, this);
+    MNAStamper stamper;
+    stamper.updateb(_b, this);
     if (Debug::enabled()) {
       double prevTime = _result._ticks.back();
       Debug::printVector(prevTime+_simTick, "b", _b);
@@ -122,7 +123,8 @@ Simulator::formulateEquation()
   Eigen::MatrixXd C;
   C.setZero(_eqnDim, _eqnDim);
   _b.setZero(_eqnDim);
-  MNAStamper::stamp(G, C, _b, this);
+  MNAStamper stamper;
+  stamper.stamp(G, C, _b, this);
 
   Eigen::MatrixXd A = G + C;
   

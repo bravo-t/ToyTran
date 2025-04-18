@@ -61,4 +61,4 @@ New instruction `.TF` will be implemented. Details TBD.
 
 New instruction `.PZ` will be implemented.
 
-The syntax will be like `.PZ tran=XXns order=N`, where `tran=XXns` indicates the input stimulus is the voltage signal with transition time of XX ns, and `order=N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.
+The syntax will be like `.PZ order=N`, where `order=N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.

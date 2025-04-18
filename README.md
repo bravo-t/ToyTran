@@ -48,3 +48,17 @@ To run, just give the executable the spice deck you want to simulate.
 https://github.com/l-chang/gwave/blob/b362dd6d98c255b35a96d9a69a80563b26c2612c/doc/hspice-output.txt
 
 The output tr0 format still cannot be recognized by waveform viewer tools, not sure where the problem is.
+
+## Features under development
+
+Note below features will not follow spice netlist grammar.
+
+### Transfer function analysis
+
+New instruction `.TF` will be implemented. Details TBD.
+
+#### Pole-Zero analysis
+
+New instruction `.PZ` will be implemented.
+
+The syntax will be like `.PZ tran=XXns order=N`, where `tran=XXns` indicates the input stimulus is the voltage signal with transition time of XX ns, and `order=N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.

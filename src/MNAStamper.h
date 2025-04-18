@@ -10,7 +10,7 @@ class Simulator;
 
 class MNAStamper {
   public:
-    static void stamp(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Simulator* simulator);
+    static void stamp(Eigen::MatrixXd& G, Eigen::MatrixXd& C, Eigen::VectorXd& b, const Simulator* simulator);
     static void updateA(Eigen::FullPivLU<Eigen::MatrixXd>& ALU, const Simulator* simulator);
     static void updateb(Eigen::VectorXd& b, const Simulator* simulator);
 };

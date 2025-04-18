@@ -13,22 +13,25 @@ isNodeOmitted(const Simulator* sim, size_t nodeId)
 }
 
 static inline void
-stampResistor(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
-              const Device& dev, const Simulator* sim)
+stampResistor(Eigen::MatrixXd& G, 
+              Eigen::MatrixXd& /*C*/, 
+              Eigen::VectorXd& /*b*/, 
+              const Device& dev, 
+              const Simulator* sim)
 {
   double stampValue = 1.0 / dev._value;
   const SimResult& result = sim->simulationResult();
   size_t posNodeIndex = result.nodeVectorIndex(dev._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(dev._negNode);
   if (isNodeOmitted(sim, dev._posNode) == false) {
-    A(posNodeIndex, posNodeIndex) += stampValue;
+    G(posNodeIndex, posNodeIndex) += stampValue;
   }
   if (isNodeOmitted(sim, dev._negNode) == false) {
-    A(negNodeIndex, negNodeIndex) += stampValue;
+    G(negNodeIndex, negNodeIndex) += stampValue;
   }
   if (isNodeOmitted(sim, dev._posNode) == false && isNodeOmitted(sim, dev._negNode) == false) {
-    A(posNodeIndex, negNodeIndex) += -stampValue;
-    A(negNodeIndex, posNodeIndex) += -stampValue;
+    G(posNodeIndex, negNodeIndex) += -stampValue;
+    G(negNodeIndex, posNodeIndex) += -stampValue;
   }
 }
 
@@ -58,7 +61,9 @@ updatebCapacitorBE(Eigen::VectorXd& b,
 }
 
 static inline void
-stampCapacitorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+stampCapacitorBE(Eigen::MatrixXd& /*G*/, 
+                 Eigen::MatrixXd& C, 
+                 Eigen::VectorXd& b, 
                  const Device& cap, 
                  const Simulator* sim)
 {
@@ -68,14 +73,14 @@ stampCapacitorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
   if (isNodeOmitted(sim, cap._posNode) == false) {
-    A(posNodeIndex, posNodeIndex) += stampValue;
+    C(posNodeIndex, posNodeIndex) += stampValue;
   } 
   if (isNodeOmitted(sim, cap._negNode) == false) {
-    A(negNodeIndex, negNodeIndex) += stampValue;
+    C(negNodeIndex, negNodeIndex) += stampValue;
   }
   if (isNodeOmitted(sim, cap._posNode) == false && isNodeOmitted(sim, cap._negNode) == false) {
-    A(posNodeIndex, negNodeIndex) -= stampValue;
-    A(negNodeIndex, posNodeIndex) -= stampValue;
+    C(posNodeIndex, negNodeIndex) -= stampValue;
+    C(negNodeIndex, posNodeIndex) -= stampValue;
   }
   updatebCapacitorBE(b, cap, sim);
 }
@@ -110,9 +115,11 @@ updatebCapacitorGear2(Eigen::VectorXd& b,
 }
 
 static inline void
-stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
-                   const Device& cap, 
-                   const Simulator* sim)
+stampCapacitorGear2(Eigen::MatrixXd& /*G*/, 
+                    Eigen::MatrixXd& C,
+                    Eigen::VectorXd& b, 
+                    const Device& cap, 
+                    const Simulator* sim)
 {
   double simTick = sim->simulationTick();
   double baseValue = 1.5 * cap._value / simTick;
@@ -121,14 +128,14 @@ stampCapacitorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
   if (isNodeOmitted(sim, cap._posNode) == false) {
-    A(posNodeIndex, posNodeIndex) += stampValue;
+    C(posNodeIndex, posNodeIndex) += stampValue;
   } 
   if (isNodeOmitted(sim, cap._negNode) == false) {
-    A(negNodeIndex, negNodeIndex) += stampValue;
+    C(negNodeIndex, negNodeIndex) += stampValue;
   }
   if (isNodeOmitted(sim, cap._posNode) == false && isNodeOmitted(sim, cap._negNode) == false) {
-    A(posNodeIndex, negNodeIndex) -= stampValue;
-    A(negNodeIndex, posNodeIndex) -= stampValue;
+    C(posNodeIndex, negNodeIndex) -= stampValue;
+    C(negNodeIndex, posNodeIndex) -= stampValue;
   }
   updatebCapacitorGear2(b, cap, sim);
 }
@@ -157,7 +164,9 @@ updatebCapacitorTrap(Eigen::VectorXd& b,
 }
 
 static inline void
-stampCapacitorTrap(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+stampCapacitorTrap(Eigen::MatrixXd& /*G*/,
+                   Eigen::MatrixXd& C,
+                   Eigen::VectorXd& b, 
                    const Device& cap, 
                    const Simulator* sim)
 {
@@ -168,32 +177,33 @@ stampCapacitorTrap(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t posNodeIndex = result.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = result.nodeVectorIndex(cap._negNode);
   if (isNodeOmitted(sim, cap._posNode) == false) {
-    A(posNodeIndex, posNodeIndex) += stampValue;
+    C(posNodeIndex, posNodeIndex) += stampValue;
   } 
   if (isNodeOmitted(sim, cap._negNode) == false) {
-    A(negNodeIndex, negNodeIndex) += stampValue;
+    C(negNodeIndex, negNodeIndex) += stampValue;
   }
   if (isNodeOmitted(sim, cap._posNode) == false && isNodeOmitted(sim, cap._negNode) == false) {
-    A(posNodeIndex, negNodeIndex) -= stampValue;
-    A(negNodeIndex, posNodeIndex) -= stampValue;
+    C(posNodeIndex, negNodeIndex) -= stampValue;
+    C(negNodeIndex, posNodeIndex) -= stampValue;
   }
   updatebCapacitorTrap(b, cap, sim);
 }
 
 static inline void
-stampCapacitor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& cap, 
+stampCapacitor(Eigen::MatrixXd& G, Eigen::MatrixXd& C, 
+               Eigen::VectorXd& b, const Device& cap, 
                const Simulator* simulator)
 {
   IntegrateMethod intMethod = simulator->integrateMethod();
   switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
-      stampCapacitorBE(A, b, cap, simulator);
+      stampCapacitorBE(G, C, b, cap, simulator);
       break;
     case IntegrateMethod::Gear2:
-      stampCapacitorGear2(A, b, cap, simulator);
+      stampCapacitorGear2(G, C, b, cap, simulator);
       break;
     case IntegrateMethod::Trapezoidal:
-      stampCapacitorTrap(A, b, cap, simulator);
+      stampCapacitorTrap(G, C, b, cap, simulator);
       break;
     default:
       assert(false && "Incorrect integrate method");
@@ -235,7 +245,9 @@ updatebInductorBE(Eigen::VectorXd& b,
 }
 
 static inline void
-stampInductorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+stampInductorBE(Eigen::MatrixXd& /*G*/, 
+                Eigen::MatrixXd& C, 
+                Eigen::VectorXd& b, 
                 const Device& ind, 
                 const Simulator* sim)
 {
@@ -246,14 +258,14 @@ stampInductorBE(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
   if (isNodeOmitted(sim, ind._posNode) == false) {
-    A(posNodeIndex, deviceIndex) += 1;
-    A(deviceIndex, posNodeIndex) += 1;
+    C(posNodeIndex, deviceIndex) += 1;
+    C(deviceIndex, posNodeIndex) += 1;
   }
   if (isNodeOmitted(sim, ind._negNode) == false) {
-    A(negNodeIndex, deviceIndex) += -1;
-    A(deviceIndex, negNodeIndex) += -1;
+    C(negNodeIndex, deviceIndex) += -1;
+    C(deviceIndex, negNodeIndex) += -1;
   }
-  A(deviceIndex, deviceIndex) += -stampValue;
+  C(deviceIndex, deviceIndex) += -stampValue;
   double indCurrent = sim->deviceCurrentBackstep(ind._devId, 1);
   double bValue = -stampValue * indCurrent;
   b(deviceIndex) += bValue;
@@ -275,7 +287,9 @@ updatebInductorGear2(Eigen::VectorXd& b,
 }
 
 static inline void
-stampInductorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+stampInductorGear2(Eigen::MatrixXd& /*G*/,
+                   Eigen::MatrixXd& C, 
+                   Eigen::VectorXd& b, 
                    const Device& ind, 
                    const Simulator* sim)
 {
@@ -287,14 +301,14 @@ stampInductorGear2(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
   if (isNodeOmitted(sim, ind._posNode) == false) {
-    A(posNodeIndex, deviceIndex) += 1;
-    A(deviceIndex, posNodeIndex) += 1;
+    C(posNodeIndex, deviceIndex) += 1;
+    C(deviceIndex, posNodeIndex) += 1;
   }
   if (isNodeOmitted(sim, ind._negNode) == false) {
-    A(negNodeIndex, deviceIndex) += -1;
-    A(deviceIndex, negNodeIndex) += -1;
+    C(negNodeIndex, deviceIndex) += -1;
+    C(deviceIndex, negNodeIndex) += -1;
   }
-  A(deviceIndex, deviceIndex) += -stampValue;
+  C(deviceIndex, deviceIndex) += -stampValue;
   updatebInductorGear2(b, ind, sim);
 }
 
@@ -314,7 +328,9 @@ updatebInductorTrap(Eigen::VectorXd& b,
 }
 
 static inline void
-stampInductorTrap(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+stampInductorTrap(Eigen::MatrixXd& /*G*/,
+                  Eigen::MatrixXd& C,
+                  Eigen::VectorXd& b, 
                   const Device& ind, 
                   const Simulator* sim)
 {
@@ -326,31 +342,32 @@ stampInductorTrap(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t negNodeIndex = result.nodeVectorIndex(ind._negNode);
   size_t deviceIndex = result.deviceVectorIndex(ind._devId);
   if (isNodeOmitted(sim, ind._posNode) == false) {
-    A(posNodeIndex, deviceIndex) += 1;
-    A(deviceIndex, posNodeIndex) += 1;
+    C(posNodeIndex, deviceIndex) += 1;
+    C(deviceIndex, posNodeIndex) += 1;
   }
   if (isNodeOmitted(sim, ind._negNode) == false) {
-    A(negNodeIndex, deviceIndex) += -1;
-    A(deviceIndex, negNodeIndex) += -1;
+    C(negNodeIndex, deviceIndex) += -1;
+    C(deviceIndex, negNodeIndex) += -1;
   }
-  A(deviceIndex, deviceIndex) += -stampValue;
+  C(deviceIndex, deviceIndex) += -stampValue;
   updatebInductorTrap(b, ind, sim);
 }
 
 static inline void
-stampInductor(Eigen::MatrixXd& A, Eigen::VectorXd& b, const Device& ind, 
+stampInductor(Eigen::MatrixXd& G, Eigen::MatrixXd& C,
+              Eigen::VectorXd& b, const Device& ind, 
               const Simulator* simulator)
 {
   IntegrateMethod intMethod = simulator->integrateMethod();
   switch (intMethod) {
     case IntegrateMethod::BackwardEuler:
-      stampInductorBE(A, b, ind, simulator);
+      stampInductorBE(G, C, b, ind, simulator);
       break;
     case IntegrateMethod::Gear2:
-      stampInductorGear2(A, b, ind, simulator);
+      stampInductorGear2(G, C, b, ind, simulator);
       break;
     case IntegrateMethod::Trapezoidal:
-      stampInductorTrap(A, b, ind, simulator);
+      stampInductorTrap(G, C, b, ind, simulator);
       break;
     default:
       assert(false && "Incorrect integrate method");
@@ -395,7 +412,9 @@ updatebVoltageSource(Eigen::VectorXd& b,
 }
 
 static inline void
-stampVoltageSource(Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+stampVoltageSource(Eigen::MatrixXd& G, 
+                   Eigen::MatrixXd& /*C*/,
+                   Eigen::VectorXd& b, 
                    const Device& dev, 
                    const Simulator* sim)
 {
@@ -404,12 +423,12 @@ stampVoltageSource(Eigen::MatrixXd& A, Eigen::VectorXd& b,
   size_t negNodeIndex = result.nodeVectorIndex(dev._negNode);
   size_t deviceIndex = result.deviceVectorIndex(dev._devId);
   if (isNodeOmitted(sim, dev._posNode) == false) {
-    A(posNodeIndex, deviceIndex) += 1;
-    A(deviceIndex, posNodeIndex) += 1;
+    G(posNodeIndex, deviceIndex) += 1;
+    G(deviceIndex, posNodeIndex) += 1;
   }
   if (isNodeOmitted(sim, dev._negNode) == false) {
-    A(negNodeIndex, deviceIndex) += -1;
-    A(deviceIndex, negNodeIndex) += -1;
+    G(negNodeIndex, deviceIndex) += -1;
+    G(deviceIndex, negNodeIndex) += -1;
   }
   updatebVoltageSource(b, dev, sim);
 }
@@ -438,15 +457,21 @@ updatebCurrentSource(Eigen::VectorXd& b,
 }
 
 static inline void
-stampCurrentSource(Eigen::MatrixXd& /*A*/, Eigen::VectorXd& b, 
-                   const Device& dev, const Simulator* sim)
+stampCurrentSource(Eigen::MatrixXd& /*G*/, 
+                   Eigen::MatrixXd& /*C*/, 
+                   Eigen::VectorXd& b, 
+                   const Device& dev, 
+                   const Simulator* sim)
 {
   updatebCurrentSource(b, dev, sim);
 }
 
 static inline void
-stampCCVS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
-          const Device& dev, const Simulator* sim)
+stampCCVS(Eigen::MatrixXd& G, 
+          Eigen::MatrixXd& /*C*/, 
+          Eigen::VectorXd& /*b*/, 
+          const Device& dev, 
+          const Simulator* sim)
 {
   const Device& sampleDevice = sim->circuit().device(dev._sampleDevice);
   double value = dev._value;
@@ -461,23 +486,26 @@ stampCCVS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
   if (isNodeOmitted(sim, dev._posNode) == false) {
-    A(sampleDeviceIndex, posSampleNodeIndex) += 1;
-    A(posSampleNodeIndex, sampleDeviceIndex) += 1;
-    A(deviceIndex, posNodeIndex) += 1;
-    A(posNodeIndex, deviceIndex) += 1;
+    G(sampleDeviceIndex, posSampleNodeIndex) += 1;
+    G(posSampleNodeIndex, sampleDeviceIndex) += 1;
+    G(deviceIndex, posNodeIndex) += 1;
+    G(posNodeIndex, deviceIndex) += 1;
   }
   if (isNodeOmitted(sim, dev._negNode) == false) {
-    A(negSampleNodeIndex, sampleDeviceIndex) += -1;
-    A(sampleDeviceIndex, negSampleNodeIndex) += -1;
-    A(deviceIndex, negNodeIndex) += -1;
-    A(negNodeIndex, deviceIndex) += -1;
+    G(negSampleNodeIndex, sampleDeviceIndex) += -1;
+    G(sampleDeviceIndex, negSampleNodeIndex) += -1;
+    G(deviceIndex, negNodeIndex) += -1;
+    G(negNodeIndex, deviceIndex) += -1;
   }
-  A(deviceIndex, sampleDeviceIndex) += value;
+  G(deviceIndex, sampleDeviceIndex) += value;
 }
 
 static inline void
-stampVCVS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
-          const Device& dev, const Simulator* sim)
+stampVCVS(Eigen::MatrixXd& G, 
+          Eigen::MatrixXd& /*C*/, 
+          Eigen::VectorXd& /*b*/, 
+          const Device& dev, 
+          const Simulator* sim)
 {
   double value = dev._value;
   const SimResult& result = sim->simulationResult();
@@ -487,20 +515,23 @@ stampVCVS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
   if (isNodeOmitted(sim, dev._posNode) == false) {
-    A(deviceIndex, posSampleNodeIndex) += -value;
-    A(deviceIndex, posNodeIndex) += 1;
-    A(posNodeIndex, deviceIndex) += 1;
+    G(deviceIndex, posSampleNodeIndex) += -value;
+    G(deviceIndex, posNodeIndex) += 1;
+    G(posNodeIndex, deviceIndex) += 1;
   }
   if (isNodeOmitted(sim, dev._negNode) == false) {
-    A(deviceIndex, negSampleNodeIndex) += value;
-    A(deviceIndex, negNodeIndex) += 1;
-    A(negNodeIndex, deviceIndex) += 1;
+    G(deviceIndex, negSampleNodeIndex) += value;
+    G(deviceIndex, negNodeIndex) += 1;
+    G(negNodeIndex, deviceIndex) += 1;
   }
 }
 
 static inline void
-stampCCCS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
-          const Device& dev, const Simulator* sim)
+stampCCCS(Eigen::MatrixXd& G, 
+          Eigen::MatrixXd& /*C*/,
+          Eigen::VectorXd& /*b*/, 
+          const Device& dev, 
+          const Simulator* sim)
 {
   const Device& sampleDevice = sim->circuit().device(dev._sampleDevice);
   double value = dev._value;
@@ -514,20 +545,23 @@ stampCCCS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t posSampleNodeIndex = result.nodeVectorIndex(dev._posSampleNode);
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
   if (isNodeOmitted(sim, dev._posNode) == false) {
-    A(sampleDeviceIndex, posSampleNodeIndex) += 1;
-    A(posSampleNodeIndex, sampleDeviceIndex) += 1;
-    A(posNodeIndex, sampleDeviceIndex) += value;
+    G(sampleDeviceIndex, posSampleNodeIndex) += 1;
+    G(posSampleNodeIndex, sampleDeviceIndex) += 1;
+    G(posNodeIndex, sampleDeviceIndex) += value;
   }
   if (isNodeOmitted(sim, dev._posNode) == false) {
-    A(negSampleNodeIndex, sampleDeviceIndex) += -1;
-    A(sampleDeviceIndex, negSampleNodeIndex) += -1;
-    A(negNodeIndex, sampleDeviceIndex) += -value;
+    G(negSampleNodeIndex, sampleDeviceIndex) += -1;
+    G(sampleDeviceIndex, negSampleNodeIndex) += -1;
+    G(negNodeIndex, sampleDeviceIndex) += -value;
   }
 }
 
 static inline void
-stampVCCS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/, 
-          const Device& dev, const Simulator* sim)
+stampVCCS(Eigen::MatrixXd& G, 
+          Eigen::MatrixXd& /*C*/, 
+          Eigen::VectorXd& /*b*/, 
+          const Device& dev, 
+          const Simulator* sim)
 {
   double value = dev._value;
   const SimResult& result = sim->simulationResult();
@@ -537,29 +571,30 @@ stampVCCS(Eigen::MatrixXd& A, Eigen::VectorXd& /*b*/,
   size_t negSampleNodeIndex = result.nodeVectorIndex(dev._negSampleNode);
   if (isNodeOmitted(sim, dev._posNode) == false && 
       isNodeOmitted(sim, dev._posSampleNode) == false) {
-    A(posNodeIndex, posSampleNodeIndex) += value;
+    G(posNodeIndex, posSampleNodeIndex) += value;
    }
   if (isNodeOmitted(sim, dev._posNode) == false && 
       isNodeOmitted(sim, dev._negSampleNode) == false) {
-    A(posNodeIndex, negSampleNodeIndex) += -value;
+    G(posNodeIndex, negSampleNodeIndex) += -value;
   }
   if (isNodeOmitted(sim, dev._negNode) == false && 
       isNodeOmitted(sim, dev._posSampleNode) == false) {
-    A(negNodeIndex, posSampleNodeIndex) += -value;
+    G(negNodeIndex, posSampleNodeIndex) += -value;
   }
   if (isNodeOmitted(sim, dev._negNode) == false && 
       isNodeOmitted(sim, dev._negSampleNode) == false) {
-    A(negNodeIndex, negSampleNodeIndex) += value;
+    G(negNodeIndex, negSampleNodeIndex) += value;
   }
 }
 
 void
-MNAStamper::stamp(Eigen::MatrixXd& A, 
+MNAStamper::stamp(Eigen::MatrixXd& G, 
+                  Eigen::MatrixXd& C,
                   Eigen::VectorXd& b, 
                   const Simulator* sim)
 {
   static void (*stampFunc[static_cast<size_t>(DeviceType::Total)])(
-        Eigen::MatrixXd& A, Eigen::VectorXd& b, 
+        Eigen::MatrixXd& G, Eigen::MatrixXd& C, Eigen::VectorXd& b, 
         const Device& dev, const Simulator* sim);
 
   stampFunc[static_cast<size_t>(DeviceType::Resistor)] = stampResistor;
@@ -574,7 +609,7 @@ MNAStamper::stamp(Eigen::MatrixXd& A,
 
   const std::vector<Device>& devices = sim->circuit().devices();
   for (const Device& device : devices) {
-    stampFunc[static_cast<size_t>(device._type)](A, b, device, sim);
+    stampFunc[static_cast<size_t>(device._type)](G, C, b, device, sim);
   }
 }
 

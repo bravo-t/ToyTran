@@ -117,10 +117,14 @@ Simulator::updateEquation()
 void 
 Simulator::formulateEquation()
 {
-  Eigen::MatrixXd A;
-  A.setZero(_eqnDim, _eqnDim);
+  Eigen::MatrixXd G;
+  G.setZero(_eqnDim, _eqnDim);
+  Eigen::MatrixXd C;
+  C.setZero(_eqnDim, _eqnDim);
   _b.setZero(_eqnDim);
-  MNAStamper::stamp(A, _b, this);
+  MNAStamper::stamp(G, C, _b, this);
+
+  Eigen::MatrixXd A = G + C;
   
   if (Debug::enabled()) {
     Debug::printEquation(A, _b);
@@ -175,10 +179,12 @@ Simulator::converged() const
 void
 Simulator::adjustSimTick()
 {
+  /*
   double stepSizeLimit = StepControl::stepLimit(this, _relTol);
   if (_simTick > stepSizeLimit) {
     printf("WARNING: Current step size %G is larger the LTE limit %G\n", _simTick, stepSizeLimit);
   }
+  */
   /// Implement LTE calculation and adjust _simTick based on it
   /// and set _needUpdateA to true
   return;

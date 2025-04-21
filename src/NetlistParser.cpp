@@ -5,9 +5,10 @@
 #include <cctype>  
 #include <algorithm> 
 #include "NetlistParser.h"
+#include "Base.h"
 #include "Debug.h"
 
-namespace Tran {
+namespace NA {
 
 void
 nodeMapToList(const std::unordered_map<std::string, size_t>& nodeMap,
@@ -500,6 +501,18 @@ addCCCS(const std::string& line,
   addDependentDevice(DeviceType::CCCS, strs, devices);
 }
 
+AnalysisParameter*
+findAnalysisParameter(AnalysisType type, std::vector<AnalysisParameter>& params)
+{
+  for (AnalysisParameter& p : params) {
+    if (p._type == type) {
+      return &p;
+    }
+  }
+  return nullptr;
+}
+
+
 void
 NetlistParser::processOption(const std::string& line) 
 {
@@ -509,15 +522,22 @@ NetlistParser::processOption(const std::string& line)
   for (size_t i=1; i<strs.size(); ++i) {
     if (strs[i].compare("method") == 0) {
       ++i;
+      IntegrateMethod intMethod;
       if (strs[i].compare("gear2") == 0) {
-        _intMethod = IntegrateMethod::Gear2;
+        intMethod = IntegrateMethod::Gear2;
       } else if (strs[i].compare("euler") == 0) {
-        _intMethod = IntegrateMethod::BackwardEuler;
+        intMethod = IntegrateMethod::BackwardEuler;
       } else if (strs[i].compare("trap") == 0) {
-        _intMethod = IntegrateMethod::Trapezoidal;
+        intMethod = IntegrateMethod::Trapezoidal;
       } else {
+        intMethod = IntegrateMethod::Gear2;
         printf("Integrate method \"%s\" is not supported, using default gear2\n", strs[i].data());
       }
+      AnalysisParameter* param = findAnalysisParameter(AnalysisType::Tran, _anlaysisParams);
+      if (param == nullptr) {
+        printf("Integrate method directive \"method\" should only be used after .tran command\n");
+      }
+      param->_intMethod = intMethod;
     } else if (strs[i].compare("post") == 0) {
       ++i;
       if (strs[i].compare("2") == 0) {
@@ -737,11 +757,15 @@ NetlistParser::processCommands(const std::string& line)
 {
   std::vector<std::string> strs;
   splitWithAny(line, " \t\r", strs);
+  toLower(strs[0]);
   if (strs[0] == ".gnd") {
     _groundNet = strs[1];
   } else if (strs[0] == ".tran") {
-    _simTick = numericalValue(strs[1], "sS");
-    _simTime = numericalValue(strs[2], "sS");
+    AnalysisParameter p;
+    p._type = AnalysisType::Tran;
+    p._simTick = numericalValue(strs[1], "sS");
+    p._simTime = numericalValue(strs[2], "sS");
+    _anlaysisParams.push_back(p);
   } else if (strs[0] == ".debug") {
     Debug::setLevel(numericalValue(strs[1], ""));
   } else if (strs[0] == ".option") {

@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Tran {
+namespace NA {
 
 class Circuit;
 class NetlistParser;

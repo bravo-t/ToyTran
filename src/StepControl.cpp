@@ -2,12 +2,12 @@
 #include "Simulator.h"
 #include "Circuit.h"
 
-namespace Tran {
+namespace NA {
 
 static inline double
 capacitorLTEBE(const Device& cap, const Simulator* sim)
 {
-  double volDeriv = sim->deviceVoltageDerivative(cap, 2, 1);
+  double volDeriv = sim->simulationResult().deviceVoltageDerivative(cap, 2, 1);
   double tick = sim->simulationTick();
   return -tick * tick * volDeriv / 2;
 }
@@ -15,7 +15,7 @@ capacitorLTEBE(const Device& cap, const Simulator* sim)
 static inline double
 capacitorLTEGear2(const Device& cap, const Simulator* sim)
 {
-  double volDeriv = sim->deviceVoltageDerivative(cap, 3, 1);
+  double volDeriv = sim->simulationResult().deviceVoltageDerivative(cap, 3, 1);
   double tick = sim->simulationTick();
   return tick * tick * tick * volDeriv / 3;
 }
@@ -23,7 +23,7 @@ capacitorLTEGear2(const Device& cap, const Simulator* sim)
 static inline double
 capacitorLTETrap(const Device& cap, const Simulator* sim)
 {
-  double volDeriv = sim->deviceVoltageDerivative(cap, 3, 1);
+  double volDeriv = sim->simulationResult().deviceVoltageDerivative(cap, 3, 1);
   double tick = sim->simulationTick();
   return -tick * tick * tick * volDeriv / 12;
 }
@@ -47,7 +47,7 @@ capacitorLTE(const Device& cap, const Simulator* sim)
 static inline double
 inductorLTEBE(const Device& ind, const Simulator* sim)
 {
-  double curDeriv = sim->deviceCurrentDerivative(ind, 2, 1);
+  double curDeriv = sim->simulationResult().deviceCurrentDerivative(ind, 2, 1);
   double tick = sim->simulationTick();
   return -tick * tick * curDeriv / 2;
 }
@@ -55,7 +55,7 @@ inductorLTEBE(const Device& ind, const Simulator* sim)
 static inline double
 inductorLTEGear2(const Device& ind, const Simulator* sim)
 {
-  double curDeriv = sim->deviceCurrentDerivative(ind, 3, 1);
+  double curDeriv = sim->simulationResult().deviceCurrentDerivative(ind, 3, 1);
   double tick = sim->simulationTick();
   return tick * tick * tick * curDeriv / 3;
 }
@@ -63,7 +63,7 @@ inductorLTEGear2(const Device& ind, const Simulator* sim)
 static inline double
 inductorLTETrap(const Device& ind, const Simulator* sim)
 {
-  double curDeriv = sim->deviceCurrentDerivative(ind, 3, 1);
+  double curDeriv = sim->simulationResult().deviceCurrentDerivative(ind, 3, 1);
   double tick = sim->simulationTick();
   return -tick * tick * tick * curDeriv / 12;
 }
@@ -118,7 +118,7 @@ LTE::maxLTE(const Simulator* sim)
 static inline double
 capacitorStepSizeBE(const Device& cap, const Simulator* sim, double relTol)
 {
-  double volDeriv = sim->deviceVoltageDerivative(cap, 2, 1);
+  double volDeriv = sim->simulationResult().deviceVoltageDerivative(cap, 2, 1);
   if (volDeriv == 0) {
     return 1e99;
   }
@@ -130,7 +130,7 @@ capacitorStepSizeBE(const Device& cap, const Simulator* sim, double relTol)
 static inline double
 capacitorStepSizeGear2(const Device& cap, const Simulator* sim, double relTol)
 {
-  double volDeriv = sim->deviceVoltageDerivative(cap, 3, 1);
+  double volDeriv = sim->simulationResult().deviceVoltageDerivative(cap, 3, 1);
   if (volDeriv == 0) {
     return 1e99;
   }
@@ -142,7 +142,7 @@ capacitorStepSizeGear2(const Device& cap, const Simulator* sim, double relTol)
 static inline double
 capacitorStepSizeTrap(const Device& cap, const Simulator* sim, double relTol)
 {
-  double volDeriv = sim->deviceVoltageDerivative(cap, 3, 1);
+  double volDeriv = sim->simulationResult().deviceVoltageDerivative(cap, 3, 1);
   if (volDeriv == 0) {
     return 1e99;
   }
@@ -170,7 +170,7 @@ capacitorStepSize(const Device& cap, const Simulator* sim, double relTol)
 static inline double
 inductorStepSizeBE(const Device& ind, const Simulator* sim, double relTol)
 {
-  double curDeriv = sim->deviceCurrentDerivative(ind, 2, 1);
+  double curDeriv = sim->simulationResult().deviceCurrentDerivative(ind, 2, 1);
   if (curDeriv == 0) {
     return 1e99;
   }
@@ -182,7 +182,7 @@ inductorStepSizeBE(const Device& ind, const Simulator* sim, double relTol)
 static inline double
 inductorStepSizeGear2(const Device& ind, const Simulator* sim, double relTol)
 {
-  double curDeriv = sim->deviceCurrentDerivative(ind, 3, 1);
+  double curDeriv = sim->simulationResult().deviceCurrentDerivative(ind, 3, 1);
   if (curDeriv == 0) {
     return 1e99;
   }
@@ -194,7 +194,7 @@ inductorStepSizeGear2(const Device& ind, const Simulator* sim, double relTol)
 static inline double
 inductorStepSizeTrap(const Device& ind, const Simulator* sim, double relTol)
 {
-  double curDeriv = sim->deviceCurrentDerivative(ind, 3, 1);
+  double curDeriv = sim->simulationResult().deviceCurrentDerivative(ind, 3, 1);
   if (curDeriv == 0) {
     return 1e99;
   }

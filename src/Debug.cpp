@@ -2,7 +2,7 @@
 #include "Circuit.h"
 #include "Simulator.h"
 
-namespace Tran {
+namespace NA {
 
 size_t Debug::_level = 0;
 
@@ -117,7 +117,7 @@ Debug::printVector(double time, const char* name, const Eigen::VectorXd& x)
 std::vector<std::string>
 rowName(const Simulator* sim)
 {
-  const SimResultMap& map = sim->simulationResult()._map;
+  const SimResultMap& map = sim->simulationResult().indexMap();
   const Circuit& ckt = sim->circuit();
   std::vector<std::string> names(map.size()+1, "");
   for (size_t nodeId=0; nodeId<map._nodeVoltageMap.size(); ++nodeId) {

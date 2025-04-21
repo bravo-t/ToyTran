@@ -3,20 +3,20 @@
 
 #include <vector>
 #include "NetlistParser.h"
-#include "Simulator.h"
+#include "SimResult.h"
 
-namespace Tran {
+namespace NA {
 
 class Measure {
   public:
-    Measure(const Simulator& simulator, const std::vector<MeasurePoint>& measurePoints)
-    : _simulator(simulator), _measurePoints(measurePoints) {}
+    Measure(const SimResult& result, const std::vector<MeasurePoint>& measurePoints)
+    : _simResult(result), _measurePoints(measurePoints) {}
     ~Measure() {}
 
     void run() const;
 
   private:
-    const Simulator& _simulator;
+    const SimResult& _simResult;
     const std::vector<MeasurePoint>& _measurePoints;
 };
 

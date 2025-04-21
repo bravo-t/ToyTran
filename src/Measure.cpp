@@ -1,7 +1,7 @@
 #include "Measure.h"
 #include "Circuit.h"
 
-namespace Tran {
+namespace NA {
 
 static inline double 
 calcMeasureTime(double x1, double y1, double x2, double y2, double value)
@@ -13,34 +13,33 @@ calcMeasureTime(double x1, double y1, double x2, double y2, double value)
 
 static inline bool
 getSimData(const SimResultType& type, const std::string& point, 
-           const Simulator& sim, double step, 
+           const SimResult& result, double step, 
            double& value, double& nextValue)
 {
-  const Circuit& ckt = sim.circuit();
+  const Circuit& ckt = result.circuit();
   if (type == SimResultType::Voltage) {
     const Node& node = ckt.findNodeByName(point);
     if (node._nodeId == static_cast<size_t>(-1)) {
       printf("Measure error: Node %s not found\n", point.data());
       return false;
     }
-    value = sim.nodeVoltage(node._nodeId, step);
-    nextValue = sim.nodeVoltage(node._nodeId, step+1);
+    value = result.nodeVoltage(node._nodeId, step);
+    nextValue = result.nodeVoltage(node._nodeId, step+1);
   } else if (type == SimResultType::Current) {
     const Device& dev = ckt.findDeviceByName(point);
     if (dev._devId == static_cast<size_t>(-1)) {
       printf("Measure error: device %s not found\n", point.data());
       return false;
     }
-    value = sim.deviceCurrent(dev._devId, step);
-    nextValue = sim.deviceCurrent(dev._devId, step+1);
+    value = result.deviceCurrent(dev._devId, step);
+    nextValue = result.deviceCurrent(dev._devId, step+1);
   }
   return true;
 }
 
 double
-measure(const Simulator& simulator, const MeasurePoint& mp)
+measure(const SimResult& simData, const MeasurePoint& mp)
 {
-  const SimResult& simData = simulator.simulationResult();
   size_t simSteps = simData.size();
   bool startMeasure = false;
   bool triggerTimeFound = false;
@@ -57,7 +56,7 @@ measure(const Simulator& simulator, const MeasurePoint& mp)
       if (triggerTimeFound == false) {
         double triggerValue = 0;
         double triggerValueNext = 0;
-        if (getSimData(mp._triggerType, mp._trigger, simulator, step, triggerValue, triggerValueNext) == false) {
+        if (getSimData(mp._triggerType, mp._trigger, simData, step, triggerValue, triggerValueNext) == false) {
           return 0;
         }
         if ((triggerValue <= mp._triggerValue && triggerValueNext >= mp._triggerValue) || 
@@ -74,7 +73,7 @@ measure(const Simulator& simulator, const MeasurePoint& mp)
       if (targetTimeFound == false) {
         double targetValue = 0;
         double targetValueNext = 0;
-        if (getSimData(mp._targetType, mp._target, simulator, step, targetValue, targetValueNext) == false) {
+        if (getSimData(mp._targetType, mp._target, simData, step, targetValue, targetValueNext) == false) {
           return 0;
         }
         if ((targetValue <= mp._targetValue && targetValueNext >= mp._targetValue) || 
@@ -106,7 +105,7 @@ void
 Measure::run() const
 {
   for (const MeasurePoint& mp : _measurePoints) {
-    double result = measure(_simulator, mp);
+    double result = measure(_simResult, mp);
     printf("Measurement %s: %E second(s)\n", mp._variableName.data(), result);
   }
 }

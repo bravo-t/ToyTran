@@ -4,7 +4,13 @@
 #include <vector>
 #include <string>
 
-namespace Tran {
+namespace NA {
+
+enum class AnalysisType : unsigned char {
+  Tran, /// Transient analysis
+  PZ,   /// Pole-Zero anlaysis
+  TF    /// Transfer function analysis
+};
 
 enum class SimResultType : unsigned char {
   Voltage,
@@ -16,6 +22,23 @@ enum class IntegrateMethod : unsigned char {
   BackwardEuler,
   Trapezoidal,
   Gear2,
+};
+
+struct AnalysisParameter {
+  AnalysisType _type;
+  union {
+    /// Parameters for transient analysis
+    struct {
+      double _relTotal;
+      double _simTime;
+      double _simTick;
+      IntegrateMethod _intMethod;
+    };
+    /// Parameters for pole-zero analysis
+    struct {
+      unsigned int _order;
+    };
+  };
 };
 
 enum class DeviceType : unsigned char {

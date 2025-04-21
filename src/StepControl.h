@@ -1,7 +1,7 @@
 #ifndef _TRAN_STPCTL_H_
 #define _TRAN_STPCTL_H_
 
-namespace Tran {
+namespace NA {
 
 class Simulator;
 

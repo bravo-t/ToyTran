@@ -2,7 +2,7 @@
 #include "Circuit.h"
 #include "NetlistParser.h"
 
-namespace Tran {
+namespace NA {
 
 static size_t 
 findDeviceId(size_t nodeId1, size_t nodeId2, 

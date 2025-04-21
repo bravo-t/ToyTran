@@ -1,6 +1,10 @@
 ifdef DEBUG
-  PRE_CFLAGS = -g -O0 -DDEBUG=$(DEBUG)
- else
+  ifeq ($(DEBUG), 1)
+    PRE_CFLAGS = -g -O0 -DDEBUG=$(DEBUG)
+  else
+    PRE_CFLAGS = -O3
+  endif
+else 
   PRE_CFLAGS = -O3
 endif
 

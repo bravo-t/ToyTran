@@ -8,19 +8,16 @@
 #include "Base.h"
 #include "SimResult.h"
 
-namespace Tran {
+namespace NA {
 
 class Circuit;
 
 class Simulator {
   public:
-    Simulator(const Circuit& ckt)
-    : _circuit(ckt) {}
+    Simulator(const Circuit& ckt);
     void initData();
-    void setSimTick(double simTick);
-    void setSimulationEndTime(double t);
-    void setIntegrateMethod(IntegrateMethod intMethod);
-    void setRelTol(double val) { _relTol = val; }
+
+    void setParameters(const AnalysisParameter& param) { _param = param; }
 
     bool needRebuildEquation() const { return _needRebuild; }
 
@@ -28,28 +25,16 @@ class Simulator {
     /// Here we use 0v for now
     double initialCondition(size_t /*nodeId*/) const { return 0; }
     const SimResult& simulationResult() const { return _result; }
-    double simulationTick() const { return _simTick; }
     /// Choose integration method, and update _prevMethod;
     IntegrateMethod integrateMethod() const;
     const Circuit& circuit() const { return _circuit; }
 
-    /// Wrapper functions around the same functions in SimResult
-    double nodeVoltage(size_t nodeId, size_t timeStep) const;
-    double deviceCurrent(size_t devId, size_t timeStep) const;
-    double nodeVoltageBackstep(size_t nodeId, size_t steps) const;
-    double deviceCurrentBackstep(size_t devId, size_t steps) const;
-    
-    /// @brief Get derivative of voltage and current.
-    ///        order controls the order of derivative you need
-    ///        order should be postive, 2 mean 2nd derivative for example
-    double nodeVoltageDerivative(size_t nodeId, size_t order, size_t steps) const;
-    /// deviceVoltageDerivative calculates the derivative of the voltage diff between
-    /// positive node and negative node of the given device
-    double deviceVoltageDerivative(const Device& device, 
-                                   size_t order, size_t steps) const;
-    double deviceCurrentDerivative(const Device& device, size_t order, size_t steps) const;
-
     void run();
+
+    double simulationTick() const { return _param._simTick; }
+    double simEnd() const { return _param._simTime; }
+    double relTotal() const { return _param._relTotal; }
+    IntegrateMethod intMethod() const { return _param._intMethod; }
 
   private:
     void formulateEquation();
@@ -60,18 +45,15 @@ class Simulator {
     void checkNeedRebuild();
 
   private:
-    double           _simTick = 1e-15;
-    double           _simEnd;
-    double           _relTol;
-    size_t           _eqnDim = 0;
-    bool             _needIterate = true;
-    bool             _needRebuild = false;
-    bool             _needUpdateA = false;
-    const Circuit&   _circuit;
-    IntegrateMethod  _prevMethod = IntegrateMethod::None;
-    IntegrateMethod  _intMethod = IntegrateMethod::Gear2;
-    SimResult        _result;
-    Eigen::VectorXd  _b;
+    size_t             _eqnDim = 0;
+    bool               _needIterate = true;
+    bool               _needRebuild = false;
+    bool               _needUpdateA = false;
+    const Circuit&     _circuit;
+    AnalysisParameter  _param;
+    IntegrateMethod    _prevMethod = IntegrateMethod::None;
+    SimResult          _result;
+    Eigen::VectorXd    _b;
     /// Cache data
     Eigen::FullPivLU<Eigen::MatrixXd> _Alu;
 };

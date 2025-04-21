@@ -7,7 +7,7 @@
 #include "Circuit.h"
 #include "Simulator.h"
 
-namespace Tran {
+namespace NA {
 
 static unsigned int widthLimit = 200;
 static unsigned int heightLimit = 100;
@@ -30,14 +30,14 @@ simData(const SimResult& result, size_t rowIndex, double& max, double& min)
   std::vector<std::pair<double, double>> data;
   max = std::numeric_limits<double>::lowest();
   min = std::numeric_limits<double>::max();
-  size_t resultVectorSize = result._map.size();
-  for (size_t tIndex=0; tIndex<result._ticks.size(); ++tIndex) {
+  size_t resultVectorSize = result.indexMap().size();
+  for (size_t tIndex=0; tIndex<result.ticks().size(); ++tIndex) {
     size_t valueIndex = tIndex*resultVectorSize+rowIndex;
-    double value = result._values[valueIndex];
+    double value = result.value(valueIndex);
     if (!std::isnan(value) && !std::isinf(value)) {
       max = std::max(max, value);
       min = std::min(min, value);
-      data.push_back(std::make_pair(result._ticks[tIndex], value));
+      data.push_back(std::make_pair(result.tick(tIndex), value));
     }
   }
   return data;

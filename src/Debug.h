@@ -3,7 +3,7 @@
 
 #include <Eigen/Core>
 
-namespace Tran {
+namespace NA {
 
 class Simulator;
 

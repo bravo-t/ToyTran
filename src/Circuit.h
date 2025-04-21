@@ -3,7 +3,7 @@
 
 #include "Base.h"
 
-namespace Tran {
+namespace NA {
 
 class NetlistParser;
 

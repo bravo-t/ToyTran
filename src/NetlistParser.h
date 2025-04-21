@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include "Base.h"
 
-namespace Tran {
+namespace NA {
 
 struct ParserDevice {
   std::string _name;
@@ -42,49 +42,43 @@ struct PlotData {
 class NetlistParser {
   public:
     NetlistParser(const char* fileName);
-    void parseLine(const std::string& line);
-  
+
+    /// Circuit information
     std::vector<ParserDevice> devices() const { return _devices; }
     std::vector<PWLValue> PWLData() const { return _PWLData; }
+    const std::string& userGroundNet() const { return _groundNet; }
 
-    double simulationTime() const { return _simTime; }
-    double simulationTick() const { return _simTick; }
-    IntegrateMethod integrateMethod() const { return _intMethod; }
-
+    /// Plot information
     const std::vector<PlotData>& plotData() const { return _plotData; }
     std::vector<PlotData>& plotData() { return _plotData; }
-
     bool needPlot() const { return _plotData.empty() == false; }
     int plotWidth() const { return _plotWidth; }
     int plotHeight() const { return _plotHeight; }
 
     bool dumpData() const { return _saveData; }
 
-    double relTol() const { return _relTol; }
-
+    /// Measure information
     bool haveMeasurePoints() const { return !_measurePoints.empty(); }
     const std::vector<MeasurePoint>& measurePoints() const { return _measurePoints; }
 
-    const std::string& userGroundNet() const { return _groundNet; }
+    std::vector<AnalysisParameter> analysisParameters() const { return _anlaysisParams; }
 
   private:
+    void parseLine(const std::string& line);
     void processCommands(const std::string& line);
     void processOption(const std::string& line);
 
 
   private:
-    std::vector<ParserDevice>    _devices;
-    std::vector<PWLValue>        _PWLData;
-    std::vector<MeasurePoint>     _measurePoints;
-    double                       _simTick = 1e-15;
-    double                       _simTime = 2;
-    double                       _relTol = 1e-6;
-    IntegrateMethod              _intMethod = IntegrateMethod::Gear2;
-    bool                         _saveData = false;
-    size_t                       _plotWidth = static_cast<size_t>(-1);
-    size_t                       _plotHeight = static_cast<size_t>(-1);
-    std::string                  _groundNet;
-    std::vector<PlotData>        _plotData;
+    std::vector<ParserDevice>         _devices;
+    std::vector<PWLValue>             _PWLData;
+    std::vector<MeasurePoint>         _measurePoints;
+    std::vector<AnalysisParameter>    _anlaysisParams;
+    bool                              _saveData = false;
+    size_t                            _plotWidth = static_cast<size_t>(-1);
+    size_t                            _plotHeight = static_cast<size_t>(-1);
+    std::string                       _groundNet;
+    std::vector<PlotData>             _plotData;
 };
 
 }

@@ -37,54 +37,60 @@ int main(int argc, char** argv)
 
   timespec parseStart;
   clock_gettime(CLOCK_REALTIME, &parseStart);
-  Tran::NetlistParser parser(argv[1]);
+  NA::NetlistParser parser(argv[1]);
   timespec parseEnd;
   clock_gettime(CLOCK_REALTIME, &parseEnd);
   timespec cktStart;
   clock_gettime(CLOCK_REALTIME, &cktStart);
-  Tran::Circuit circuit(parser);
+  NA::Circuit circuit(parser);
   timespec cktEnd;
   clock_gettime(CLOCK_REALTIME, &cktEnd);
   printf("Time spent in netlist parsing: %.3f milliseconds\n"
          "Time spent in building circuit: %.3f milliseconds\n", 
          1e-6*timeDiffNs(parseEnd, parseStart), 1e-6*timeDiffNs(cktEnd, cktStart));
-  Tran::Simulator simulator(circuit);
-  simulator.setSimTick(parser.simulationTick());
-  simulator.setSimulationEndTime(parser.simulationTime());
-  simulator.setIntegrateMethod(parser.integrateMethod());
-  simulator.setRelTol(parser.relTol());
+  NA::Simulator tranSim(circuit);
 
-  printf("Starting transient simulation\n");
-  
-  timespec start;
-  clock_gettime(CLOCK_REALTIME, &start);
-  simulator.run();
-  timespec end;
-  clock_gettime(CLOCK_REALTIME, &end);
-  printf("Simulation finished, %lu steps simulated in %.3f seconds\n", 
-         simulator.simulationResult().size(), 1e-9*timeDiffNs(end, start));
-
-  if (parser.dumpData()) {
-    std::string tr0File;
-    if (argc > 3) {
-      tr0File = argv[2];
-    } else {
-      tr0File = fileNameWithoutSuffix(argv[1]);
-      tr0File += ".tr0";
+  const std::vector<NA::AnalysisParameter>& params = parser.analysisParameters();
+  for (const NA::AnalysisParameter& param : params) {
+    switch (param._type) {
+      case NA::AnalysisType::Tran: {
+        tranSim.setParameters(param);
+        printf("Starting transient simulation\n");
+        timespec start;
+        clock_gettime(CLOCK_REALTIME, &start);
+        tranSim.run();
+        timespec end;
+        clock_gettime(CLOCK_REALTIME, &end);
+        printf("Simulation finished, %lu steps simulated in %.3f seconds\n", 
+               tranSim.simulationResult().size(), 1e-9*timeDiffNs(end, start));
+        if (parser.dumpData()) {
+          std::string tr0File;
+          if (argc > 3) {
+            tr0File = argv[2];
+          } else {
+            tr0File = fileNameWithoutSuffix(argv[1]);
+            tr0File += ".tr0";
+          }
+          printf("Writing simulation data to %s\n", tr0File.data());
+          NA::TR0Writer writer(circuit, tr0File);
+          writer.adjustNumberWidth(param._simTick, param._simTime);
+          writer.writeData(tranSim.simulationResult());
+        }
+        break;
+      }
+      default:
+        // Do nothing for now
+        break;
     }
-    printf("Writing simulation data to %s\n", tr0File.data());
-    Tran::TR0Writer writer(circuit, tr0File);
-    writer.adjustNumberWidth(parser.simulationTick(), parser.simulationTime());
-    writer.writeData(simulator.simulationResult());
   }
-
+  
   if (parser.needPlot()) {
-    Tran::Plotter plt(parser, circuit, simulator.simulationResult());
+    NA::Plotter plt(parser, circuit, tranSim.simulationResult());
     plt.plot();
   }
 
   if (parser.haveMeasurePoints()) {
-    Tran::Measure measure(simulator, parser.measurePoints());
+    NA::Measure measure(tranSim.simulationResult(), parser.measurePoints());
     measure.run();
   }
 

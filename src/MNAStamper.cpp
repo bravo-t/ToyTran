@@ -574,7 +574,7 @@ MNAStamper::stamp(Eigen::MatrixXd& G,
                   Eigen::VectorXd& b, 
                   IntegrateMethod intMethod)
 {
-  void (MNAStamper::*stampFunc[static_cast<size_t>(DeviceType::Total)])(
+  static void (MNAStamper::*stampFunc[static_cast<size_t>(DeviceType::Total)])(
       Eigen::MatrixXd& G, Eigen::MatrixXd& C, Eigen::VectorXd& b, 
       const Device& dev, IntegrateMethod intMethod) const;
 
@@ -605,7 +605,7 @@ MNAStamper::updatebNoop(Eigen::VectorXd& /*b*/,
 void 
 MNAStamper::updateb(Eigen::VectorXd& b, IntegrateMethod intMethod)
 {
-  void (MNAStamper::*updatebFunc[static_cast<size_t>(DeviceType::Total)])(
+  static void (MNAStamper::*updatebFunc[static_cast<size_t>(DeviceType::Total)])(
       Eigen::VectorXd& b, const Device& dev, IntegrateMethod intMethod) const;
 
   updatebFunc[static_cast<size_t>(DeviceType::Resistor)] = &NA::MNAStamper::updatebNoop;

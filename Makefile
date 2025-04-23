@@ -20,7 +20,7 @@ BIN_DIR     = .
 CFLAG+=-I$(SRC_DIR)/submodule/eigen
 
 SRC_LIST = main.cpp  Plotter.cpp TR0Writer.cpp Debug.cpp Measure.cpp \
-		   Simulator.cpp StepControl.cpp SimResult.cpp \
+		   PoleZero.cpp Simulator.cpp StepControl.cpp SimResult.cpp \
 		   Circuit.cpp MNAStamper.cpp  NetlistParser.cpp 
 
 SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))

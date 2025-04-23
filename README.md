@@ -61,6 +61,6 @@ New instruction `.TF` will be implemented. Details TBD.
 
 New instruction `.PZ` will be implemented.
 
-The syntax will be like `.PZ V(OUT)/I(OUT) V(IN)/I(IN)`, where `IN` and `OUT` are nodes in the netlist, specifying the input node and output node of the transfer function.
+The syntax will be like `.PZ V(OUT) V(IN)`, where `IN` and `OUT` are nodes in the netlist, specifying the input node and output node of the transfer function.
 
 In addition, a new option `.option pzorder=N` will be added, where the `N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.

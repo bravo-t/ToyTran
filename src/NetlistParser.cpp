@@ -192,10 +192,13 @@ splitWithAny(const std::string& src, const char *delim,
 static inline double 
 findUnit(std::string& str, const char* ignoreChars)
 {
+  if (ignoreChars == nullptr) {
+    return 1;
+  }
+  size_t ignoreLength = strlen(ignoreChars);
   size_t lastIndex = str.size() - 1;
   size_t actualLastIndex = lastIndex;
   char lastChar = str[lastIndex];
-  size_t ignoreLength = strlen(ignoreChars);
   for (size_t i=0; i<ignoreLength; ++i) {
     if (lastChar == ignoreChars[i]) {
       actualLastIndex -= 1;
@@ -545,6 +548,10 @@ NetlistParser::processOption(const std::string& line)
       } else {
         printf("Value provided to post is not supported and ignored\n");
       }
+    } else if (strs[i].compare("pzorder") == 0) {
+      AnalysisParameter* param = findAnalysisParameter(AnalysisType::PZ, _anlaysisParams);
+      ++i;
+      param->_order = strtoul(strs[i].data(), nullptr, 10);
     } else {
       printf("option \"%s\" is not supported and ignored\n", strs[i].data());
     }
@@ -765,6 +772,31 @@ NetlistParser::processCommands(const std::string& line)
     p._type = AnalysisType::Tran;
     p._simTick = numericalValue(strs[1], "sS");
     p._simTime = numericalValue(strs[2], "sS");
+    _anlaysisParams.push_back(p);
+  } else if (strs[0] == ".pz") {
+    AnalysisParameter p;
+    p._type = AnalysisType::PZ;
+    char c1 = firstChar(strs[1]);
+    char c2 = firstChar(strs[2]);
+    if (c1 != 'V' && c1 != 'v' && 
+        c2 != 'V' && c2 != 'v') {
+      printf("Invalid syntax in line \"%s\"\n", line.data());
+      return;
+    }
+    size_t startIndex, endIndex;
+    if (findNameInParenthesis(strs[1], startIndex, endIndex) == false || 
+        startIndex == strs[1].size() || endIndex == 0) {
+      printf("Invalid syntax in line \"%s\"\n", line.data());
+      return;
+    }
+    p._outNode = new std::string(strs[1].substr(startIndex + 1, endIndex - startIndex - 1));
+    if (findNameInParenthesis(strs[2], startIndex, endIndex) == false || 
+        startIndex == strs[2].size() || endIndex == 0) {
+      printf("Invalid syntax in line \"%s\"\n", line.data());
+      return;
+    }
+    p._inNode = new std::string(strs[2].substr(startIndex + 1, endIndex - startIndex - 1));
+    p._order = 4;
     _anlaysisParams.push_back(p);
   } else if (strs[0] == ".debug") {
     Debug::setLevel(numericalValue(strs[1], ""));

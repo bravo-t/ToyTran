@@ -16,8 +16,9 @@ class MNAStamper {
   public:
     MNAStamper(const AnalysisParameter& param, const Circuit& ckt, const SimResult& simResult)
     : _analysisParam(param), _circuit(ckt), _simResult(simResult) {}
-    void stamp(Eigen::MatrixXd& G, Eigen::MatrixXd& C, Eigen::VectorXd& b, IntegrateMethod intMethod);
-    void updateb(Eigen::VectorXd& b, IntegrateMethod intMethod);
+    void stamp(Eigen::MatrixXd& G, Eigen::MatrixXd& C, Eigen::VectorXd& b, 
+               IntegrateMethod intMethod = IntegrateMethod::Gear2);
+    void updateb(Eigen::VectorXd& b, IntegrateMethod intMethod = IntegrateMethod::Gear2);
 
   private:
     inline double simTick() const { return _analysisParam._simTick; }

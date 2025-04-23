@@ -3,6 +3,7 @@
 #include "NetlistParser.h"
 #include "Circuit.h"
 #include "Simulator.h"
+#include "PoleZero.h"
 #include "TR0Writer.h"
 #include "Plotter.h"
 #include "Measure.h"
@@ -48,12 +49,13 @@ int main(int argc, char** argv)
   printf("Time spent in netlist parsing: %.3f milliseconds\n"
          "Time spent in building circuit: %.3f milliseconds\n", 
          1e-6*timeDiffNs(parseEnd, parseStart), 1e-6*timeDiffNs(cktEnd, cktStart));
-  NA::Simulator tranSim(circuit);
 
+  std::vector<NA::SimResult> results;
   const std::vector<NA::AnalysisParameter>& params = parser.analysisParameters();
   for (const NA::AnalysisParameter& param : params) {
     switch (param._type) {
       case NA::AnalysisType::Tran: {
+        NA::Simulator tranSim(circuit);
         tranSim.setParameters(param);
         printf("Starting transient simulation\n");
         timespec start;
@@ -63,6 +65,7 @@ int main(int argc, char** argv)
         clock_gettime(CLOCK_REALTIME, &end);
         printf("Simulation finished, %lu steps simulated in %.3f seconds\n", 
                tranSim.simulationResult().size(), 1e-9*timeDiffNs(end, start));
+        results.push_back(tranSim.simulationResult());
         if (parser.dumpData()) {
           std::string tr0File;
           if (argc > 3) {
@@ -78,21 +81,32 @@ int main(int argc, char** argv)
         }
         break;
       }
+      case NA::AnalysisType::PZ: {
+        NA::PoleZeroAnalysis pz(circuit, param);
+        pz.run();
+        results.push_back(pz.result());
+        delete param._inNode;
+        delete param._outNode;
+        break;
+      }
       default:
         // Do nothing for now
         break;
     }
   }
-  
-  if (parser.needPlot()) {
-    NA::Plotter plt(parser, circuit, tranSim.simulationResult());
-    plt.plot();
-  }
 
-  if (parser.haveMeasurePoints()) {
-    NA::Measure measure(tranSim.simulationResult(), parser.measurePoints());
-    measure.run();
-  }
+  for (const NA::SimResult& result : results) {
+    if (parser.needPlot()) {
+      NA::Plotter plt(parser, circuit, result);
+      plt.plot();
+    }
+
+    if (parser.haveMeasurePoints()) {
+      NA::Measure measure(result, parser.measurePoints());
+      measure.run();
+    }
+
+  } 
 
   return 0;
 }

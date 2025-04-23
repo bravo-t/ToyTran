@@ -29,14 +29,16 @@ struct AnalysisParameter {
   union {
     /// Parameters for transient analysis
     struct {
-      double _relTotal;
-      double _simTime;
-      double _simTick;
+      double          _relTotal;
+      double          _simTime;
+      double          _simTick;
       IntegrateMethod _intMethod;
     };
     /// Parameters for pole-zero analysis
     struct {
-      unsigned int _order;
+      unsigned int  _order;
+      std::string*  _inNode;
+      std::string*  _outNode;
     };
   };
 };

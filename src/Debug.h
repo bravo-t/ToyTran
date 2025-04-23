@@ -14,6 +14,8 @@ class Debug {
     static void setLevel(size_t l) { _level = l; }
     static void printEquation(const Eigen::MatrixXd& A, const Eigen::VectorXd& b);
     static void printVector(double time, const char* name, const Eigen::VectorXd& x);
+    static void printEquation(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b);
+    static void printVector(const char* name, const Eigen::VectorXcd& x);
     static void printSolution(double time, const char* name, const Eigen::VectorXd& x,
                               const SimResultMap& resultMap, const Circuit& circuit);
 

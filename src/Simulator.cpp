@@ -110,7 +110,7 @@ Simulator::solveEquation()
   ticks.push_back(prevTime + simulationTick());
   values.insert(values.end(), x.begin(), x.end());
   if (Debug::enabled()) {
-    Debug::printSolution(prevTime+simulationTick(), "x", x, this);
+    Debug::printSolution(prevTime+simulationTick(), "x", x, _result.indexMap(), _circuit);
   }
 }
 

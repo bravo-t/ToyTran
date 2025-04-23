@@ -115,10 +115,8 @@ Debug::printVector(double time, const char* name, const Eigen::VectorXd& x)
 }
 
 std::vector<std::string>
-rowName(const Simulator* sim)
+rowName(const SimResultMap& map, const Circuit& ckt)
 {
-  const SimResultMap& map = sim->simulationResult().indexMap();
-  const Circuit& ckt = sim->circuit();
   std::vector<std::string> names(map.size()+1, "");
   for (size_t nodeId=0; nodeId<map._nodeVoltageMap.size(); ++nodeId) {
     size_t index = map._nodeVoltageMap[nodeId];
@@ -138,9 +136,10 @@ rowName(const Simulator* sim)
 }
 
 void 
-Debug::printSolution(double time, const char* name, const Eigen::VectorXd& x, const Simulator* sim)
+Debug::printSolution(double time, const char* name, const Eigen::VectorXd& x,
+                     const SimResultMap& resultMap, const Circuit& ckt)
 {
-  const std::vector<std::string>& names = rowName(sim);
+  const std::vector<std::string>& names = rowName(resultMap, ckt);
   int vectorElementLength = maxFloatLength(x);
   int nameLength = strlen(name);
   int spaceLength = vectorElementLength + nameLength + 6;

@@ -5,7 +5,8 @@
 
 namespace NA {
 
-class Simulator;
+class Circuit;
+class SimResultMap;
 
 class Debug {
   public:
@@ -13,7 +14,8 @@ class Debug {
     static void setLevel(size_t l) { _level = l; }
     static void printEquation(const Eigen::MatrixXd& A, const Eigen::VectorXd& b);
     static void printVector(double time, const char* name, const Eigen::VectorXd& x);
-    static void printSolution(double time, const char* name, const Eigen::VectorXd& x, const Simulator* sim);
+    static void printSolution(double time, const char* name, const Eigen::VectorXd& x,
+                              const SimResultMap& resultMap, const Circuit& circuit);
 
   private:
     static size_t _level;

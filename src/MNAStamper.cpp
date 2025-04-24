@@ -60,8 +60,9 @@ MNAStamper::stampCapacitorBE(Eigen::MatrixXd& /*G*/,
   double stampValue;
   if (isSDomain()) {
     stampValue = cap._value;
+  } else {
+    stampValue = cap._value / simTick();
   }
-  stampValue = cap._value / simTick();
   size_t posNodeIndex = _simResult.nodeVectorIndex(cap._posNode);
   size_t negNodeIndex = _simResult.nodeVectorIndex(cap._negNode);
   if (isNodeOmitted(cap._posNode) == false) {
@@ -234,9 +235,11 @@ MNAStamper::stampInductorBE(Eigen::MatrixXd& /*G*/,
                             Eigen::VectorXd& b, 
                             const Device& ind) const
 {
-  double stampValue = ind._value / simTick();
+  double stampValue;
   if (isSDomain()) {
     stampValue = ind._value;
+  } else {
+    stampValue = ind._value / simTick();
   }
   size_t posNodeIndex = _simResult.nodeVectorIndex(ind._posNode);
   size_t negNodeIndex = _simResult.nodeVectorIndex(ind._negNode);

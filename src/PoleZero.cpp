@@ -53,6 +53,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
   if (Debug::enabled()) {
     Debug::printEquation(G, E);
     Debug::printSolution(0, "V0", Vprev, _result.indexMap(), _circuit);
+    Debug::printEquation(C, E);
   }
   for (size_t i=0; i<order; ++i) {
     Eigen::VectorXd V(_eqnDim);
@@ -96,6 +97,11 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
   for (size_t i=0; i<order; ++i) {
     coeff.push_back(A(i));
   }
+  if (Debug::enabled()) {
+    printf("Denominator coeffcients:\n");
+    for (double c : coeff) printf("%.6f ", c);
+    printf("\n");
+  }
   return true;
 }
 
@@ -115,6 +121,11 @@ PoleZeroAnalysis::calcTFNumeratorCoeff(const std::vector<double>& moments,
       ++denomIndex;
     }
     coeff.push_back(b);
+  }
+  if (Debug::enabled()) {
+    printf("Numerator coeffcients:\n");
+    for (double c : coeff) printf("%.6f ", c);
+    printf("\n");
   }
   return true;
 }
@@ -221,6 +232,21 @@ PoleZeroAnalysis::run()
   calcZeros(numCoeff, _zeros);
   calcResidues(_poles, outputMoments, _residues);
   _moments.assign(outputMoments.begin(), outputMoments.end());
+  printf("Moments:\n");
+  for (double m : _moments) printf("%.6f ", m);
+  printf("\n");
+  
+  printf("Poles:\n");
+  for (const Complex& c : _poles) printf("%.6f+%.6fi ", c.real(), c.imag());
+  printf("\n");
+
+  printf("Zeros:\n");
+  for (const Complex& c : _zeros) printf("%.6f+%.6fi ", c.real(), c.imag());
+  printf("\n");
+  
+  printf("Residues:\n");
+  for (const Complex& c : _residues) printf("%.6f+%.6fi ", c.real(), c.imag());
+  printf("\n");
 }
 
 

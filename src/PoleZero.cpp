@@ -69,6 +69,13 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
     }
     Vprev = V;
   }
+
+  Eigen::MatrixXd A = C + G;
+  Eigen::EigenSolver<MatrixXd> es(A);
+  const Eigen::VectorXcd& ev = es.eigenvalues();
+  printf("DEBUG: Eigenvalue of A=C+G:\n");
+  for (long int i=0; i<ev.rows(); ++i) printf("%.6f+%.6fi ", ev(i).real(), ev(i).imag());
+  printf("\n");
   return true;
 }
     

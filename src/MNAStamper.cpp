@@ -230,7 +230,7 @@ MNAStamper::updatebInductorBE(Eigen::VectorXd& b,
 }
 
 inline void
-MNAStamper::stampInductorBE(Eigen::MatrixXd& /*G*/, 
+MNAStamper::stampInductorBE(Eigen::MatrixXd& G, 
                             Eigen::MatrixXd& C, 
                             Eigen::VectorXd& b, 
                             const Device& ind) const
@@ -245,12 +245,12 @@ MNAStamper::stampInductorBE(Eigen::MatrixXd& /*G*/,
   size_t negNodeIndex = _simResult.nodeVectorIndex(ind._negNode);
   size_t deviceIndex = _simResult.deviceVectorIndex(ind._devId);
   if (isNodeOmitted(ind._posNode) == false) {
-    C(posNodeIndex, deviceIndex) += 1;
-    C(deviceIndex, posNodeIndex) += 1;
+    G(posNodeIndex, deviceIndex) += 1;
+    G(deviceIndex, posNodeIndex) += 1;
   }
   if (isNodeOmitted(ind._negNode) == false) {
-    C(negNodeIndex, deviceIndex) += -1;
-    C(deviceIndex, negNodeIndex) += -1;
+    G(negNodeIndex, deviceIndex) += -1;
+    G(deviceIndex, negNodeIndex) += -1;
   }
   C(deviceIndex, deviceIndex) += -stampValue;
   if (isSDomain() == false) {

@@ -1,0 +1,14 @@
+VVDD POS GND 5
+RR1 POS N1 600
+CC1 N1 GND 0.4p
+RR2 N1 N2 40
+CC2 N2 GND 0.6p
+RR3 N2 N3 80
+CC3 N3 GND 0.5p
+RR4 N3 N4 100
+CC4 N4 GND 0.6p
+
+.debug 1
+.pz V(N4) V(POS)
+.option pzorder=1
+

@@ -14,6 +14,6 @@ CC6 N6 GND 1p
 RR7 N6 GND 30
 
 .debug 1
-.pz V(N6) V(POS)
+.pz V(POS) V(POS)
 .option pzorder=2
 

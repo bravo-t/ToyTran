@@ -1,8 +1,10 @@
 #include <cstdio>
-#include "PoleZero.h"
+#include <algorithm>
 #include <Eigen/Eigenvalues>
+#include "PoleZero.h"
 #include "MNAStamper.h"
 #include "Debug.h"
+#include "rpoly.h"
 
 namespace NA {
 
@@ -55,7 +57,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
     Debug::printSolution(0, "V0", Vprev, _result.indexMap(), _circuit);
     Debug::printEquation(C, E);
   }
-  for (size_t i=0; i<order; ++i) {
+  for (size_t i=1; i<order; ++i) {
     Eigen::VectorXd V(_eqnDim);
     Eigen::VectorXd RHS = -C * Vprev;
     V = GLU.solve(RHS);
@@ -82,25 +84,26 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
   Eigen::VectorXd V(order);
   for (size_t i=0; i<order; ++i) {
     for (size_t j=0; j<order; ++j) {
-      size_t index = order - 1 - j + i;
+      size_t index = i + j;
       M(i,j) = moments[index];
     }
     V(i) = moments[i+order];
   }
   Eigen::FullPivLU<Eigen::MatrixXd> LU = M.fullPivLu();
-  Eigen::VectorXd A = LU.solve(V);
+  Eigen::VectorXd B = LU.solve(V);
   if (Debug::enabled()) {
     Debug::printEquation(M, V);
-    Debug::printSolution(0, "A", A, _result.indexMap(), _circuit);
+    Debug::printSolution(0, "B", B, _result.indexMap(), _circuit);
   }
   coeff.clear();
   coeff.reserve(order);
   for (size_t i=0; i<order; ++i) {
-    coeff.push_back(A(i));
+    coeff.push_back(B(i));
   }
+  coeff.push_back(1.0);
   if (Debug::enabled()) {
-    printf("Denominator coeffcients:\n");
-    for (double c : coeff) printf("%.6f ", c);
+    printf("Denominator coeffcients in decreasing order:\n");
+    for (double c : coeff) printf("%.6G ", c);
     printf("\n");
   }
   return true;
@@ -134,12 +137,18 @@ PoleZeroAnalysis::calcTFNumeratorCoeff(const std::vector<double>& moments,
 typedef PoleZeroAnalysis::Complex Complex;
 typedef std::function<Complex(Complex)> ComplexFunc;
 
-/// The polynomial represented by coeff is
-/// 1 + a[0]*x + a[1]*x^2 + ... + a[n-1]*x^n
 static bool
 calcPolynomialRoots(const std::vector<double>& coeff, 
                     std::vector<Complex>& roots)
 {
+  double rootsr[100];
+  double rootsi[100];
+  int status = rpoly(coeff.data(), coeff.size(), rootsr, rootsi);
+  assert(status != -1 && "rpoly failed");
+  for (int i=0; i<status; ++i) {
+    roots.push_back({rootsr[i], rootsi[i]});
+  }
+  /*
   /// First let's turn the polynomial to monic polynomial form:
   /// c[0] + c[1]*x + ... + c[n-1]*x^(n-1) + x^n
   double leadCoeff = coeff.back();
@@ -166,6 +175,7 @@ calcPolynomialRoots(const std::vector<double>& coeff,
   for (size_t i=0; i<dim; ++i) {
     roots.push_back(ev(i));
   }
+  */
   return true;
 }
 
@@ -248,6 +258,10 @@ PoleZeroAnalysis::run()
   printf("Residues:\n");
   for (const Complex& c : _residues) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
+
+  std::vector<Complex> test;
+  calcPolynomialRoots({1, -2, 1}, test);
+  for (Complex t : test) printf("DEBUG: %f + %fi\n", t.real(), t.imag());
 }
 
 

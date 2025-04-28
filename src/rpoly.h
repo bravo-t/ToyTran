@@ -17,6 +17,27 @@
  *      returnval:   -1 if leading coefficient is zero, otherwise
  *                  number of roots found. 
  */
-int rpoly(const double *op, int degree, double *zeror, double *zeroi);
+template <class T>
+class RPoly {
+public:
+    int findRoots(const T *op, int degree, T *zeror, T *zeroi);
+private:
+    void quad(T a,T b1,T c,T *sr,T *si,
+            T *lr,T *li);
+    void fxshfr(int l2, int *nz);
+    void quadit(T *uu,T *vv,int *nz);
+    void realit(T *sss, int *nz, int *iflag);
+    void calcsc(int *type);
+    void nextk(int *type);
+    void newest(int type,T *uu,T *vv);
+    void quadsd(int n,T *u,T *v,T *p,T *q,
+            T *a,T *b);
+    T *p,*qp,*k,*qk,*svk;
+    T sr,si,u,v,a,b,c,d,a1,a2;
+    T a3,a6,a7,e,f,g,h,szr,szi,lzr,lzi;
+    T eta,are,mre;
+    int n,nn,nmi,zerok;
+};
+
 
 #endif

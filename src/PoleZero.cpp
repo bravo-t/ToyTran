@@ -143,7 +143,8 @@ calcPolynomialRoots(const std::vector<double>& coeff,
 {
   double rootsr[100];
   double rootsi[100];
-  int status = rpoly(coeff.data(), coeff.size(), rootsr, rootsi);
+  RPoly<double> rpoly;
+  int status = rpoly.findRoots(coeff.data(), coeff.size(), rootsr, rootsi);
   assert(status != -1 && "rpoly failed");
   for (int i=0; i<status; ++i) {
     roots.push_back({rootsr[i], rootsi[i]});

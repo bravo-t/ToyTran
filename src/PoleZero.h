@@ -24,7 +24,7 @@ class PoleZeroAnalysis {
     const SimResult& result() const { return _result; }
 
   private:
-    bool check() const;
+    bool check();
     bool calcMoments(const Eigen::MatrixXd& G, 
                      const Eigen::MatrixXd& C,
                      const Eigen::VectorXd& E, 

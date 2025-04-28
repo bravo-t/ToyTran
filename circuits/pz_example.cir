@@ -1,14 +1,14 @@
 VVDD POS GND 5
 RR1 POS N1 600
-CC1 N1 GND 0.4p
+CC1 N1 GND 0.4m
 RR2 N1 N2 40
-CC2 N2 GND 0.6p
+CC2 N2 GND 0.6m
 RR3 N2 N3 80
-CC3 N3 GND 0.5p
+CC3 N3 GND 0.5m
 RR4 N3 N4 100
-CC4 N4 GND 0.6p
+CC4 N4 GND 0.6m
 
 .debug 1
 .pz V(N4) V(POS)
-.option pzorder=2
+.option pzorder=4
 

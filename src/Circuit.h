@@ -2,6 +2,7 @@
 #define _TRAN_CKT_H_
 
 #include "Base.h"
+#include <cstddef>
 
 namespace NA {
 
@@ -26,8 +27,14 @@ class Circuit {
 
     bool isGroundNode(size_t nodeId) const { return _groundNodeId == nodeId; }
 
+    /// For moment scaling in PZ and TF analysis
+    size_t scalingFactor() const { return _scalingFactor; }
+    size_t order() const { return _order; }
+
   private:
     size_t                         _groundNodeId;
+    size_t                         _order;
+    size_t                         _scalingFactor;
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;
     std::vector<PWLValue>          _PWLData;

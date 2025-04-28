@@ -1,5 +1,8 @@
 #include <algorithm>
+#include <limits>
+#include <cmath>
 #include "Circuit.h"
+#include "Base.h"
 #include "NetlistParser.h"
 
 namespace NA {
@@ -115,6 +118,13 @@ createDevice(Device& dev, const ParserDevice& pDev, const StringIdMap& nodeIdMap
   return true;
 }
 
+static inline bool
+isDynamicDevice(const Device& dev)
+{
+  return dev._type == DeviceType::Capacitor ||
+         dev._type == DeviceType::Inductor;
+}
+
 Circuit::Circuit(const NetlistParser& parser)
 : _PWLData(parser.PWLData())
 {
@@ -161,6 +171,8 @@ Circuit::Circuit(const NetlistParser& parser)
     _nodes[negNode]._connection.push_back(devId);
   }
 
+  double smallestValueOfDynamicDevice = std::numeric_limits<double>::max();
+  double largestValueOfStaticDevice = -1;
   for (size_t i=0; i<_devices.size(); ++i) {
     Device& dev = _devices[i];
     if (dev._type == DeviceType::CCCS || 
@@ -173,7 +185,19 @@ Circuit::Circuit(const NetlistParser& parser)
         dev._sampleDevice = sampleDev;
       }
     }
+    if (isDynamicDevice((dev))) {
+      if (dev._value < smallestValueOfDynamicDevice) {
+        smallestValueOfDynamicDevice = dev._value;
+      }
+      ++_order;
+    } else if (dev._type == DeviceType::Resistor) {
+      if (dev._value > largestValueOfStaticDevice) {
+        largestValueOfStaticDevice = dev._value;
+      }
+    }
   }
+  //printf("DEBUG: largest: %E, smallest: %E\n", largestValueOfStaticDevice, smallestValueOfDynamicDevice);
+  _scalingFactor = std::log10(largestValueOfStaticDevice) - std::log10(smallestValueOfDynamicDevice);
 }
 
 const PWLValue&

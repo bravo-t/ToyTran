@@ -19,6 +19,7 @@ class Debug {
     static void printSolution(double time, const char* name, const Eigen::VectorXd& x,
                               const SimResultMap& resultMap, const Circuit& circuit);
     static void printSolution(const char* name, const Eigen::VectorXd& x);
+    static void printSolution(const char* name, const Eigen::VectorXcd& x);
 
   private:
     static size_t _level;

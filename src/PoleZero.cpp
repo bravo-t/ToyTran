@@ -19,7 +19,7 @@ PoleZeroAnalysis::PoleZeroAnalysis(const Circuit& circuit, const AnalysisParamet
 }
 
 bool 
-PoleZeroAnalysis::check() const
+PoleZeroAnalysis::check()
 {
   if (_inNode._nodeId == static_cast<size_t>(-1)) {
     printf("ERROR: Input node specified as \"%s\" does not exist\n", _param._inNode->data());
@@ -28,6 +28,14 @@ PoleZeroAnalysis::check() const
   if (_outNode._nodeId == static_cast<size_t>(-1)) {
     printf("ERROR: Output node specified as \"%s\" does not exist\n", _param._outNode->data());
     return false;
+  }
+  if (_param._order > _circuit.order()) {
+    printf("WARNING: User specified order %u is larger than circuit order %lu, circuit order is used\n", 
+           _param._order, _circuit.order());
+    _param._order = _circuit.order();
+  }
+  if (_circuit.scalingFactor() != 1) {
+    printf("Moment scaling factor of 1e%lu will be used to improve numerical stability\n", _circuit.scalingFactor());
   }
   return true;
 }
@@ -149,34 +157,6 @@ calcPolynomialRoots(const std::vector<double>& coeff,
   for (int i=0; i<status; ++i) {
     roots.push_back({rootsr[i], rootsi[i]});
   }
-  /*
-  /// First let's turn the polynomial to monic polynomial form:
-  /// c[0] + c[1]*x + ... + c[n-1]*x^(n-1) + x^n
-  double leadCoeff = coeff.back();
-  std::vector<double> monicCoeff;
-  monicCoeff.reserve(coeff.size());
-  monicCoeff.push_back(1/leadCoeff);
-  for (size_t i=0; i<coeff.size()-1; ++i) {
-    monicCoeff.push_back(coeff[i]/leadCoeff);
-  }
-  /// Then build companion matrix for this monic polynomial
-  size_t dim = monicCoeff.size();
-  Eigen::MatrixXd C;
-  C.setZero(dim, dim);
-  C(0, dim-1) = -monicCoeff[0];
-  for (size_t i=1; i<dim; ++i) {
-    C(i, i-1) = 1;
-    C(i, dim-1) = -monicCoeff[i]; 
-  }
-  /// Lastly calculate the eigenvalues of the companion matrix
-  Eigen::EigenSolver<MatrixXd> es(C);
-  const Eigen::VectorXcd& ev = es.eigenvalues();
-  roots.clear();
-  roots.reserve(dim);
-  for (size_t i=0; i<dim; ++i) {
-    roots.push_back(ev(i));
-  }
-  */
   return true;
 }
 
@@ -194,6 +174,24 @@ PoleZeroAnalysis::calcZeros(const std::vector<double>& numCoeff,
   return calcPolynomialRoots(numCoeff, zeros);  
 }
 
+Complex
+minusPower(const Complex& n, int p)
+{
+  Complex result;
+  if (n.imag() == 0) {
+    result.real(std::pow(n.real(), p));
+    result.imag(0);
+  } else {
+    if (p < 0) {
+      Complex r(1, 0);
+      result = r / std::pow(n, -p);
+    } else {
+      result = std::pow(n, p);
+    }
+  }
+  return result;
+}
+
 bool 
 PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles, 
                                const std::vector<double>& moments, 
@@ -202,14 +200,25 @@ PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles,
   size_t dim = poles.size();
   Eigen::MatrixXcd P(dim, dim);
   Eigen::VectorXcd M(dim);
+  std::complex<double> r(1, 0);
   for (size_t i=0; i<dim; ++i) {
     for (size_t j=0; j<dim; ++j) {
-      P(i, j) = std::pow(poles[i], -(j+1));
+      P(i, j) = minusPower(poles[j], -i);
     }
-    M(i) = -moments[i];
+    if (i == 0) {
+      /// moments[-1] is defined as the sum of all outputs of t=0+, 
+      /// which will be 0 in our case
+      M(i) = 0;
+    } else {
+      M(i) = -moments[i-1];
+    }
   }
   Eigen::FullPivLU<Eigen::MatrixXcd> LU = P.fullPivLu();
   Eigen::VectorXcd R = LU.solve(M);
+  if (Debug::enabled()) {
+    Debug::printEquation(P, M);
+    Debug::printSolution("R", R);
+  }
   residues.clear();
   residues.reserve(dim);
   for (size_t i=0; i<dim; ++i) {
@@ -242,7 +251,7 @@ PoleZeroAnalysis::run()
   //calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
   calcPoles(denomCoeff, _poles);
   //calcZeros(numCoeff, _zeros);
-  //calcResidues(_poles, outputMoments, _residues);
+  calcResidues(_poles, outputMoments, _residues);
   _moments.assign(outputMoments.begin(), outputMoments.end());
   printf("Moments:\n");
   for (double m : _moments) printf("%.6G ", m);

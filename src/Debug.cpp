@@ -48,7 +48,7 @@ maxFloatLength(const Eigen::MatrixXcd& m)
   int maxLength = debugComplexDigitLength;
   for (Eigen::Index i=0; i<m.rows(); ++i) {
     for (Eigen::Index j=0; j<m.cols(); ++j) {
-      int length = sprintf(temp, "%.*g+%.*gi", debugComplexDigitLength, m(i,j).real(), debugComplexDigits, m(i,j).imag());
+      int length = sprintf(temp, "%.*g+%.*gi", debugComplexDigits, m(i,j).real(), debugComplexDigits, m(i,j).imag());
       if (length > 0) {
         maxLength = maxLength < length ? length : maxLength;
       }
@@ -127,7 +127,7 @@ Debug::printEquation(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)
   int matrixElementLength = maxFloatLength(A);
   printf("  --");
   for (Eigen::Index j=0; j<A.cols(); ++j) {
-    for (int c=0; c<matrixElementLength; ++c) printf(" ");
+    for (int c=0; c<matrixElementLength*2; ++c) printf(" ");
     if (j == A.cols()-1) {
       printf("-");
     } else {
@@ -138,7 +138,7 @@ Debug::printEquation(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)
   printf("      ");
   int vectorElementLength = maxFloatLength(b);
   printf("--");
-  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
   printf("--\n");
   
   for (Eigen::Index i=0; i<A.rows(); ++i) {
@@ -157,7 +157,7 @@ Debug::printEquation(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)
     
   printf("  --");
   for (Eigen::Index j=0; j<A.cols(); ++j) {
-    for (int c=0; c<matrixElementLength; ++c) printf(" ");
+    for (int c=0; c<matrixElementLength*2; ++c) printf(" ");
     if (j == A.cols()-1) {
       printf("-");
     } else {
@@ -167,7 +167,7 @@ Debug::printEquation(const Eigen::MatrixXcd& A, const Eigen::VectorXcd& b)
   printf("-   ");
   printf("      ");
   printf("--");
-  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
   printf("--\n");
 }
 
@@ -204,7 +204,7 @@ Debug::printVector(const char* name, const Eigen::VectorXcd& x)
   int spaceLength = nameLength + 3;
   for (int c=0; c<spaceLength; ++c) printf(" ");
   printf(" --");
-  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
   printf("--\n");
 
   for (Eigen::Index i=0; i<x.rows(); ++i) {
@@ -217,7 +217,7 @@ Debug::printVector(const char* name, const Eigen::VectorXcd& x)
   }
   for (int c=0; c<spaceLength; ++c) printf(" ");
   printf(" --");
-  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
   printf("--\n");
 }
 
@@ -291,6 +291,31 @@ Debug::printSolution(const char* name, const Eigen::VectorXd& x)
   for (int c=0; c<spaceLength; ++c) printf(" ");
   printf(" --");
   for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  printf("--\n");
+}
+
+void 
+Debug::printSolution(const char* name, const Eigen::VectorXcd& x)
+{
+  int vectorElementLength = maxFloatLength(x);
+  int nameLength = strlen(name);
+  int spaceLength = nameLength + 3;
+  for (int c=0; c<spaceLength; ++c) printf(" ");
+  printf(" --");
+  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
+  printf("--\n");
+
+  for (Eigen::Index i=0; i<x.rows(); ++i) {
+    if (i == x.rows()/2) {
+      printf("%s = ", name);
+    } else {
+      for (int c=0; c<spaceLength; ++c) printf(" ");
+    }
+    printf(" | % *.*g+% *.*gi |\n", vectorElementLength, debugComplexDigits, x(i).real(), vectorElementLength, debugComplexDigits, x(i).imag());
+  }
+  for (int c=0; c<spaceLength; ++c) printf(" ");
+  printf(" --");
+  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
   printf("--\n");
 }
 

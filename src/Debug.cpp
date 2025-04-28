@@ -269,4 +269,29 @@ Debug::printSolution(double time, const char* name, const Eigen::VectorXd& x,
   printf("--\n");
 }
 
+void 
+Debug::printSolution(const char* name, const Eigen::VectorXd& x)
+{
+  int vectorElementLength = maxFloatLength(x);
+  int nameLength = strlen(name);
+  int spaceLength = nameLength + 3;
+  for (int c=0; c<spaceLength; ++c) printf(" ");
+  printf(" --");
+  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  printf("--\n");
+
+  for (Eigen::Index i=0; i<x.rows(); ++i) {
+    if (i == x.rows()/2) {
+      printf("%s = ", name);
+    } else {
+      for (int c=0; c<spaceLength; ++c) printf(" ");
+    }
+    printf(" | % *.*g |\n", vectorElementLength, debugDigits, x(i));
+  }
+  for (int c=0; c<spaceLength; ++c) printf(" ");
+  printf(" --");
+  for (int c=0; c<vectorElementLength; ++c) printf(" ");
+  printf("--\n");
+}
+
 }

@@ -87,13 +87,13 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
       size_t index = i + j;
       M(i,j) = moments[index];
     }
-    V(i) = moments[i+order];
+    V(i) = -moments[i+order];
   }
   Eigen::FullPivLU<Eigen::MatrixXd> LU = M.fullPivLu();
   Eigen::VectorXd B = LU.solve(V);
   if (Debug::enabled()) {
     Debug::printEquation(M, V);
-    Debug::printSolution(0, "B", B, _result.indexMap(), _circuit);
+    Debug::printSolution("B", B);
   }
   coeff.clear();
   coeff.reserve(order);
@@ -144,7 +144,7 @@ calcPolynomialRoots(const std::vector<double>& coeff,
   double rootsr[100];
   double rootsi[100];
   RPoly<double> rpoly;
-  int status = rpoly.findRoots(coeff.data(), coeff.size(), rootsr, rootsi);
+  int status = rpoly.findRoots(coeff.data(), coeff.size()-1, rootsr, rootsi);
   assert(status != -1 && "rpoly failed");
   for (int i=0; i<status; ++i) {
     roots.push_back({rootsr[i], rootsi[i]});
@@ -239,10 +239,10 @@ PoleZeroAnalysis::run()
   std::vector<double> denomCoeff;
   calcTFDenominatorCoeff(outputMoments, denomCoeff);
   std::vector<double> numCoeff;
-  calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
+  //calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
   calcPoles(denomCoeff, _poles);
-  calcZeros(numCoeff, _zeros);
-  calcResidues(_poles, outputMoments, _residues);
+  //calcZeros(numCoeff, _zeros);
+  //calcResidues(_poles, outputMoments, _residues);
   _moments.assign(outputMoments.begin(), outputMoments.end());
   printf("Moments:\n");
   for (double m : _moments) printf("%.6G ", m);
@@ -259,10 +259,6 @@ PoleZeroAnalysis::run()
   printf("Residues:\n");
   for (const Complex& c : _residues) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
-
-  std::vector<Complex> test;
-  calcPolynomialRoots({1, -2, 1}, test);
-  for (Complex t : test) printf("DEBUG: %f + %fi\n", t.real(), t.imag());
 }
 
 

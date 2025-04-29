@@ -93,24 +93,24 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
   size_t order = _param._order;
   Eigen::MatrixXd M(order, order);
   Eigen::VectorXd V(order);
-  Eigen::MatrixXi DEBUG(order, order);
-  Eigen::VectorXi DEBUGV(order);
+  //Eigen::MatrixXi DEBUG(order, order);
+  //Eigen::VectorXi DEBUGV(order);
   for (size_t i=0; i<order; ++i) {
     for (size_t j=0; j<order; ++j) {
       size_t index = i + j;
       M(i,j) = moments[index];
-      DEBUG(i, j) = index;
+      //DEBUG(i, j) = index;
     }
     V(i) = -moments[i+order];
-    DEBUGV(i) = -(i+order);
+    //DEBUGV(i) = -(i+order);
   }
   Eigen::FullPivLU<Eigen::MatrixXd> LU = M.fullPivLu();
   Eigen::VectorXd B = LU.solve(V);
   if (Debug::enabled()) {
     Debug::printEquation(M, V);
     Debug::printSolution("B", B);
-    std::cout << DEBUG << std::endl;
-    std::cout << DEBUGV << std::endl;
+    //std::cout << DEBUG << std::endl;
+    //std::cout << DEBUGV << std::endl;
   }
   coeff.clear();
   coeff.reserve(order);

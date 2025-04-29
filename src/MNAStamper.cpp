@@ -59,7 +59,7 @@ MNAStamper::stampCapacitorBE(Eigen::MatrixXd& /*G*/,
 {
   double stampValue;
   if (isSDomain()) {
-    stampValue = cap._value;
+    stampValue = cap._value * _circuit.scalingFactor();
   } else {
     stampValue = cap._value / simTick();
   }
@@ -237,7 +237,7 @@ MNAStamper::stampInductorBE(Eigen::MatrixXd& G,
 {
   double stampValue;
   if (isSDomain()) {
-    stampValue = ind._value;
+    stampValue = ind._value * _circuit.scalingFactor();
   } else {
     stampValue = ind._value / simTick();
   }
@@ -381,7 +381,7 @@ MNAStamper::updatebVoltageSource(Eigen::VectorXd& b,
 {
   double value;
   if (isSDomain()) {
-    value = 1;
+    value = 1 * _circuit.scalingFactor();
   } else {
     if (dev._isPWLValue) {
       const PWLValue& pwlData = _circuit.PWLData(dev);
@@ -428,7 +428,7 @@ MNAStamper::updatebCurrentSource(Eigen::VectorXd& b,
     value = dev._value;
   }
   if (isSDomain()) {
-    value = 1;
+    value = 1 * _circuit.scalingFactor();
   }
   size_t posNodeIndex = _simResult.nodeVectorIndex(dev._posNode);
   size_t negNodeIndex = _simResult.nodeVectorIndex(dev._negNode);

@@ -37,7 +37,7 @@ PoleZeroAnalysis::check()
     _param._order = _circuit.order();
   }
   if (_circuit.scalingFactor() != 1) {
-    printf("Moment scaling factor of 1e%lu will be used to improve numerical stability\n", _circuit.scalingFactor());
+    printf("Moment scaling factor of %G will be used to improve numerical stability\n", 1.0 * _circuit.scalingFactor());
   }
   return true;
 }
@@ -49,6 +49,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
                               std::vector<double>& inputMoments,
                               std::vector<double>& outputMoments) const
 {
+  size_t k = _circuit.scalingFactor();
   /// Number of moments should be twice the number of poles to be calculated
   size_t order = _param._order * 2 + 1;
   inputMoments.clear();
@@ -60,8 +61,8 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
   Eigen::FullPivLU<Eigen::MatrixXd> GLU = G.fullPivLu();
   Eigen::VectorXd Vprev(_eqnDim);
   Vprev = GLU.solve(E);
-  inputMoments.push_back(Vprev(inputIndex));
-  outputMoments.push_back(Vprev(outputIndex));
+  inputMoments.push_back(Vprev(inputIndex) / k);
+  outputMoments.push_back(Vprev(outputIndex) / k);
   if (Debug::enabled()) {
     Debug::printEquation(G, E);
     Debug::printSolution(0, "V0", Vprev, _result.indexMap(), _circuit);
@@ -71,8 +72,8 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
     Eigen::VectorXd V(_eqnDim);
     Eigen::VectorXd RHS = -C * Vprev;
     V = GLU.solve(RHS);
-    inputMoments.push_back(V(inputIndex));
-    outputMoments.push_back(V(outputIndex));
+    inputMoments.push_back(V(inputIndex) / k);
+    outputMoments.push_back(V(outputIndex) / k);
     if (Debug::enabled()) {
       char buf[50];
       sprintf(buf, "V%lu", i);
@@ -263,26 +264,27 @@ PoleZeroAnalysis::run()
   std::vector<double> inputMoments;
   std::vector<double> outputMoments;
   calcMoments(G, C, E, inputMoments, outputMoments);
-  std::vector<double> denomCoeff;
-  calcTFDenominatorCoeff(outputMoments, denomCoeff);
-  std::vector<double> numCoeff;
-  calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
-  calcPoles(denomCoeff, _poles);
-  calcZeros(numCoeff, _zeros);
-  calcResidues(_poles, outputMoments, 1.0 / denomCoeff[0], _residues);
   _moments.assign(outputMoments.begin(), outputMoments.end());
   printf("Moments:\n");
   for (double m : _moments) printf("%.6G ", m);
   printf("\n");
   
+  std::vector<double> denomCoeff;
+  calcTFDenominatorCoeff(outputMoments, denomCoeff);
+  std::vector<double> numCoeff;
+  calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
+  
+  calcPoles(denomCoeff, _poles);
   printf("Poles:\n");
   for (const Complex& c : _poles) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
   
+  calcZeros(numCoeff, _zeros);
   printf("Zeros:\n");
   for (const Complex& c : _zeros) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
   
+  calcResidues(_poles, outputMoments, 1.0 / denomCoeff[0], _residues);
   printf("Residues:\n");
   for (const Complex& c : _residues) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");

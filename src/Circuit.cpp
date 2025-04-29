@@ -197,7 +197,7 @@ Circuit::Circuit(const NetlistParser& parser)
     }
   }
   //printf("DEBUG: largest: %E, smallest: %E\n", largestValueOfStaticDevice, smallestValueOfDynamicDevice);
-  _scalingFactor = std::log10(largestValueOfStaticDevice) - std::log10(smallestValueOfDynamicDevice) - 2;
+  _scalingFactor = std::pow(10, (0 - int(std::log10(smallestValueOfDynamicDevice)) - 3));
   if (_scalingFactor < 1) {
     _scalingFactor = 1;
   }

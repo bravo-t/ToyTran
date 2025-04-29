@@ -85,7 +85,7 @@ int main(int argc, char** argv)
         NA::PoleZeroAnalysis pz(circuit, param);
         pz.run();
         results.push_back(pz.result());
-        delete param._inNode;
+        delete param._inDev;
         delete param._outNode;
         break;
       }

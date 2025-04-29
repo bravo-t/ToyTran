@@ -15,7 +15,7 @@ using namespace Eigen;
 PoleZeroAnalysis::PoleZeroAnalysis(const Circuit& circuit, const AnalysisParameter& param)
 : _circuit(circuit), _param(param), _result(circuit)
 {
-  _inNode = _circuit.findNodeByName(*(_param._inNode));
+  _inDev = _circuit.findDeviceByName(*(_param._inDev));
   _outNode = _circuit.findNodeByName(*(_param._outNode));
   _eqnDim = _result.indexMap().size();
 }
@@ -23,8 +23,8 @@ PoleZeroAnalysis::PoleZeroAnalysis(const Circuit& circuit, const AnalysisParamet
 bool 
 PoleZeroAnalysis::check()
 {
-  if (_inNode._nodeId == static_cast<size_t>(-1)) {
-    printf("ERROR: Input node specified as \"%s\" does not exist\n", _param._inNode->data());
+  if (_inDev._devId == static_cast<size_t>(-1)) {
+    printf("ERROR: Input device specified as \"%s\" does not exist\n", _param._inDev->data());
     return false;
   }
   if (_outNode._nodeId == static_cast<size_t>(-1)) {
@@ -56,7 +56,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
   inputMoments.reserve(order+1);
   outputMoments.clear();
   outputMoments.reserve(order+1);
-  size_t inputIndex = _result.nodeVectorIndex(_inNode._nodeId);
+  size_t inputIndex = _result.deviceVectorIndex(_inDev._devId);
   size_t outputIndex = _result.nodeVectorIndex(_outNode._nodeId);
   Eigen::FullPivLU<Eigen::MatrixXd> GLU = G.fullPivLu();
   Eigen::VectorXd Vprev(_eqnDim);
@@ -246,6 +246,42 @@ PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles,
   return true;
 }
 
+inline static void 
+printCNumber(const Complex& n)
+{
+  if (n.imag() == 0) {
+    printf("%.6f ", n.real());
+  } else {
+    printf("%.6f+%.6fi ", n.real(), n.imag());
+  }
+}
+
+bool
+PoleZeroAnalysis::calcPoleResidue(const std::vector<double>& moments, 
+                                  std::vector<Complex>& poles, 
+                                  std::vector<Complex>& zeros, 
+                                  std::vector<Complex>& residues) const
+{
+  std::vector<double> denomCoeff;
+  calcTFDenominatorCoeff(moments, denomCoeff);
+  std::vector<double> numCoeff;
+  calcTFNumeratorCoeff(moments, denomCoeff, numCoeff);
+  
+  calcPoles(denomCoeff, poles);
+  printf("Poles: ");
+  for (const Complex& c : poles) printCNumber(c);
+  printf("\n");
+  
+  calcZeros(numCoeff, zeros);
+  printf("Zeros: ");
+  for (const Complex& c : zeros) printCNumber(c);
+  printf("\n");
+  
+  calcResidues(poles, moments, 1.0 / denomCoeff[0], residues);
+  printf("Residues: ");
+  for (const Complex& c : residues) printCNumber(c);
+  printf("\n");
+}
 
 void
 PoleZeroAnalysis::run()
@@ -265,7 +301,7 @@ PoleZeroAnalysis::run()
   std::vector<double> outputMoments;
   calcMoments(G, C, E, inputMoments, outputMoments);
   _moments.assign(outputMoments.begin(), outputMoments.end());
-  printf("Moments:\n");
+  printf("Moments: ");
   for (double m : _moments) printf("%.6G ", m);
   printf("\n");
   
@@ -275,18 +311,18 @@ PoleZeroAnalysis::run()
   calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
   
   calcPoles(denomCoeff, _poles);
-  printf("Poles:\n");
-  for (const Complex& c : _poles) printf("%.6f+%.6fi ", c.real(), c.imag());
+  printf("Poles: ");
+  for (const Complex& c : _poles) printCNumber(c);
   printf("\n");
   
   calcZeros(numCoeff, _zeros);
-  printf("Zeros:\n");
-  for (const Complex& c : _zeros) printf("%.6f+%.6fi ", c.real(), c.imag());
+  printf("Zeros: ");
+  for (const Complex& c : _zeros) printCNumber(c);
   printf("\n");
   
   calcResidues(_poles, outputMoments, 1.0 / denomCoeff[0], _residues);
-  printf("Residues:\n");
-  for (const Complex& c : _residues) printf("%.6f+%.6fi ", c.real(), c.imag());
+  printf("Residues: ");
+  for (const Complex& c : _residues) printCNumber(c);
   printf("\n");
 
   /* a small unit test

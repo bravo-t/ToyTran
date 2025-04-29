@@ -25,6 +25,12 @@ class PoleZeroAnalysis {
 
   private:
     bool check();
+
+    bool calcPoleResidue(const std::vector<double>& moments, 
+                         std::vector<Complex>& poles, 
+                         std::vector<Complex>& zeros, 
+                         std::vector<Complex>& residues) const;
+
     bool calcMoments(const Eigen::MatrixXd& G, 
                      const Eigen::MatrixXd& C,
                      const Eigen::VectorXd& E, 
@@ -51,10 +57,14 @@ class PoleZeroAnalysis {
   private:
     const Circuit&         _circuit;
     AnalysisParameter      _param;
-    Node                   _inNode;
+    Device                 _inDev;
     Node                   _outNode;
     SimResult              _result;
     size_t                 _eqnDim;
+    std::vector<double>    _admMoments;
+    std::vector<Complex>   _admPoles;
+    std::vector<Complex>   _admZeros;
+    std::vector<Complex>   _admResidues;
     std::vector<double>    _moments;
     std::vector<Complex>   _poles;
     std::vector<Complex>   _zeros;

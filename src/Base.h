@@ -37,7 +37,7 @@ struct AnalysisParameter {
     /// Parameters for pole-zero analysis
     struct {
       unsigned int  _order;
-      std::string*  _inNode;
+      std::string*  _inDev;
       std::string*  _outNode;
     };
   };

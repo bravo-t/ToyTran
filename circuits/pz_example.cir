@@ -9,6 +9,6 @@ RR4 N3 N4 100
 CC4 N4 GND 0.6p
 
 .debug 0
-.pz V(N4) V(POS)
+.pz V(N4) I(VDD)
 .option pzorder=4
 

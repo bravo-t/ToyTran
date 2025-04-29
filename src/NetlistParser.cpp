@@ -778,8 +778,8 @@ NetlistParser::processCommands(const std::string& line)
     p._type = AnalysisType::PZ;
     char c1 = firstChar(strs[1]);
     char c2 = firstChar(strs[2]);
-    if (c1 != 'V' && c1 != 'v' && 
-        c2 != 'V' && c2 != 'v') {
+    if ((c1 != 'V' && c1 != 'v') ||
+        (c2 != 'I' && c2 != 'i')) {
       printf("Invalid syntax in line \"%s\"\n", line.data());
       return;
     }
@@ -795,7 +795,7 @@ NetlistParser::processCommands(const std::string& line)
       printf("Invalid syntax in line \"%s\"\n", line.data());
       return;
     }
-    p._inNode = new std::string(strs[2].substr(startIndex + 1, endIndex - startIndex - 1));
+    p._inDev = new std::string(strs[2].substr(startIndex + 1, endIndex - startIndex - 1));
     p._order = 4;
     _anlaysisParams.push_back(p);
   } else if (strs[0] == ".debug") {

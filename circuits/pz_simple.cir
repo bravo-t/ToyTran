@@ -1,0 +1,7 @@
+VVDD POS GND 5
+RR1 POS N1 1000
+CC1 N1 GND 10p
+
+.debug 1
+.pz V(N1) V(POS)
+.option pzorder=6

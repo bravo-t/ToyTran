@@ -20,15 +20,25 @@ CCVS: `Hname N+ N- NC+ NC- Value`
 CCCS: `Fname N+ N- NC+ NC- Value`
 
 ## Supported commands and options
-`.tran tstep tstop`: Specifies simulation time step and total simulation time.
 
-`.debug 1`: Enable debug output to print MNA matrix and RHS vector, as well as solution to each time step.
+### Commands for transient simulation
+`.tran tstep tstop`: Specifies simulation time step and total simulation time.
 
 `.option method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler), `gear2` (Gear2 or BDF2) and `trap` (tapezoidal method).
 
-`.plot tran [width=xx height=xx] [canvas.]V(NodeName) [canvas.]I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. If `width` and `height` directives are not given, the tool will use current terminal size for plot width and height. Multiple simulation results can be plotted in a single chart by specifying a same canvas name. Currently at most 4 plots can be drawn in one canvas.
+### Commands for pole-zero analysis
 
-`.measure tran variable_name trig V(node)/I(device)=trigger_value TD=xx targ V(node)/I(device)=target_value`: Measure the event time between trigger value happend and target value happend. 
+`.pz V(OUT) I(IN)`: Perform pole-zero analysis, and calculate pole-residual values for specified output node, and driver admittance at IN node. (The driver admittance part is still under development.)
+
+`.option pzorder=N` will be added, where the `N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.
+
+### Global commands
+
+`.debug 1`: Enable debug output to print MNA matrix and RHS vector, as well as solution to each time step.
+
+`.plot tran [width=xx height=xx] [canvas.]V(NodeName) [canvas.]I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. If `width` and `height` directives are not given, the tool will use current terminal size for plot width and height. Multiple simulation results can be plotted in a single chart by specifying a same canvas name. Currently at most 4 plots can be drawn in one canvas. (This command is not supported in PZ analysis.)
+
+`.measure tran variable_name trig V(node)/I(device)=trigger_value TD=xx targ V(node)/I(device)=target_value`: Measure the event time between trigger value happend and target value happend. (This command is not supported in PZ analysis.)
 
 ## Compile and run
 `git clone --recurse-submodules` and `make` should be sufficient. The executable is generated under current code directory and named "trans".
@@ -56,11 +66,3 @@ Note below features will not follow spice netlist grammar.
 ### Transfer function analysis
 
 New instruction `.TF` will be implemented. Details TBD.
-
-#### Pole-Zero analysis
-
-New instruction `.PZ` will be implemented.
-
-The syntax will be like `.PZ V(OUT) V(IN)`, where `IN` and `OUT` are nodes in the netlist, specifying the input node and output node of the transfer function.
-
-In addition, a new option `.option pzorder=N` will be added, where the `N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.

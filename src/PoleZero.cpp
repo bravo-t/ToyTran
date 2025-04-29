@@ -6,6 +6,8 @@
 #include "Debug.h"
 #include "rpoly.h"
 
+#include <iostream>
+
 namespace NA {
 
 using namespace Eigen;
@@ -48,7 +50,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
                               std::vector<double>& outputMoments) const
 {
   /// Number of moments should be twice the number of poles to be calculated
-  size_t order = _param._order * 2;
+  size_t order = _param._order * 2 + 1;
   inputMoments.clear();
   inputMoments.reserve(order+1);
   outputMoments.clear();
@@ -90,21 +92,28 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
   size_t order = _param._order;
   Eigen::MatrixXd M(order, order);
   Eigen::VectorXd V(order);
+  Eigen::MatrixXi DEBUG(order, order);
+  Eigen::VectorXi DEBUGV(order);
   for (size_t i=0; i<order; ++i) {
     for (size_t j=0; j<order; ++j) {
       size_t index = i + j;
       M(i,j) = moments[index];
+      DEBUG(i, j) = index;
     }
     V(i) = -moments[i+order];
+    DEBUGV(i) = -(i+order);
   }
   Eigen::FullPivLU<Eigen::MatrixXd> LU = M.fullPivLu();
   Eigen::VectorXd B = LU.solve(V);
   if (Debug::enabled()) {
     Debug::printEquation(M, V);
     Debug::printSolution("B", B);
+    std::cout << DEBUG << std::endl;
+    std::cout << DEBUGV << std::endl;
   }
   coeff.clear();
   coeff.reserve(order);
+  /// B is in 
   for (size_t i=0; i<order; ++i) {
     coeff.push_back(B(i));
   }
@@ -124,18 +133,21 @@ PoleZeroAnalysis::calcTFNumeratorCoeff(const std::vector<double>& moments,
 {
   size_t order = _param._order;
   coeff.clear();
-  coeff.reserve(order);
+  coeff.assign(order, 0);
   for (size_t i=0; i<order; ++i) {
-    double b = moments[i];
-    size_t denomIndex = 0;
-    for (int j=i-1; j>0; --j) {
-      b += (moments[j]*denomCoeff[denomIndex]);
-      ++denomIndex;
+    double a = moments[i];
+    //printf("a_%lu = m_%lu", i, i);
+    size_t denomIndex = order - 1;
+    for (int j=i-1; j>=0; --j) {
+      a += (moments[j]*denomCoeff[denomIndex]);
+      //printf(" + m_%d * b_%lu", j, denomIndex);
+      --denomIndex;
     }
-    coeff.push_back(b);
+    coeff[order-1-i] = a;
+    //printf("\n");
   }
   if (Debug::enabled()) {
-    printf("Numerator coeffcients:\n");
+    printf("Numerator coeffcients in decreasing order:\n");
     for (double c : coeff) printf("%.6f ", c);
     printf("\n");
   }
@@ -195,6 +207,7 @@ minusPower(const Complex& n, int p)
 bool 
 PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles, 
                                const std::vector<double>& moments, 
+                               double k,
                                std::vector<Complex>& residues) const
 {
   size_t dim = poles.size();
@@ -203,8 +216,12 @@ PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles,
   std::complex<double> r(1, 0);
   for (size_t i=0; i<dim; ++i) {
     for (size_t j=0; j<dim; ++j) {
-      P(i, j) = minusPower(poles[j], -i);
+      //P(i, j) = minusPower(poles[j], -i);
+      P(i, j) = minusPower(poles[j], -(i+1));
+      //printf("DEBUG: P(%lu, %lu) = p_%lu ^ %ld\n", i, j, j, -(i+1));
     }
+    M(i) = moments[i];
+    /*
     if (i == 0) {
       /// moments[-1] is defined as the sum of all outputs of t=0+, 
       /// which will be 0 in our case
@@ -212,6 +229,7 @@ PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles,
     } else {
       M(i) = -moments[i-1];
     }
+    */
   }
   Eigen::FullPivLU<Eigen::MatrixXcd> LU = P.fullPivLu();
   Eigen::VectorXcd R = LU.solve(M);
@@ -222,7 +240,7 @@ PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles,
   residues.clear();
   residues.reserve(dim);
   for (size_t i=0; i<dim; ++i) {
-    residues.push_back(R(i));
+    residues.push_back(R(i)*k);
   }
   return true;
 }
@@ -248,10 +266,10 @@ PoleZeroAnalysis::run()
   std::vector<double> denomCoeff;
   calcTFDenominatorCoeff(outputMoments, denomCoeff);
   std::vector<double> numCoeff;
-  //calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
+  calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
   calcPoles(denomCoeff, _poles);
-  //calcZeros(numCoeff, _zeros);
-  calcResidues(_poles, outputMoments, _residues);
+  calcZeros(numCoeff, _zeros);
+  calcResidues(_poles, outputMoments, 1.0 / denomCoeff[0], _residues);
   _moments.assign(outputMoments.begin(), outputMoments.end());
   printf("Moments:\n");
   for (double m : _moments) printf("%.6G ", m);
@@ -260,7 +278,7 @@ PoleZeroAnalysis::run()
   printf("Poles:\n");
   for (const Complex& c : _poles) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
-
+  
   printf("Zeros:\n");
   for (const Complex& c : _zeros) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
@@ -268,6 +286,25 @@ PoleZeroAnalysis::run()
   printf("Residues:\n");
   for (const Complex& c : _residues) printf("%.6f+%.6fi ", c.real(), c.imag());
   printf("\n");
+
+  /* a small unit test
+  // Below moment values in debugM will give a result of two poles, 1 and 2, 
+  // and corresponding residuals 1 and 2
+  std::vector<double> debugM = {1, 0.75, 0.625, 0.5625};
+  std::vector<double> debugPCoeff;
+  calcTFDenominatorCoeff(debugM, debugPCoeff);
+  std::vector<Complex> debugP;
+  calcPolynomialRoots(debugPCoeff, debugP);
+  for (Complex r : debugP) printf("P: %f + %f i\n", r.real(), r.imag());
+  std::vector<double> debugQCoeff;
+  calcTFNumeratorCoeff(debugM, debugPCoeff, debugQCoeff);
+  std::vector<Complex> debugZ;
+  calcZeros(debugQCoeff, debugZ);
+  for (Complex r : debugZ) printf("Z: %f + %f i\n", r.real(), r.imag());
+  std::vector<Complex> debugR;
+  calcResidues(debugP, debugM, 1.0 / debugPCoeff[0], debugR);
+  for (Complex r : debugR) printf("R: %f + %f i\n", r.real(), r.imag());
+  */
 }
 
 

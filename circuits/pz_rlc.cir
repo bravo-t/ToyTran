@@ -1,16 +1,16 @@
 VVDD N1 GND 5
 RR1 N1 N2 1
-LL1 N2 N3 1n
-CC1 N3 GND 1p
+LL1 N2 N3 1m
+CC1 N3 GND 1m
 RR2 N3 N4 10
-LL2 N4 N5 1n
-CC2 N5 GND 1p
+LL2 N4 N5 1m
+CC2 N5 GND 1m
 RR3 N5 N6 100
-LL3 N6 N7 1n
-CC3 N7 GND 1p
+LL3 N6 N7 1m
+CC3 N7 GND 1m
 RR4 N7 GND 30
 
 .debug 1
 .pz V(N7) V(N1)
-.option pzorder=2
+.option pzorder=4
 

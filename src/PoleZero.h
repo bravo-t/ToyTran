@@ -45,6 +45,7 @@ class PoleZeroAnalysis {
 
     bool calcResidues(const std::vector<Complex>& poles, 
                       const std::vector<double>& moments, 
+                      double k,
                       std::vector<Complex>& residues) const;
 
   private:

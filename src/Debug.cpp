@@ -302,7 +302,7 @@ Debug::printSolution(const char* name, const Eigen::VectorXcd& x)
   int spaceLength = nameLength + 3;
   for (int c=0; c<spaceLength; ++c) printf(" ");
   printf(" --");
-  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
+  for (int c=0; c<vectorElementLength*2+1; ++c) printf(" ");
   printf("--\n");
 
   for (Eigen::Index i=0; i<x.rows(); ++i) {
@@ -315,7 +315,7 @@ Debug::printSolution(const char* name, const Eigen::VectorXcd& x)
   }
   for (int c=0; c<spaceLength; ++c) printf(" ");
   printf(" --");
-  for (int c=0; c<vectorElementLength*2; ++c) printf(" ");
+  for (int c=0; c<vectorElementLength*2+1; ++c) printf(" ");
   printf("--\n");
 }
 

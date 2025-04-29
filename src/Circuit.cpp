@@ -170,7 +170,7 @@ Circuit::Circuit(const NetlistParser& parser)
     size_t negNode = dev._negNode;
     _nodes[negNode]._connection.push_back(devId);
   }
-
+  _order = 0;
   double smallestValueOfDynamicDevice = std::numeric_limits<double>::max();
   double largestValueOfStaticDevice = -1;
   for (size_t i=0; i<_devices.size(); ++i) {
@@ -197,7 +197,10 @@ Circuit::Circuit(const NetlistParser& parser)
     }
   }
   //printf("DEBUG: largest: %E, smallest: %E\n", largestValueOfStaticDevice, smallestValueOfDynamicDevice);
-  _scalingFactor = std::log10(largestValueOfStaticDevice) - std::log10(smallestValueOfDynamicDevice);
+  _scalingFactor = std::log10(largestValueOfStaticDevice) - std::log10(smallestValueOfDynamicDevice) - 2;
+  if (_scalingFactor < 1) {
+    _scalingFactor = 1;
+  }
 }
 
 const PWLValue&

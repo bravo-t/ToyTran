@@ -266,21 +266,10 @@ PoleZeroAnalysis::calcPoleResidue(const std::vector<double>& moments,
   calcTFDenominatorCoeff(moments, denomCoeff);
   std::vector<double> numCoeff;
   calcTFNumeratorCoeff(moments, denomCoeff, numCoeff);
-  
   calcPoles(denomCoeff, poles);
-  printf("Poles: ");
-  for (const Complex& c : poles) printCNumber(c);
-  printf("\n");
-  
   calcZeros(numCoeff, zeros);
-  printf("Zeros: ");
-  for (const Complex& c : zeros) printCNumber(c);
-  printf("\n");
-  
   calcResidues(poles, moments, 1.0 / denomCoeff[0], residues);
-  printf("Residues: ");
-  for (const Complex& c : residues) printCNumber(c);
-  printf("\n");
+  return true;
 }
 
 void
@@ -301,33 +290,39 @@ PoleZeroAnalysis::run()
   std::vector<double> outputMoments;
   calcMoments(G, C, E, inputMoments, outputMoments);
   _moments.assign(outputMoments.begin(), outputMoments.end());
-  printf("Moments: ");
+  printf("Moments for node %s: ", _outNode._name.data());
   for (double m : _moments) printf("%.6G ", m);
   printf("\n");
-  
-  std::vector<double> denomCoeff;
-  calcTFDenominatorCoeff(outputMoments, denomCoeff);
-  std::vector<double> numCoeff;
-  calcTFNumeratorCoeff(outputMoments, denomCoeff, numCoeff);
-  
-  calcPoles(denomCoeff, _poles);
-  printf("Poles: ");
+
+  calcPoleResidue(_moments, _poles, _zeros, _residues);
+  printf("Poles for node %s: ", _outNode._name.data());
   for (const Complex& c : _poles) printCNumber(c);
   printf("\n");
-  
-  calcZeros(numCoeff, _zeros);
-  printf("Zeros: ");
+  printf("Zeros for node %s: ", _outNode._name.data());
   for (const Complex& c : _zeros) printCNumber(c);
   printf("\n");
-  
-  calcResidues(_poles, outputMoments, 1.0 / denomCoeff[0], _residues);
-  printf("Residues: ");
+  printf("Residues for node %s: ", _outNode._name.data());
   for (const Complex& c : _residues) printCNumber(c);
   printf("\n");
 
+  _admMoments.assign(inputMoments.begin(), inputMoments.end());
+  printf("Moments for driver admittance at %s: ", _inDev._name.data());
+  for (double m : _admMoments) printf("%.6G ", m);
+  printf("\n");
+
+  calcPoleResidue(_admMoments, _admPoles, _admZeros, _admResidues);
+  printf("Poles for driver admittance at %s: ", _inDev._name.data());
+  for (const Complex& c : _admPoles) printCNumber(c);
+  printf("\n");
+  printf("Zeros for driver admittance at %s: ", _inDev._name.data());
+  for (const Complex& c : _admZeros) printCNumber(c);
+  printf("\n");
+  printf("Residues for driver admittance at %s: ", _inDev._name.data());
+  for (const Complex& c : _admResidues) printCNumber(c);
+  printf("\n");
   /* a small unit test
   // Below moment values in debugM will give a result of two poles, 1 and 2, 
-  // and corresponding residuals 1 and 2
+  // and corresponding residues 1 and 2
   std::vector<double> debugM = {1, 0.75, 0.625, 0.5625};
   std::vector<double> debugPCoeff;
   calcTFDenominatorCoeff(debugM, debugPCoeff);

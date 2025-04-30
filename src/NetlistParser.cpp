@@ -105,6 +105,7 @@ getClosedLine(std::ifstream& infile, std::string& content)
     }
   }
   return infile.peek() != EOF;
+  //return content.size() > 1 || (content.empty() == false && content[0] != ' ');
 }
 
 NetlistParser::NetlistParser(const char* fileName) 

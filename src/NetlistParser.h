@@ -23,6 +23,7 @@ struct ParserDevice {
 };
 
 struct MeasurePoint {
+  std::string _simName;
   std::string _variableName;
   double _timeDelay = .0f;
   std::string _trigger;
@@ -36,7 +37,9 @@ struct MeasurePoint {
 struct PlotData {
   std::string              _canvasName;
   std::vector<std::string> _nodeToPlot;
+  std::vector<std::string> _nodeSimName;
   std::vector<std::string> _deviceToPlot;
+  std::vector<std::string> _devSimName;
 };
 
 class NetlistParser {

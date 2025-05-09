@@ -641,51 +641,54 @@ processPlot(const std::string& line,
     printf("Only tran mode is supported in .plot command\n");
     return;
   }
+  PlotData* plotData = nullptr;
   for (size_t i=2; i<strs.size(); ++i) {
     std::vector<std::string> substr;
-    splitWithAny(strs[i], ".", substr);
     std::string canvas = "";
-    std::string restStr;
-    if (substr.size() == 1) {
-      restStr = substr[0];
-    } else {
-      canvas = substr[0];
-      restStr = substr[1];
-    }
-    PlotData* plotData = findPlotData(canvas, plotCmds);
-    if (plotData->_canvasName != "" && 
-        plotData->_nodeToPlot.size() + plotData->_deviceToPlot.size() > 3) {
-      printf("ERROR: At most 4 plots can be put into 1 canvas. %s already has 4\n", canvas.data());
-      continue;
-    }
-    char c = firstChar(restStr);
+    char c = firstChar(strs[i]);
     std::vector<std::string>* destVec = nullptr;
     if (c == 'V' || c == 'v') {
+      if (plotData == nullptr) {
+        plotData = findPlotData(canvas, plotCmds);
+      }
       destVec = &(plotData->_nodeToPlot);
     } else if (c == 'I' || c == 'i') {
+      if (plotData == nullptr) {
+        plotData = findPlotData(canvas, plotCmds);
+      }
       destVec = &(plotData->_deviceToPlot);
     } else {
-      toLower(restStr);
-      if (restStr.compare("width") == 0) {
+      toLower(strs[i]);
+      if (strs[i].compare("width") == 0) {
         ++i;
         plotWidth = numericalValue(strs[i], "");
         continue;
-      } else if (restStr.compare("height") == 0) {
+      } else if (strs[i].compare("height") == 0) {
         ++i;
         plotHeight = numericalValue(strs[i], "");
+        continue;
+      } else if (strs[i].compare("canvas") == 0) {
+        ++i;
+        canvas = strs[i];
+        plotData = findPlotData(canvas, plotCmds);
         continue;
       } else {
         printf("Unsupported type of metric %c\n", c);
         continue;
       }
     }
+    if (plotData->_canvasName != "" && 
+        plotData->_nodeToPlot.size() + plotData->_deviceToPlot.size() > 3) {
+      printf("ERROR: At most 4 plots can be put into 1 canvas. %s already has 4\n", canvas.data());
+      continue;
+    }
     size_t startIndex, endIndex;
-    if (findNameInParenthesis(restStr, startIndex, endIndex) == false || 
-        startIndex == restStr.size() || endIndex == 0) {
+    if (findNameInParenthesis(strs[i], startIndex, endIndex) == false || 
+        startIndex == strs[i].size() || endIndex == 0) {
       printf("Unsupported syntax in line \"%s\"", line.data());
       return;
     }
-    std::string str = restStr.substr(startIndex + 1, endIndex - startIndex - 1);
+    std::string str = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
     destVec->push_back(str);
   }
 }
@@ -713,9 +716,13 @@ processMeasureCmds(const std::string& line,
   /// .measure tran rise_tran_10_90 trig V(ResOUT)=0.5 targ V(ResOUT)=4.5
   /// strs[0] == .measure, discard
   MeasurePoint mp;
+  std::string::size_type divPos = strs[1].find('.');
+  if (divPos != std::string::npos) {
+    mp._simName = strs[1].substr(divPos, strs[1].size()-divPos);
+  }
   bool inTriggerSection = false;
   bool inTargetSection = false;
-  for (size_t i=1; i<strs.size(); ++i) {
+  for (size_t i=2; i<strs.size(); ++i) {
     if (iequals(strs[i], "tran")) {
       continue;
     }

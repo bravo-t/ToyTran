@@ -22,15 +22,15 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 ## Supported commands and options
 
 ### Commands for transient simulation
-`.tran tstep tstop`: Specifies simulation time step and total simulation time.
+`.tran [name] tstep tstop`: Specifies simulation time step and total simulation time. The `name` is useful when you would like to run the simulation on the same circuit with different options. `name` part is optional.
 
-`.option method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler), `gear2` (Gear2 or BDF2) and `trap` (tapezoidal method).
+`.option [name] method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler), `gear2` (Gear2 or BDF2) and `trap` (tapezoidal method).
 
 ### Commands for pole-zero analysis
 
-`.pz V(OUT) I(IN)`: Perform pole-zero analysis, and calculate pole-residual values for specified output node, and driver admittance at IN node. (The driver admittance part is still under development.)
+`.pz [name] V(OUT) I(IN)`: Perform pole-zero analysis, and calculate pole-residual values for specified output node, and driver admittance at IN node. (The driver admittance part is still under development.)
 
-`.option pzorder=N` will be added, where the `N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.
+`.option [name] pzorder=N` will be added, where the `N` means at most N pairs of poles and zeros will be calculated and used to approximate the output waveform.
 
 ### Global commands
 

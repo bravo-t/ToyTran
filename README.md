@@ -38,7 +38,7 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.plot tran [width=xx height=xx] [canvas.]V(NodeName) [canvas.]I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. If `width` and `height` directives are not given, the tool will use current terminal size for plot width and height. Multiple simulation results can be plotted in a single chart by specifying a same canvas name. Currently at most 4 plots can be drawn in one canvas. (This command is not supported in PZ analysis.)
 
-`.measure tran variable_name trig V(node)/I(device)=trigger_value TD=xx targ V(node)/I(device)=target_value`: Measure the event time between trigger value happend and target value happend. (This command is not supported in PZ analysis.)
+`.measure tran[.name] variable_name trig V(node)/I(device)=trigger_value TD=xx targ V(node)/I(device)=target_value`: Measure the event time between trigger value happend and target value happend. (This command is not supported in PZ analysis.)
 
 ## Compile and run
 `git clone --recurse-submodules` and `make` should be sufficient. The executable is generated under current code directory and named "trans".

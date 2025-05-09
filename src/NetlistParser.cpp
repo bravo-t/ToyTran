@@ -506,14 +506,18 @@ addCCCS(const std::string& line,
 }
 
 AnalysisParameter*
-findAnalysisParameter(AnalysisType type, std::vector<AnalysisParameter>& params)
+getAnalysisParameter(AnalysisType type, const std::string& name, std::vector<AnalysisParameter>& params)
 {
   for (AnalysisParameter& p : params) {
-    if (p._type == type) {
+    if (p._name == name && p._type == type) {
       return &p;
     }
   }
-  return nullptr;
+  AnalysisParameter newParam;
+  newParam._type = type;
+  newParam._name = name;
+  params.push_back(newParam);
+  return &(params[params.size()-1]);
 }
 
 
@@ -521,11 +525,20 @@ void
 NetlistParser::processOption(const std::string& line) 
 {
   std::vector<std::string> strs;
-  splitWithAny(line, " =", strs);
+  splitWithAny(line, " ", strs);
   /// strs[0] = ".option", discard
-  for (size_t i=1; i<strs.size(); ++i) {
+  std::string analysisName;
+  size_t startIndex = 1;
+  if (strs[1].find('=') == std::string::npos) {
+    analysisName = strs[1];
+    startIndex = 2;
+  }
+  strs.clear();
+  splitWithAny(line, " =", strs);
+  for (size_t i=startIndex; i<strs.size(); ++i) {
     if (strs[i].compare("method") == 0) {
       ++i;
+      AnalysisType paramType = AnalysisType::Tran;
       IntegrateMethod intMethod;
       if (strs[i].compare("gear2") == 0) {
         intMethod = IntegrateMethod::Gear2;
@@ -537,10 +550,10 @@ NetlistParser::processOption(const std::string& line)
         intMethod = IntegrateMethod::Gear2;
         printf("Integrate method \"%s\" is not supported, using default gear2\n", strs[i].data());
       }
-      AnalysisParameter* param = findAnalysisParameter(AnalysisType::Tran, _anlaysisParams);
-      if (param == nullptr) {
-        printf("Integrate method directive \"method\" should only be used after .tran command\n");
+      if (analysisName.empty()) {
+        analysisName = "tran";
       }
+      AnalysisParameter* param = getAnalysisParameter(paramType, analysisName, _anlaysisParams);
       param->_intMethod = intMethod;
     } else if (strs[i].compare("post") == 0) {
       ++i;
@@ -550,7 +563,11 @@ NetlistParser::processOption(const std::string& line)
         printf("Value provided to post is not supported and ignored\n");
       }
     } else if (strs[i].compare("pzorder") == 0) {
-      AnalysisParameter* param = findAnalysisParameter(AnalysisType::PZ, _anlaysisParams);
+      AnalysisType paramType = AnalysisType::PZ;
+      if (analysisName.empty()) {
+        analysisName = "pz";
+      }
+      AnalysisParameter* param = getAnalysisParameter(paramType, analysisName, _anlaysisParams);
       ++i;
       param->_order = strtoul(strs[i].data(), nullptr, 10);
     } else {
@@ -769,36 +786,60 @@ NetlistParser::processCommands(const std::string& line)
   if (strs[0] == ".gnd") {
     _groundNet = strs[1];
   } else if (strs[0] == ".tran") {
-    AnalysisParameter p;
-    p._type = AnalysisType::Tran;
-    p._simTick = numericalValue(strs[1], "sS");
-    p._simTime = numericalValue(strs[2], "sS");
-    _anlaysisParams.push_back(p);
+    AnalysisType analysisType = AnalysisType::Tran;
+    std::string analysisName;
+    size_t index = 1;
+    if (strs.size() == 3) {
+      analysisName = "tran";
+    } else {
+      analysisName = strs[1];
+      index++;
+    }
+    double simTick = numericalValue(strs[index], "sS");
+    double simTime = numericalValue(strs[index+1], "sS");
+    AnalysisParameter* param = getAnalysisParameter(analysisType, analysisName, _anlaysisParams);
+    param->_type = analysisType;
+    param->_name = analysisName;
+    param->_simTick = simTick;
+    param->_simTime = simTime;
   } else if (strs[0] == ".pz") {
-    AnalysisParameter p;
-    p._type = AnalysisType::PZ;
-    char c1 = firstChar(strs[1]);
-    char c2 = firstChar(strs[2]);
+    AnalysisType analysisType = AnalysisType::PZ;
+    std::string analysisName;
+    size_t index = 1;
+    if (strs.size() == 3) {
+      analysisName = "pz";
+    } else {
+      analysisName = strs[1];
+      index++;
+    }
+    char c1 = firstChar(strs[index]);
+    char c2 = firstChar(strs[index+1]);
     if ((c1 != 'V' && c1 != 'v') ||
         (c2 != 'I' && c2 != 'i')) {
       printf("Invalid syntax in line \"%s\"\n", line.data());
       return;
     }
     size_t startIndex, endIndex;
-    if (findNameInParenthesis(strs[1], startIndex, endIndex) == false || 
-        startIndex == strs[1].size() || endIndex == 0) {
+    if (findNameInParenthesis(strs[index], startIndex, endIndex) == false || 
+        startIndex == strs[index].size() || endIndex == 0) {
       printf("Invalid syntax in line \"%s\"\n", line.data());
       return;
     }
-    p._outNode = new std::string(strs[1].substr(startIndex + 1, endIndex - startIndex - 1));
-    if (findNameInParenthesis(strs[2], startIndex, endIndex) == false || 
-        startIndex == strs[2].size() || endIndex == 0) {
+    std::string outNode = strs[index].substr(startIndex + 1, endIndex - startIndex - 1);
+    if (findNameInParenthesis(strs[index+1], startIndex, endIndex) == false || 
+        startIndex == strs[index+1].size() || endIndex == 0) {
       printf("Invalid syntax in line \"%s\"\n", line.data());
       return;
     }
-    p._inDev = new std::string(strs[2].substr(startIndex + 1, endIndex - startIndex - 1));
-    p._order = 4;
-    _anlaysisParams.push_back(p);
+    std::string inDev = strs[index+1].substr(startIndex + 1, endIndex - startIndex - 1);
+    AnalysisParameter* param = getAnalysisParameter(analysisType, analysisName, _anlaysisParams);
+    param->_type = analysisType;
+    param->_name = analysisName;
+    param->_outNode = new std::string(outNode);
+    param->_inDev = new std::string(inDev);
+    if (param->_order == 0) {
+      param->_order = 4;
+    }
   } else if (strs[0] == ".debug") {
     Debug::setLevel(numericalValue(strs[1], ""));
   } else if (strs[0] == ".option") {

@@ -26,6 +26,7 @@ enum class IntegrateMethod : unsigned char {
 
 struct AnalysisParameter {
   AnalysisType _type;
+  std::string  _name;
   union {
     /// Parameters for transient analysis
     struct {
@@ -36,7 +37,7 @@ struct AnalysisParameter {
     };
     /// Parameters for pole-zero analysis
     struct {
-      unsigned int  _order;
+      unsigned int  _order = 0;
       std::string*  _inDev;
       std::string*  _outNode;
     };

@@ -1,0 +1,10 @@
+VVDD POS 0 5
+RR1 POS N1 6.54803
+RR2 N1 N2 4.96155
+CC1 N2 0 2.126e-16
+CC2 N1 0 5.554e-16
+CC3 POS 0 3.428e-16
+
+.pz V(N2) I(VDD)
+.option pzorder=2
+

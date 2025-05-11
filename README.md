@@ -36,7 +36,7 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 
 `.debug 1`: Enable debug output to print MNA matrix and RHS vector, as well as solution to each time step.
 
-`.plot tran [width=xx height=xx] [canvas.]V(NodeName) [canvas.]I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. If `width` and `height` directives are not given, the tool will use current terminal size for plot width and height. Multiple simulation results can be plotted in a single chart by specifying a same canvas name. Currently at most 4 plots can be drawn in one canvas. (This command is not supported in PZ analysis.)
+`.plot tran [width=xx height=xx canvas=xxx] [name.]V(NodeName) [name.]I(DeviceName)`: Generate a simple ASCII plot in terminal for easier debugging. If `width` and `height` directives are not given, the tool will use current terminal size for plot width and height. Multiple simulation results can be plotted in a single chart by specifying a canvas name. Currently at most 4 plots can be drawn in one canvas. Now the command can plot data from different analysis data into one canvas, specified with `name.` prefix. (This command is not supported in PZ analysis.)
 
 `.measure tran[.name] variable_name trig V(node)/I(device)=trigger_value TD=xx targ V(node)/I(device)=target_value`: Measure the event time between trigger value happend and target value happend. (This command is not supported in PZ analysis.)
 

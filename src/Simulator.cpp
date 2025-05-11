@@ -41,8 +41,8 @@ Simulator::integrateMethod() const
   return method;
 }
     
-Simulator::Simulator(const Circuit& ckt)
-: _circuit(ckt), _result(ckt)
+Simulator::Simulator(const Circuit& ckt, const AnalysisParameter& param)
+: _circuit(ckt), _param(param), _result(ckt, _param._name)
 {}
 
 void 

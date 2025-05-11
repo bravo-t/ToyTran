@@ -41,11 +41,13 @@ int main(int argc, char** argv)
   NA::NetlistParser parser(argv[1]);
   timespec parseEnd;
   clock_gettime(CLOCK_REALTIME, &parseEnd);
+
   timespec cktStart;
   clock_gettime(CLOCK_REALTIME, &cktStart);
   NA::Circuit circuit(parser);
   timespec cktEnd;
   clock_gettime(CLOCK_REALTIME, &cktEnd);
+
   printf("Time spent in netlist parsing: %.3f milliseconds\n"
          "Time spent in building circuit: %.3f milliseconds\n", 
          1e-6*timeDiffNs(parseEnd, parseStart), 1e-6*timeDiffNs(cktEnd, cktStart));
@@ -55,8 +57,7 @@ int main(int argc, char** argv)
   for (const NA::AnalysisParameter& param : params) {
     switch (param._type) {
       case NA::AnalysisType::Tran: {
-        NA::Simulator tranSim(circuit);
-        tranSim.setParameters(param);
+        NA::Simulator tranSim(circuit, param);
         printf("Starting transient simulation\n");
         timespec start;
         clock_gettime(CLOCK_REALTIME, &start);
@@ -95,12 +96,12 @@ int main(int argc, char** argv)
     }
   }
 
-  for (const NA::SimResult& result : results) {
-    if (parser.needPlot()) {
-      NA::Plotter plt(parser, circuit, result);
-      plt.plot();
-    }
+  if (parser.needPlot()) {
+    NA::Plotter plt(parser, circuit, results);
+    plt.plot();
+  }
 
+  for (const NA::SimResult& result : results) {
     if (parser.haveMeasurePoints()) {
       NA::Measure measure(result, parser.measurePoints());
       measure.run();

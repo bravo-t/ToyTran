@@ -26,7 +26,9 @@ struct SimResultMap {
 /// @brief The solution data of every time step produced by solving Ax=b
 class SimResult {
   public:
-    SimResult(const Circuit& ckt);
+    SimResult(const Circuit& ckt, const std::string& name);
+
+    std::string name() const { return _name; }
     /// Return Time of given step
     double stepTime(size_t step) const;
 
@@ -92,6 +94,7 @@ class SimResult {
   
   private:
     const Circuit&      _ckt;
+    std::string         _name;
     SimResultMap        _map;
     std::vector<double> _ticks;
     std::deque<double>  _values; /// size should be _map.size()*_ticks.size()

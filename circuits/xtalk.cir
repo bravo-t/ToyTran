@@ -10,7 +10,7 @@ CXCap XResOUT ResOUT 1u
 *.option method=gear2
 .option method=trap
 *.plot tran V(2) V(0) V(1) I(Res1) I(Cap2) I(VDD)
-.plot tran width=150 height=50 result.V(ResOUT) result.V(XResOUT) 
+.plot tran width=150 height=50 canvas=result V(ResOUT) V(XResOUT) 
 .debug 0
 .measure tran rise_delay trig V(POS)=2.5 targ V(ResOUT)=2.5
 .measure tran rise_tran_10_90 trig V(ResOUT)=0.5 targ V(ResOUT)=4.5

@@ -643,20 +643,35 @@ processPlot(const std::string& line,
   }
   PlotData* plotData = nullptr;
   for (size_t i=2; i<strs.size(); ++i) {
-    std::vector<std::string> substr;
     std::string canvas = "";
-    char c = firstChar(strs[i]);
+    std::string simName = strs[1];
+    std::string nameToPlot = strs[i];
+    char c = firstChar(nameToPlot);
+    if (strs[i].find('.') != std::string::npos) {
+      std::vector<std::string> substr;
+      splitWithAny(strs[i], ".", substr);
+      if (substr.size() > 2) {
+        printf("ERROR: Syntax error in .plot command: \"%s\"\n", strs[i].data());
+        return;
+      }
+      nameToPlot = substr[1];
+      c = firstChar(nameToPlot);
+      simName = substr[0];
+    }
     std::vector<std::string>* destVec = nullptr;
+    std::vector<std::string>* simVec = nullptr;
     if (c == 'V' || c == 'v') {
       if (plotData == nullptr) {
         plotData = findPlotData(canvas, plotCmds);
       }
       destVec = &(plotData->_nodeToPlot);
+      simVec = &(plotData->_nodeSimName);
     } else if (c == 'I' || c == 'i') {
       if (plotData == nullptr) {
         plotData = findPlotData(canvas, plotCmds);
       }
       destVec = &(plotData->_deviceToPlot);
+      simVec = &(plotData->_devSimName);
     } else {
       toLower(strs[i]);
       if (strs[i].compare("width") == 0) {
@@ -683,13 +698,14 @@ processPlot(const std::string& line,
       continue;
     }
     size_t startIndex, endIndex;
-    if (findNameInParenthesis(strs[i], startIndex, endIndex) == false || 
-        startIndex == strs[i].size() || endIndex == 0) {
+    if (findNameInParenthesis(nameToPlot, startIndex, endIndex) == false || 
+        startIndex == nameToPlot.size() || endIndex == 0) {
       printf("Unsupported syntax in line \"%s\"", line.data());
       return;
     }
-    std::string str = strs[i].substr(startIndex + 1, endIndex - startIndex - 1);
+    std::string str = nameToPlot.substr(startIndex + 1, endIndex - startIndex - 1);
     destVec->push_back(str);
+    simVec->push_back(simName);
   }
 }
 

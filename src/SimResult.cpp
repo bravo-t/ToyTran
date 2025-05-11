@@ -63,8 +63,8 @@ SimResult::init(const Circuit& ckt)
   _map.setDimention(index);
 }
 
-SimResult::SimResult(const Circuit& ckt)
-: _ckt(ckt)
+SimResult::SimResult(const Circuit& ckt, const std::string& name)
+: _ckt(ckt), _name(name)
 {
   init(ckt);
 }

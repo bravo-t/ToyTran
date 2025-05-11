@@ -463,7 +463,7 @@ c00220  IN 0 5.732e-15
 * transient analysis
 .tran 0.001ns 7.13ns
 
-.plot tran result.V(IN) result.V(NET)
+.plot tran canvas=result V(IN) V(NET)
 ******************************************
 * Start: Victim Measure Statements
 ******************************************

@@ -21,23 +21,24 @@ terminalSize(size_t& width, size_t& height)
   height = w.ws_row > heightLimit ? heightLimit : w.ws_row;
 }
 
-Plotter::Plotter(const NetlistParser& parser, const Circuit& ckt, const SimResult& result)
- : _parser(parser), _circuit(ckt), _result(result) {}
+Plotter::Plotter(const NetlistParser& parser, const Circuit& ckt, 
+                 const std::vector<SimResult>& results)
+ : _parser(parser), _circuit(ckt), _results(results) {}
 
 std::vector<std::pair<double, double>>
-simData(const SimResult& result, size_t rowIndex, double& max, double& min)
+simData(const SimResult* result, size_t rowIndex, double& max, double& min)
 {
   std::vector<std::pair<double, double>> data;
   max = std::numeric_limits<double>::lowest();
   min = std::numeric_limits<double>::max();
-  size_t resultVectorSize = result.indexMap().size();
-  for (size_t tIndex=0; tIndex<result.ticks().size(); ++tIndex) {
+  size_t resultVectorSize = result->indexMap().size();
+  for (size_t tIndex=0; tIndex<result->ticks().size(); ++tIndex) {
     size_t valueIndex = tIndex*resultVectorSize+rowIndex;
-    double value = result.value(valueIndex);
+    double value = result->value(valueIndex);
     if (!std::isnan(value) && !std::isinf(value)) {
       max = std::max(max, value);
       min = std::min(min, value);
-      data.push_back(std::make_pair(result.tick(tIndex), value));
+      data.push_back(std::make_pair(result->tick(tIndex), value));
     }
   }
   return data;
@@ -46,7 +47,7 @@ simData(const SimResult& result, size_t rowIndex, double& max, double& min)
 typedef std::pair<double, double> SimTimeData;
 
 std::vector<SimTimeData>
-nodeSimData(const SimResult& result, const std::string& nodeName, 
+nodeSimData(const SimResult* result, const std::string& nodeName, 
             const Circuit& ckt, double& max, double& min) 
 {
   const Node& node = ckt.findNodeByName(nodeName);
@@ -54,12 +55,12 @@ nodeSimData(const SimResult& result, const std::string& nodeName,
     printf("Node %s not found\n", nodeName.data());
     return std::vector<std::pair<double, double>>();
   }
-  size_t rowIndex = result.nodeVectorIndex(node._nodeId);
+  size_t rowIndex = result->nodeVectorIndex(node._nodeId);
   return simData(result, rowIndex, max, min);
 }
 
 std::vector<SimTimeData>
-deviceSimData(const SimResult& result, const std::string& devName, 
+deviceSimData(const SimResult* result, const std::string& devName, 
               const Circuit& ckt, double& max, double& min) 
 {
   const Device& device = ckt.findDeviceByName(devName);
@@ -67,7 +68,7 @@ deviceSimData(const SimResult& result, const std::string& devName,
     printf("Device %s not found\n", devName.data());
     return std::vector<std::pair<double, double>>();
   }
-  size_t rowIndex = result.deviceVectorIndex(device._devId);
+  size_t rowIndex = result->deviceVectorIndex(device._devId);
   return simData(result, rowIndex, max, min);
 }
 
@@ -112,6 +113,17 @@ plotData(const std::vector<std::pair<double, double>>& data,
   }
 }
 
+const SimResult*
+findResultByName(const std::vector<SimResult>& results, const std::string& name)
+{
+  for (const auto& result : results) {
+    if (result.name() == name) {
+      return &(result);
+    }
+  }
+  return nullptr;
+}
+
 void
 Plotter::plot(const PlotData& data) const
 {
@@ -123,10 +135,17 @@ Plotter::plot(const PlotData& data) const
 
   size_t plotCounter = 0;
   std::vector<std::vector<SimTimeData>> simData;
-  for (const std::string& nodeName : data._nodeToPlot) {
+  for (size_t i=0; i<data._nodeToPlot.size(); ++i) {
+    const std::string& nodeName = data._nodeToPlot[i];
+    const std::string& simName = data._nodeSimName[i];
+    const SimResult* result = findResultByName(_results, simName);
+    if (result == nullptr) {
+      printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
+      return;
+    }
     double nodeMax = 0;
     double nodeMin = 0;
-    const std::vector<SimTimeData>& nodeData = nodeSimData(_result, nodeName, _circuit, nodeMax, nodeMin);
+    const std::vector<SimTimeData>& nodeData = nodeSimData(result, nodeName, _circuit, nodeMax, nodeMin);
     simData.push_back(nodeData);
     max = std::max(max, nodeMax);
     min = std::min(min, nodeMin);
@@ -136,10 +155,17 @@ Plotter::plot(const PlotData& data) const
     legend.push_back(l);
     ++plotCounter;
   }
-  for (const std::string& devName : data._deviceToPlot) {
+  for (size_t i=0; i<data._deviceToPlot.size(); ++i) {
+    const std::string& devName = data._deviceToPlot[i];
+    const std::string& simName = data._devSimName[i];
+    const SimResult* result = findResultByName(_results, simName);
+    if (result == nullptr) {
+      printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
+      return;
+    }
     double devMax = 0;
     double devMin = 0;
-    const std::vector<SimTimeData>& devData = deviceSimData(_result, devName, _circuit, devMax, devMin);
+    const std::vector<SimTimeData>& devData = deviceSimData(result, devName, _circuit, devMax, devMin);
     simData.push_back(devData);
     max = std::max(max, devMax);
     min = std::min(min, devMin);
@@ -164,8 +190,14 @@ Plotter::plot(const PlotData& data) const
 }
 
 void
-Plotter::plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const SimResult& result) const
+Plotter::plotNodeVoltage(const std::string& nodeName, const std::string& simName, const Circuit& ckt, 
+                         const std::vector<SimResult>& results) const
 {
+  const SimResult* result = findResultByName(results, simName);
+  if (result == nullptr) {
+    printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
+    return;
+  }
   double max = 0;
   double min = 0;
   auto data = nodeSimData(result, nodeName, ckt, max, min);
@@ -179,8 +211,14 @@ Plotter::plotNodeVoltage(const std::string& nodeName, const Circuit& ckt, const 
 }
 
 void 
-Plotter::plotDeviceCurrent(const std::string& devName, const Circuit& ckt, const SimResult& result) const
+Plotter::plotDeviceCurrent(const std::string& devName, const std::string& simName, const Circuit& ckt, 
+                           const std::vector<SimResult>& results) const
 {
+  const SimResult* result = findResultByName(results, simName);
+  if (result == nullptr) {
+    printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
+    return;
+  }
   double max = 0;
   double min = 0;
   auto data = deviceSimData(result, devName, ckt, max, min);
@@ -200,11 +238,15 @@ Plotter::plot() const
 
   for (const PlotData& cmd : plotCmds) {
     if (cmd._canvasName == "") {
-      for (const std::string& nodeName : cmd._nodeToPlot) {
-        plotNodeVoltage(nodeName, _circuit, _result);
+      for (size_t i=0; i<cmd._nodeToPlot.size(); ++i) {
+        const std::string& nodeName = cmd._nodeToPlot[i];
+        const std::string& simName = cmd._nodeSimName[i];
+        plotNodeVoltage(nodeName, simName, _circuit, _results);
       }
-      for (const std::string& devName : cmd._deviceToPlot) {
-        plotDeviceCurrent(devName, _circuit, _result);
+      for (size_t i=0; i<cmd._deviceToPlot.size(); ++i) {
+        const std::string& devName = cmd._deviceToPlot[i];
+        const std::string& simName = cmd._devSimName[i];
+        plotDeviceCurrent(devName, simName, _circuit, _results);
       }
     } else {
       plot(cmd);

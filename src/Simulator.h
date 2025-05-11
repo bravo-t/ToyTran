@@ -14,10 +14,8 @@ class Circuit;
 
 class Simulator {
   public:
-    Simulator(const Circuit& ckt);
+    Simulator(const Circuit& ckt, const AnalysisParameter& param);
     void initData();
-
-    void setParameters(const AnalysisParameter& param) { _param = param; }
 
     bool needRebuildEquation() const { return _needRebuild; }
 

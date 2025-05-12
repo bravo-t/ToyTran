@@ -825,12 +825,19 @@ NetlistParser::processCommands(const std::string& line)
     param->_name = analysisName;
     param->_simTick = simTick;
     param->_simTime = simTime;
-  } else if (strs[0] == ".pz") {
+  } else if (strs[0] == ".pz" || strs[0] == ".tf") {
     AnalysisType analysisType = AnalysisType::PZ;
+    if (strs[0] == ".tf") {
+      analysisType = AnalysisType::TF;
+    }
     std::string analysisName;
     size_t index = 1;
     if (strs.size() == 3) {
-      analysisName = "pz";
+      if (analysisType == AnalysisType::PZ) {
+        analysisName = "pz";
+      } else if (analysisType == AnalysisType::TF) {
+        analysisName = "tf";
+      }
     } else {
       analysisName = strs[1];
       index++;

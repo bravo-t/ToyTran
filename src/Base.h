@@ -7,6 +7,7 @@
 namespace NA {
 
 enum class AnalysisType : unsigned char {
+  None,
   Tran, /// Transient analysis
   PZ,   /// Pole-Zero anlaysis
   TF    /// Transfer function analysis
@@ -25,7 +26,7 @@ enum class IntegrateMethod : unsigned char {
 };
 
 struct AnalysisParameter {
-  AnalysisType _type;
+  AnalysisType _type = AnalysisType::None;
   std::string  _name;
   union {
     /// Parameters for transient analysis

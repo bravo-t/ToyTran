@@ -506,15 +506,15 @@ addCCCS(const std::string& line,
 }
 
 AnalysisParameter*
-getAnalysisParameter(AnalysisType type, const std::string& name, std::vector<AnalysisParameter>& params)
+getAnalysisParameter(const std::string& name, std::vector<AnalysisParameter>& params)
 {
   for (AnalysisParameter& p : params) {
-    if (p._name == name && p._type == type) {
+    if (p._name == name) {
       return &p;
     }
   }
   AnalysisParameter newParam;
-  newParam._type = type;
+  newParam._type = AnalysisType::None;
   newParam._name = name;
   params.push_back(newParam);
   return &(params[params.size()-1]);
@@ -538,7 +538,7 @@ NetlistParser::processOption(const std::string& line)
   for (size_t i=startIndex; i<strs.size(); ++i) {
     if (strs[i].compare("method") == 0) {
       ++i;
-      AnalysisType paramType = AnalysisType::Tran;
+      //AnalysisType paramType = AnalysisType::Tran;
       IntegrateMethod intMethod;
       if (strs[i].compare("gear2") == 0) {
         intMethod = IntegrateMethod::Gear2;
@@ -553,7 +553,7 @@ NetlistParser::processOption(const std::string& line)
       if (analysisName.empty()) {
         analysisName = "tran";
       }
-      AnalysisParameter* param = getAnalysisParameter(paramType, analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
       param->_intMethod = intMethod;
     } else if (strs[i].compare("post") == 0) {
       ++i;
@@ -563,11 +563,11 @@ NetlistParser::processOption(const std::string& line)
         printf("Value provided to post is not supported and ignored\n");
       }
     } else if (strs[i].compare("pzorder") == 0) {
-      AnalysisType paramType = AnalysisType::PZ;
+      //AnalysisType paramType = AnalysisType::PZ;
       if (analysisName.empty()) {
         analysisName = "pz";
       }
-      AnalysisParameter* param = getAnalysisParameter(paramType, analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
       ++i;
       param->_order = strtoul(strs[i].data(), nullptr, 10);
     } else {
@@ -820,7 +820,11 @@ NetlistParser::processCommands(const std::string& line)
     }
     double simTick = numericalValue(strs[index], "sS");
     double simTime = numericalValue(strs[index+1], "sS");
-    AnalysisParameter* param = getAnalysisParameter(analysisType, analysisName, _anlaysisParams);
+    AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+    if (param->_type != AnalysisType::None && param->_type != analysisType) {
+      printf("ERROR: Found another kind of analysis with same analysis name \"%s\"\n", analysisName.data());
+      exit(1);
+    }
     param->_type = analysisType;
     param->_name = analysisName;
     param->_simTick = simTick;
@@ -862,7 +866,11 @@ NetlistParser::processCommands(const std::string& line)
       return;
     }
     std::string inDev = strs[index+1].substr(startIndex + 1, endIndex - startIndex - 1);
-    AnalysisParameter* param = getAnalysisParameter(analysisType, analysisName, _anlaysisParams);
+    AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+    if (param->_type != AnalysisType::None && param->_type != analysisType) {
+      printf("ERROR: Found another kind of analysis with same analysis name \"%s\"\n", analysisName.data());
+      exit(1);
+    }
     param->_type = analysisType;
     param->_name = analysisName;
     param->_outNode = new std::string(outNode);

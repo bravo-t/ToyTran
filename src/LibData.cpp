@@ -7,6 +7,23 @@ namespace NA {
 typedef std::unordered_map<std::string, std::vector<NLDMArc>> NLDMMap;
 typedef std::unordered_map<std::string, std::vector<CCSArc>>  CCSMap;
 
+
+struct SortCCSLUT {
+  bool operator()(const CCSLUT& a, const CCSLUT& b) const 
+  {
+    if (a.inputTransition() == b.inputTransition()) {
+      return a.outputLoad() < b.outputLoad();
+    } 
+    return a.inputTransition() < b.inputTransition();
+  }
+};
+
+void 
+CCSGroup::sortTable()
+{
+  std::sort(_ccsluts.begin(), _ccsluts.end(), SortCCSLUT());
+}
+
 class LibReader {
   public:
     LibReader(LibData* owner)
@@ -177,7 +194,7 @@ LibReader::readFile(const char* datFile)
           readCCSLUT(infile, lut);
           riseCurrents.addLUT(lut);
         }
-        ccsArc.sortCurrentTable(DataType::RiseCurrent);
+        riseCurrents.sortTable();
       } else if (line == "Current Fall") {
         std::string line;
         std::getline(infile, line);
@@ -189,7 +206,7 @@ LibReader::readFile(const char* datFile)
           readCCSLUT(infile, lut);
           fallCurrents.addLUT(lut);
         }
-        ccsArc.sortCurrentTable(DataType::FallCurrent);
+        fallCurrents.sortTable();
       } else if (line == "Receiver Cap Rise") {
         readNLDMLUT(infile, ccsArc.getRecvCap(DataType::RiseRecvCap));
       } else if (line == "Receiver Cap Fall") {
@@ -197,6 +214,56 @@ LibReader::readFile(const char* datFile)
       }
     }
   }
+}
+
+LibData::LibData(const char* datFile)
+{
+  LibReader reader(this);
+  reader.readFile(datFile);
+}
+
+const NLDMArc*
+LibData::findNLDMArc(const char* cell, const char* fromPin, const char* toPin) const
+{
+  std::string cellStr(cell);
+  std::string fromPinStr(fromPin);
+  std::string toPinStr(toPin);
+  const auto& it = _nldmData.find(cellStr);
+  if (it == _nldmData.end()) {
+    return nullptr;
+  } 
+  const auto& arcs = it.second;
+  NLDMArc tempArc;
+  tempArc.setFromToPin(fromPinStr, toPinStr, true);
+  const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
+  if (it2 != arcs.end() && 
+      strcmp(it2->fromPin(), fromPin) == 0 && 
+      strcmp(it2->toPin(), toPin) == 0) {
+    return it2;
+  } 
+  return nullptr;
+}
+
+const CCSArc*
+LibData::findCCSArc(const char* cell, const char* fromPin, const char* toPin) const
+{
+  std::string cellStr(cell);
+  std::string fromPinStr(fromPin);
+  std::string toPinStr(toPin);
+  const auto& it = _ccsData.find(cellStr);
+  if (it == _ccsData.end()) {
+    return nullptr;
+  } 
+  const auto& arcs = it.second;
+  CCSArc tempArc;
+  tempArc.setFromToPin(fromPinStr, toPinStr, true);
+  const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
+  if (it2 != arcs.end() && 
+      strcmp(it2->fromPin(), fromPin) == 0 && 
+      strcmp(it2->toPin(), toPin) == 0) {
+    return it2;
+  } 
+  return nullptr;
 }
 
 }

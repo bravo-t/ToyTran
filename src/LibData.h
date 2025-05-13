@@ -62,6 +62,9 @@ class NLDMArc {
     }   
     NLDMLUT& getLUT(DataType dataType);
 
+    const char* fromPin() const { return _fromPin.data(); }
+    const char* toPin() const { return _toPin.data(); }
+
   private:
     std::string _fromPin;
     std::string _toPin;
@@ -87,6 +90,9 @@ class CCSLUT {
       _values.assign(values.begin(), values.end());
     }
 
+    double inputTransition() const { return _index1; }
+    double outputLoad() const { return _index2; }
+
     void reset()
     {
       _referenceTime = 0;
@@ -109,6 +115,7 @@ class CCSGroup {
     void addLUT(const CCSLUT& data) { _ccsluts.push_back(data); }
     void reset() { _ccsluts.clear(); }
     CCSLUT value(double inputTran, double outputLoad) const;
+    void sortTable();
 
   private:
     std::vector<CCSLUT> _ccsluts;
@@ -135,11 +142,13 @@ class CCSArc {
       _toPin = toPin;
       _isInverted = isInverted;
     }   
-    void sortCurrentTable(DataType dataType);
 
     NLDMLUT& getRecvCap(DataType dataType);
     CCSGroup& getCurrent(DataType dataType);
     NLDMLUT& getDCCurrent();
+    
+    const char* fromPin() const { return _fromPin.data(); }
+    const char* toPin() const { return _toPin.data(); }
 
   private:
     std::string _fromPin;
@@ -156,10 +165,10 @@ class LibData {
   public:
     LibData(const char* datFile);
     const NLDMArc* findNLDMArc(const char* cell, const char* fromPin, 
-                                 const char* toPin, DataType type) const;
+                               const char* toPin) const;
 
     const CCSArc* findCCSArc(const char* cell, const char* fromPin, 
-                               const char* toPin, DataType type) const;
+                             const char* toPin) const;
     
   private:
     std::unordered_map<std::string, std::vector<NLDMArc>> _nldmData;

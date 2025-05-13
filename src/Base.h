@@ -10,7 +10,8 @@ enum class AnalysisType : unsigned char {
   None,
   Tran, /// Transient analysis
   PZ,   /// Pole-Zero anlaysis
-  TF    /// Transfer function analysis
+  TF,   /// Transfer function analysis
+  FD,   /// Full-stage delay analysis
 };
 
 enum class SimResultType : unsigned char {
@@ -23,6 +24,27 @@ enum class IntegrateMethod : unsigned char {
   BackwardEuler,
   Trapezoidal,
   Gear2,
+};
+
+enum class DriverModel : unsigned char {
+  None,
+  /// The driver is characterized with a ramp voltage source and a resistor 
+  /// connected in series to the voltage source, as stated in 
+  /// F. Dartu, N. Menezes and L. T. Pileggi, 
+  /// "Performance computation for precharacterized CMOS gates with RC loads," 
+  /// in IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, 
+  /// vol. 15, no. 5, pp. 544-553, May 1996, doi: 10.1109/43.506141.
+  Simplified, 
+  /// Current source model, details to be implemented.
+  CSM,
+};
+
+enum class LoadModel : unsigned char {
+  None,
+  /// Capacitors with fixed values,
+  Fixed,
+  /// Capacitors with values depend on input transition and output load
+  Varied,
 };
 
 struct AnalysisParameter {
@@ -42,6 +64,11 @@ struct AnalysisParameter {
       std::string*  _inDev;
       std::string*  _outNode;
     };
+    /// Parameters for full-stage delay calculation
+    struct {
+      DriverModel  _driverModel;
+      LoadModel    _loadModel;
+    };
   };
 };
 
@@ -55,6 +82,7 @@ enum class DeviceType : unsigned char {
   VCVS,
   CCCS,
   CCVS,
+  Cell, /// Special kind of device represent lib cells
 
   Total
 };
@@ -72,6 +100,7 @@ struct Device {
   union {
     double    _value;
     size_t    _PWLData = 0;
+    
   };
 };
 
@@ -108,7 +137,7 @@ struct PWLValue {
 
 inline bool
 isAnySource(const Device& dev) {
-  return dev._type >= DeviceType::VoltageSource;
+  return dev._type >= DeviceType::VoltageSource && dev._type <= DeviceType::CCVS;
 }
 
 }

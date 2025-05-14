@@ -35,7 +35,7 @@ $(PROG_NAME): src/main.cpp $(OBJ_FULL_LIST)
 	$(LD) $(OBJ_FULL_LIST) -o $(BIN_DIR)/$@
 
 $(DEPS_FILE): $(SRC_FULL_LIST)
-	$(foreach src, $(SRC_FULL_LIST), \
+	@-$(foreach src, $(SRC_FULL_LIST), \
 		$(CC) $(CFLAG) -MM $(src) -MT $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(src)) >> "$@"; \
 	)
 

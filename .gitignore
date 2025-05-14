@@ -4,3 +4,4 @@ build/
 .vscode/
 *.tr0
 compile_commands.json
+.deps

@@ -66,3 +66,51 @@ Note below features will not follow spice netlist grammar.
 ### Transfer function analysis
 
 New instruction `.TF` will be implemented. Details TBD.
+
+### Full stage delay calculation
+
+The ultimate goal of this project is a full stage delay calculation engine, which calculates both cell arc delay (gate delay) and the network delay connected to the driver pin of the cell arc. To support this goal, new commands and options will be added, as drafted below:
+
+`.lib lib_file`: Specifies the path of the library file.
+
+`Xinst LibCellName pinA nodeA pinB nodeB ...`: Instantiates the standard cell. `LibCellName` shoule match the one in library file. `pinX` specifies the pin name of the gate cell, and `nodeX` specifies the node connected to `pinX`. 
+
+`.option [name] driver={rampvoltage|current}`: Specifies the driver model of cell timing arcs. `rampvoltage` means a ramp voltage source, in series to a resistor connected to the voltage source, will be used to model the driver pin behavior. The details are described in "Performance computation for precharacterized CMOS gates with RC loads". `current` means a current source will be used to model the driver bahavior.
+
+`.option [name] loader={fixed|varied}`: Specifies the behavior of the load capacitor of the loader pin. `fixed` means a fixed value will be used for the capacitor, whereas `varied` means the capacitor value will change, and the values come from receiver cap LUT.
+
+`.option [name] net={tran|awe}`: Specifies how the RC network will be handled in delay calculation. `tran` means transient simulation will be used to calculate net delay, and `awe` means pole-zero analysis will be used.
+
+`.delay`: Sets the analysis mode to full stage delay calculation. Internally the `X` devices, or standard cells, will be elaborated with basic devices, thus new devices and nodes will be created, based on the specified driver model and loader model. Specifically:
+
+`driver=rampvoltage` creates new devices `inst/driverPin/Vd` as the ramp voltage source, `inst/driverPin/Rd` as the resistor connected to the ramp voltage source, and new node `inst/driverPin/VPOS` as the positive terminal of the ramp voltage source. The internal structure of the driver model is shown as below:
+
+ ```
+  +---------------------------------------------------------------+  
+  |                                                               |  
+  |                    Instance/driverPin/VPOS                    |  
+  | loaderPin                 |                         driverPin |  
++---+                         v          +--------+             +---+
+|   +----------+           +-------------|        +-------------+   |
++---+          |           |             +----+---+             +---+
+  |            |           |                  ^                   |  
+  |            |           |                  |                   |  
+  |            |           |          Instance/driverPin/Rd       |  
+  |         ---+---     +-----+                                   |  
+  |    +-->             |  ^  |<--Instance/driverPin/Vd           |  
+  |    |    ---+---     |  |  |                                   |  
+  |    |       |        +--+--+                                   |  
+  |    |       |           |                                      |  
+  |    |       |           |                                      |  
+  |    |       |           |                                      |  
+  |    |    ---+---      --+--                                    |  
+  |    |     -----        ---                                     |  
+  |    |      ---          -                                      |  
+  |  Instance/loaderPin/Cl                                        |  
+  |                                         Instance              |  
+  +---------------------------------------------------------------+  
+```
+
+`driver=current` creates new devices `inst/driverPin/Id` as the current source.
+
+Loader models are the same on circuit structures, that create new capacitor `inst/loadPin/Cl`. The difference between `fixed` and `varied` are the values of the capacitor.

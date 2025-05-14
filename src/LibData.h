@@ -161,6 +161,23 @@ class CCSArc {
     NLDMLUT     _dcCurrent;
 };
 
+class FixedLoadCap {
+  public:
+    FixedLoadCap() = default;
+    void setPinName(const std::string& pin) { _pin = pin; }
+    void setCaps(double rise, double fall) { _rise = rise; _fall = fall; }
+
+    std::string pinName() const { return _pin; }
+    double value(bool isRise) const 
+    {
+      return isRise ? _rise : _fall;
+    }
+  private:
+    std::string _pin;
+    double      _rise;
+    double      _fall;
+};
+
 class LibData {
   public:
     LibData(const std::vector<const char*>& datFiles);
@@ -171,8 +188,16 @@ class LibData {
                              const char* toPin) const;
     
   private:
-    std::unordered_map<std::string, std::vector<NLDMArc>> _nldmData;
-    std::unordered_map<std::string, std::vector<CCSArc>>  _ccsData;
+    double _delayRiseThres = 50;
+    double _delayFallThres = 50;
+    double _transitionRiseLowThres = 10;
+    double _transitionRiseHighThres = 90;
+    double _transitionFallHighThres = 90;
+    double _transitionFallLowThres = 10;
+    double _voltage = 0;
+    std::unordered_map<std::string, std::vector<NLDMArc>>      _nldmData;
+    std::unordered_map<std::string, std::vector<CCSArc>>       _ccsData;
+    std::unordered_map<std::string, std::vector<FixedLoadCap>> _loadCaps;
 
   friend class LibReader;
 };

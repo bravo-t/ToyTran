@@ -119,61 +119,64 @@ getArcInfo(const std::string& line,
 }
 
 std::vector<double>
-parseLineNumbers(const std::string& line)
+parseLineNumbers(const std::string& line, double unit)
 {
   std::vector<std::string> strs;
   splitWithAny(line, " ,", strs);
   std::vector<double> n;
   n.reserve(strs.size());
   for (const std::string& substr : strs) {
-    n.push_back(std::stod(substr));
+    n.push_back(std::stod(substr) * unit);
   }
   return n;
 }
 
 double
-parseLineNumber(const std::string& line)
+parseLineNumber(const std::string& line, double unit)
 {
-  return std::stod(line);
+  return std::stod(line) * unit;
 }
 
 void
-readNLDMLUT(std::ifstream& infile, NLDMLUT& data)
+readNLDMLUT(std::ifstream& infile, NLDMLUT& data, 
+            double index1Unit, double index2Unit, double valueUnit)
 {
   std::string line;
   std::getline(infile, line);
   line = trim(line);
-  std::vector<double> index1 = parseLineNumbers(line);
+  std::vector<double> index1 = parseLineNumbers(line, index1Unit);
   std::getline(infile, line);
   line = trim(line);
-  std::vector<double> index2 = parseLineNumbers(line);
+  std::vector<double> index2 = parseLineNumbers(line, index2Unit);
   std::getline(infile, line);
   line = trim(line);
-  std::vector<double> values = parseLineNumbers(line);
+  std::vector<double> values = parseLineNumbers(line, valueUnit);
   data.setIndex1(index1);
   data.setIndex2(index2);
   data.setValues(values);
 }
 
 void
-readCCSLUT(std::ifstream& infile, CCSLUT& data)
+readCCSLUT(std::ifstream& infile, CCSLUT& data, 
+           double timeUnit, double index1Unit, double index2Unit, 
+           double index3Unit, double valueUnit)
 {
   std::string line;
   std::getline(infile, line);
   line = trim(line);
-  double refTime = parseLineNumber(line);
+  double refTime = parseLineNumber(line, timeUnit);
   std::getline(infile, line);
   line = trim(line);
-  double index1 = parseLineNumber(line);
+  double index1 = parseLineNumber(line, index1Unit);
   std::getline(infile, line);
   line = trim(line);
-  double index2 = parseLineNumber(line);
+  double index2 = parseLineNumber(line, index2Unit);
   std::getline(infile, line);
   line = trim(line);
-  std::vector<double> index3 = parseLineNumbers(line);
+  std::vector<double> index3 = parseLineNumbers(line, index3Unit);
   std::getline(infile, line);
   line = trim(line);
-  std::vector<double> values = parseLineNumbers(line);
+  std::vector<double> values = parseLineNumbers(line, valueUnit);
   data.init(refTime, index1, index2, index3, values);
 }
 
@@ -200,6 +203,11 @@ LibReader::readFile(const char* datFile)
     printf("ERROR: Cannot open %s\n", datFile);
     return;
   }
+  double timeUnit = 1;
+  double voltageUnit = 1;
+  double currentUnit = 1;
+  double capUnit = 1;
+  //double resUnit = 1;
   std::string cellName;
   std::string fromPin;
   std::string toPin;
@@ -221,7 +229,65 @@ LibReader::readFile(const char* datFile)
         nldmData.clear();
         ccsData.clear();
       }
-      cellName = line;
+      std::vector<std::string> strs;
+      splitWithAny(line, " ", strs);
+      if (strs[0] == ".UNIT") {
+        for (size_t i=1; i<strs.size(); ++i) {
+          if (strs[i] == "T") {
+            ++i;
+            timeUnit = std::stod(strs[i]);
+          } else if (strs[i] == "V") {
+            ++i;
+            voltageUnit = std::stod(strs[i]);
+          } else if (strs[i] == "I") {
+            ++i;
+            currentUnit = std::stod(strs[i]);
+          } else if (strs[i] == "C") {
+            ++i;
+            capUnit = std::stod(strs[i]);
+          } else if (strs[i] == "R") {
+            ++i;
+            //resUnit = std::stod(strs[i]);
+          }
+        }
+      } else if (strs[0] == ".THRES") {
+        for (size_t i=1; i<strs.size(); ++i) {
+          if (strs[i] == "R") {
+            ++i;
+            _owner->_transitionRiseLowThres = std::stod(strs[i]);
+            ++i;
+            _owner->_transitionRiseHighThres = std::stod(strs[i]);
+          } else if (strs[i] == "F") {
+            ++i;
+            _owner->_transitionFallHighThres = std::stod(strs[i]);
+            ++i;
+            _owner->_transitionFallLowThres = std::stod(strs[i]);
+          } else if (strs[i] == "D") {
+            ++i;
+            _owner->_delayRiseThres = std::stod(strs[i]);
+            ++i;
+            _owner->_delayFallThres = std::stod(strs[i]);
+          } else if (strs[i] == "Vol") {
+            ++i;
+            _owner->_voltage = std::stod(strs[i]);
+          }
+        }
+      } else {
+        cellName = line;
+        std::vector<FixedLoadCap> pinCaps;
+        for (size_t i=1; i<strs.size(); ++i) {
+          FixedLoadCap cap;
+          cap.setPinName(strs[i]);
+          cap.setCaps(std::stod(strs[i+1]), std::stod(strs[i+2]));
+          pinCaps.push_back(cap);
+          i += 2;
+        }
+        std::sort(pinCaps.begin(), pinCaps.end(), 
+          [](const FixedLoadCap& a, const FixedLoadCap& b) {
+            return a.pinName() < b.pinName();
+          });
+        _owner->_loadCaps.insert({cellName, pinCaps});
+      }
     } else if (numSpace == 2) {
       if (fromPin.size() > 0 || toPin.size() > 0) {
         nldmData.push_back(nldmArc);
@@ -232,15 +298,15 @@ LibReader::readFile(const char* datFile)
       getArcInfo(line, fromPin, toPin, isInverted);
     } else if (numSpace == 4) {
       if (line == "Rise Delay") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseDelay));
+        readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseDelay), timeUnit, capUnit, timeUnit);
       } else if (line == "Fall Delay") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::FallDelay));
+        readNLDMLUT(infile, nldmArc.getLUT(DataType::FallDelay), timeUnit, capUnit, timeUnit);
       } else if (line == "Rise Transition") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseTransition));
+        readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "Fall Transition") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::FallTransition));
+        readNLDMLUT(infile, nldmArc.getLUT(DataType::FallTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "DC Current") {
-        readNLDMLUT(infile, ccsArc.getDCCurrent());
+        readNLDMLUT(infile, ccsArc.getDCCurrent(), voltageUnit, voltageUnit, currentUnit);
       } else if (line == "Current Rise") {
         std::string line;
         std::getline(infile, line);
@@ -249,7 +315,7 @@ LibReader::readFile(const char* datFile)
         CCSGroup& riseCurrents = ccsArc.getCurrent(DataType::RiseCurrent);
         for (size_t i=0; i<tableCount; ++i) {
           CCSLUT lut;
-          readCCSLUT(infile, lut);
+          readCCSLUT(infile, lut, timeUnit, timeUnit, capUnit, timeUnit, currentUnit);
           riseCurrents.addLUT(lut);
         }
         riseCurrents.sortTable();
@@ -261,14 +327,14 @@ LibReader::readFile(const char* datFile)
         CCSGroup& fallCurrents = ccsArc.getCurrent(DataType::FallCurrent);
         for (size_t i=0; i<tableCount; ++i) {
           CCSLUT lut;
-          readCCSLUT(infile, lut);
+          readCCSLUT(infile, lut, timeUnit, timeUnit, capUnit, timeUnit, currentUnit);
           fallCurrents.addLUT(lut);
         }
         fallCurrents.sortTable();
       } else if (line == "Receiver Cap Rise") {
-        readNLDMLUT(infile, ccsArc.getRecvCap(DataType::RiseRecvCap));
+        readNLDMLUT(infile, ccsArc.getRecvCap(DataType::RiseRecvCap), timeUnit, capUnit, timeUnit);
       } else if (line == "Receiver Cap Fall") {
-        readNLDMLUT(infile, ccsArc.getRecvCap(DataType::FallRecvCap));
+        readNLDMLUT(infile, ccsArc.getRecvCap(DataType::FallRecvCap), timeUnit, capUnit, timeUnit);
       }
     }
   }

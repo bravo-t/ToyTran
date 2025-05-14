@@ -62,6 +62,21 @@ trim(const std::string& str,
     return str.substr(strBegin, strRange);
 }
 
+inline bool 
+ichar_equals(char a, char b)
+{
+  return std::tolower(static_cast<unsigned char>(a)) ==
+         std::tolower(static_cast<unsigned char>(b));
+}
+
+inline bool 
+iequals(const std::string& a, const std::string& b)
+{
+  return a.size() == b.size() &&
+         std::equal(a.begin(), a.end(), b.begin(), ichar_equals);
+}
+
+
 }
 
 #endif

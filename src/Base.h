@@ -26,6 +26,11 @@ enum class IntegrateMethod : unsigned char {
   Gear2,
 };
 
+enum class NetworkModel : unsigned char {
+  Tran, /// transient simulation is used for network delay calculation, WIP
+  PZ,   /// Pole-Zero analysis is used for net delay calculation, to-be-implemented
+};
+
 enum class DriverModel : unsigned char {
   None,
   /// The driver is characterized with a ramp voltage source and a resistor 
@@ -34,12 +39,12 @@ enum class DriverModel : unsigned char {
   /// "Performance computation for precharacterized CMOS gates with RC loads," 
   /// in IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, 
   /// vol. 15, no. 5, pp. 544-553, May 1996, doi: 10.1109/43.506141.
-  Simplified, 
+  RampVoltage, 
   /// Current source model, details to be implemented.
-  CSM,
+  PWLCurrent,
 };
 
-enum class LoadModel : unsigned char {
+enum class LoaderModel : unsigned char {
   None,
   /// Capacitors with fixed values,
   Fixed,
@@ -67,7 +72,8 @@ struct AnalysisParameter {
     /// Parameters for full-stage delay calculation
     struct {
       DriverModel  _driverModel;
-      LoadModel    _loadModel;
+      LoaderModel    _loaderModel;
+      NetworkModel _netModel;
     };
   };
 };

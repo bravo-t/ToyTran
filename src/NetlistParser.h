@@ -20,6 +20,9 @@ struct ParserDevice {
     double    _value;
     size_t    _PWLData = 0;
   };
+  /// For cell type devices
+  std::string _libCellName;
+  std::unordered_map<std::string, std::string> _termMap;
 };
 
 struct MeasurePoint {
@@ -50,6 +53,7 @@ class NetlistParser {
     std::vector<ParserDevice> devices() const { return _devices; }
     std::vector<PWLValue> PWLData() const { return _PWLData; }
     const std::string& userGroundNet() const { return _groundNet; }
+    std::vector<std::string> libDataFiles() const { return _libDataFiles; }
 
     /// Plot information
     const std::vector<PlotData>& plotData() const { return _plotData; }
@@ -75,6 +79,7 @@ class NetlistParser {
   private:
     std::vector<ParserDevice>         _devices;
     std::vector<PWLValue>             _PWLData;
+    std::vector<std::string>          _libDataFiles;
     std::vector<MeasurePoint>         _measurePoints;
     std::vector<AnalysisParameter>    _anlaysisParams;
     bool                              _saveData = false;

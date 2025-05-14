@@ -274,10 +274,13 @@ LibReader::readFile(const char* datFile)
   }
 }
 
-LibData::LibData(const char* datFile)
+LibData::LibData(const std::vector<const char*>& datFiles)
 {
   LibReader reader(this);
-  reader.readFile(datFile);
+  for (const char* datFile : datFiles) {
+    printf("Reading Lib data file %s\n", datFile);
+    reader.readFile(datFile);
+  }
 }
 
 const NLDMArc*

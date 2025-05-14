@@ -465,6 +465,25 @@ addCCCS(const std::string& line,
   addDependentDevice(DeviceType::CCCS, strs, devices);
 }
 
+static void 
+addCell(const std::string& line, std::vector<ParserDevice>& devices)
+{
+  std::vector<std::string> strs;
+  splitWithAny(line, " ", strs);
+  if (strs.size() < 4) {
+    printf("Unsupported syntax %s\n", line.data());
+    return;
+  }
+  ParserDevice dev;
+  dev._type = DeviceType::Cell;
+  dev._name.assign(strs[0].begin() + 1, strs[0].end());
+  dev._libCellName = strs[1];
+  for (size_t i=2; i<strs.size(); i+=2) {
+    dev._termMap.insert({strs[i], strs[i+1]});
+  }
+  devices.push_back(dev);
+}
+
 AnalysisParameter*
 getAnalysisParameter(const std::string& name, std::vector<AnalysisParameter>& params)
 {
@@ -530,6 +549,48 @@ NetlistParser::processOption(const std::string& line)
       AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
       ++i;
       param->_order = strtoul(strs[i].data(), nullptr, 10);
+    } else if (strs[i].compare("driver") == 0) {
+      //AnalysisType paramType = AnalysisType::FD;
+      if (analysisName.empty()) {
+        analysisName = "fd";
+      }
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      ++i;
+      if (iequals(strs[i], "rampvoltage")) {
+        param->_driverModel = DriverModel::RampVoltage;
+      } else if (strs[i].compare("current") == 0) {
+        param->_driverModel = DriverModel::PWLCurrent;
+      } else {
+        param->_driverModel = DriverModel::RampVoltage;
+      }
+    } else if (strs[i].compare("loader") == 0) {
+      //AnalysisType paramType = AnalysisType::FD;
+      if (analysisName.empty()) {
+        analysisName = "fd";
+      }
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      ++i;
+      if (iequals(strs[i], "fixed")) {
+        param->_loaderModel = LoaderModel::Fixed;
+      } else if (strs[i].compare("varied") == 0) {
+        param->_loaderModel = LoaderModel::Varied;
+      } else {
+        param->_loaderModel = LoaderModel::Fixed;
+      }
+    } else if (strs[i].compare("net") == 0) {
+      //AnalysisType paramType = AnalysisType::FD;
+      if (analysisName.empty()) {
+        analysisName = "fd";
+      }
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      ++i;
+      if (iequals(strs[i], "tran")) {
+        param->_netModel = NetworkModel::Tran;
+      } else if (strs[i].compare("awe") == 0) {
+        param->_netModel = NetworkModel::PZ;
+      } else {
+        param->_netModel = NetworkModel::Tran;
+      }
     } else {
       printf("option \"%s\" is not supported and ignored\n", strs[i].data());
     }
@@ -667,18 +728,6 @@ processPlot(const std::string& line,
     destVec->push_back(str);
     simVec->push_back(simName);
   }
-}
-
-bool ichar_equals(char a, char b)
-{
-  return std::tolower(static_cast<unsigned char>(a)) ==
-         std::tolower(static_cast<unsigned char>(b));
-}
-
-bool iequals(const std::string& a, const std::string& b)
-{
-  return a.size() == b.size() &&
-         std::equal(a.begin(), a.end(), b.begin(), ichar_equals);
 }
 
 void
@@ -838,6 +887,23 @@ NetlistParser::processCommands(const std::string& line)
     if (param->_order == 0) {
       param->_order = 4;
     }
+  } else if (strs[0] == ".delay") {
+    AnalysisType analysisType = AnalysisType::FD;
+    std::string analysisName;
+    size_t index = 1;
+    if (strs.size() == 1) {
+      analysisName = "fd";
+    } else {
+      analysisName = strs[1];
+      index++;
+    }
+    AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+    if (param->_type != AnalysisType::None && param->_type != analysisType) {
+      printf("ERROR: Found another kind of analysis with same analysis name \"%s\"\n", analysisName.data());
+      exit(1);
+    }
+    param->_type = analysisType;
+    param->_name = analysisName;
   } else if (strs[0] == ".debug") {
     Debug::setLevel(numericalValue(strs[1], ""));
   } else if (strs[0] == ".option") {
@@ -845,6 +911,9 @@ NetlistParser::processCommands(const std::string& line)
   } else if (strs[0] == ".plot") {
     processPlot(line, _plotData, _plotWidth, _plotHeight);
   } else if (strs[0] == ".measure") {
+    processMeasureCmds(line, _measurePoints);
+  } else if (strs[0] == ".lib") {
+    _libDataFiles.push_back(strs[1]);
     processMeasureCmds(line, _measurePoints);
   } else if (strs[0] == ".end") {
   } else {
@@ -892,6 +961,10 @@ NetlistParser::parseLine(const std::string& line)
     case 'H':
     case 'h':
       addCCVS(line, _devices, _PWLData);
+      break;
+    case 'X':
+    case 'x':
+      addCell(line, _devices);
       break;
     case '*':
       break;

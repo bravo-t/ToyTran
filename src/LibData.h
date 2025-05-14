@@ -163,7 +163,7 @@ class CCSArc {
 
 class LibData {
   public:
-    LibData(const char* datFile);
+    LibData(const std::vector<const char*>& datFiles);
     const NLDMArc* findNLDMArc(const char* cell, const char* fromPin, 
                                const char* toPin) const;
 

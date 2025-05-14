@@ -91,8 +91,8 @@ The ultimate goal of this project is a full stage delay calculation engine, whic
   |                    Instance/driverPin/VPOS                    |  
   | loaderPin                 |                         driverPin |  
 +---+                         v          +--------+             +---+
-|   +----------+           +-------------|        +-------------+   |
-+---+          |           |             +----+---+             +---+
+|   +---------+           +--------------|        +-------------+   |
++---+         |           |              +----+---+             +---+
   |            |           |                  ^                   |  
   |            |           |                  |                   |  
   |            |           |          Instance/driverPin/Rd       |  

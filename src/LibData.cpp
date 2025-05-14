@@ -1,4 +1,6 @@
 #include <fstream>
+#include <algorithm>
+#include <cassert>
 #include "LibData.h"
 #include "StringUtil.h"
 
@@ -7,6 +9,62 @@ namespace NA {
 typedef std::unordered_map<std::string, std::vector<NLDMArc>> NLDMMap;
 typedef std::unordered_map<std::string, std::vector<CCSArc>>  CCSMap;
 
+NLDMLUT&
+NLDMArc::getLUT(DataType dataType) 
+{
+  switch (dataType) {
+    case DataType::RiseDelay: {
+      return _riseDelay;
+    }
+    case DataType::FallDelay: {
+      return _fallDelay;
+    } 
+    case DataType::RiseTransition: {
+      return _riseTransition;
+    } 
+    case DataType::FallTransition: {
+      return _fallTransition;
+    } 
+    default:
+      assert(false);
+  }
+}
+
+NLDMLUT&
+CCSArc::getRecvCap(DataType dataType)
+{
+  switch (dataType) {
+    case DataType::RiseRecvCap: {
+      return _riseRecvCap;
+    } 
+    case DataType::FallRecvCap: {
+      return _fallRecvCap;
+    } 
+    default:
+      assert(false);
+  }
+}
+
+CCSGroup&
+CCSArc::getCurrent(DataType dataType)
+{
+  switch (dataType) {
+    case DataType::RiseCurrent: {
+      return _riseCurrent;
+    } 
+    case DataType::FallCurrent: {
+      return _fallCurrent;
+    }
+    default:
+      assert(false);
+  }
+}
+
+NLDMLUT&
+CCSArc::getDCCurrent()
+{
+  return _dcCurrent;
+}
 
 struct SortCCSLUT {
   bool operator()(const CCSLUT& a, const CCSLUT& b) const 
@@ -158,8 +216,8 @@ LibReader::readFile(const char* datFile)
       if (cellName.size() > 0) {
         std::sort(nldmData.begin(), nldmData.end(), SortArcDataByPin());
         std::sort(ccsData.begin(), ccsData.end(), SortArcDataByPin());
-        _owner->nldmData.insert({cellName, nldmData});
-        _owner->ccsData.insert({cellName, ccsData});
+        _owner->_nldmData.insert({cellName, nldmData});
+        _owner->_ccsData.insert({cellName, ccsData});
         nldmData.clear();
         ccsData.clear();
       }
@@ -232,14 +290,14 @@ LibData::findNLDMArc(const char* cell, const char* fromPin, const char* toPin) c
   if (it == _nldmData.end()) {
     return nullptr;
   } 
-  const auto& arcs = it.second;
+  const auto& arcs = it->second;
   NLDMArc tempArc;
   tempArc.setFromToPin(fromPinStr, toPinStr, true);
   const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
   if (it2 != arcs.end() && 
       strcmp(it2->fromPin(), fromPin) == 0 && 
       strcmp(it2->toPin(), toPin) == 0) {
-    return it2;
+    return &(*it2);
   } 
   return nullptr;
 }
@@ -254,14 +312,15 @@ LibData::findCCSArc(const char* cell, const char* fromPin, const char* toPin) co
   if (it == _ccsData.end()) {
     return nullptr;
   } 
-  const auto& arcs = it.second;
+  const auto& arcs = it->second;
   CCSArc tempArc;
   tempArc.setFromToPin(fromPinStr, toPinStr, true);
   const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
   if (it2 != arcs.end() && 
       strcmp(it2->fromPin(), fromPin) == 0 && 
       strcmp(it2->toPin(), toPin) == 0) {
-    return it2;
+    /// TODO: Find out why this strange syntax is needed
+    return &(*it2);
   } 
   return nullptr;
 }

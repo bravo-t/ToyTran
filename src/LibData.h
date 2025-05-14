@@ -28,9 +28,9 @@ class NLDMLUT {
       _index2.clear();
       _values.clear();
     }
-    void setIndex1(const std::vector<double>& index1) const { _index1.assign(index1.begin(), index1.end()); }
-    void setIndex2(const std::vector<double>& index2) const { _index2.assign(index2.begin(), index2.end()); }
-    void setValues(const std::vector<double>& values) const { _values.assign(values.begin(), values.end()); }
+    void setIndex1(const std::vector<double>& index1) { _index1.assign(index1.begin(), index1.end()); }
+    void setIndex2(const std::vector<double>& index2) { _index2.assign(index2.begin(), index2.end()); }
+    void setValues(const std::vector<double>& values) { _values.assign(values.begin(), values.end()); }
     
     double value(double inputTran, double outputLoad) const;
 

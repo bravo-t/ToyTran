@@ -48,7 +48,7 @@ splitWithAny(const std::string& src, const char *delim,
   ::free(data);
 }
 
-std::string 
+inline std::string 
 trim(const std::string& str,
      const std::string& whitespace = " \t")
 {
@@ -61,7 +61,6 @@ trim(const std::string& str,
 
     return str.substr(strBegin, strRange);
 }
-
 
 }
 

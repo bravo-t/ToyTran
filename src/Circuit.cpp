@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include "Debug.h"
 #include "Circuit.h"
 #include "Base.h"
 #include "NetlistParser.h"
@@ -41,13 +42,44 @@ incrCountMap(StringIdMap& countMap, const std::string& key)
   }
 }
 
-static std::string
-findGroundNode(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodeNames)
+static void
+addInternalPosNodeForGate(StringIdMap& countMap, const ParserDevice& dev, const LibData& libData)
 {
+  const std::string& libCell = dev._libCellName;
+  const auto& pinMap = dev._pinMap;
+  for (const auto& kv : pinMap) {
+    const std::string& pinName = kv.first;
+    const std::string& nodeName = kv.second;
+    incrCountMap(countMap, nodeName);
+    if (libData.isOutputPin(libCell, pinName)) {
+      std::string internalNode = dev._name + "/" + pinName + "/VPOS";
+      /// this internal node connects to voltage source and the resistor, 
+      /// so increment it twice
+      incrCountMap(countMap, internalNode);
+      incrCountMap(countMap, internalNode);
+      if (Debug::enabled()) {
+        printf("Created internal node %s\n", internalNode.data());
+      }
+    }
+  }
+}
+
+std::string
+Circuit::allNodes(const std::vector<ParserDevice>& devs, 
+                  std::vector<std::string>& allNodeNames)
+{
+  bool addInternalVPosNode = (_param._type == AnalysisType::FD && 
+                              _param._driverModel == DriverModel::RampVoltage);
   StringIdMap nodeConnectionCount;
   for (const ParserDevice& dev : devs) {
-    incrCountMap(nodeConnectionCount, dev._posNode);
-    incrCountMap(nodeConnectionCount, dev._negNode);
+    if (dev._type == DeviceType::Cell) {
+      if (addInternalVPosNode) {
+        addInternalPosNodeForGate(nodeConnectionCount, dev, _libData);
+      }
+    } else {
+      incrCountMap(nodeConnectionCount, dev._posNode);
+      incrCountMap(nodeConnectionCount, dev._negNode);
+    }
   }
   size_t maxCount = 0;
   std::string maxNode;
@@ -118,6 +150,28 @@ createDevice(Device& dev, const ParserDevice& pDev, const StringIdMap& nodeIdMap
   return true;
 }
 
+std::vector<Device>
+Circuit::elaborateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap)
+{
+  std::vector<Device> devs;
+  const std::string& libCell = dev._libCellName;
+  const auto& pinMap = dev._pinMap;
+  for (const auto& kv : pinMap) {
+    const std::string& pinName = kv.first;
+    const std::string& nodeName = kv.second;
+    if (_libData.isOutputPin(libCell, pinName)) {
+      if (_param._driverModel == DriverModel::RampVoltage) {
+
+      } else if (_param._driverModel == DriverModel::PWLCurrent) {
+
+      }
+    } else {
+
+    }
+  }
+  return devs;
+}
+
 static inline bool
 isDynamicDevice(const Device& dev)
 {
@@ -128,9 +182,12 @@ isDynamicDevice(const Device& dev)
 Circuit::Circuit(const NetlistParser& parser)
 : _PWLData(parser.PWLData())
 {
+  if (parser.libDataFiles().empty() == false) {
+    _libData.read(parser.libDataFiles());
+  }
   const std::vector<ParserDevice>& parserDevs = parser.devices();
   std::vector<std::string> allNodeNames;
-  std::string groundNodeName = findGroundNode(parserDevs, allNodeNames);
+  std::string groundNodeName = allNodes(parserDevs, allNodeNames);
   if (parser.userGroundNet().size() > 0) {
     groundNodeName = parser.userGroundNet();
   }

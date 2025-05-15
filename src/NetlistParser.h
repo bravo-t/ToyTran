@@ -22,7 +22,7 @@ struct ParserDevice {
   };
   /// For cell type devices
   std::string _libCellName;
-  std::unordered_map<std::string, std::string> _termMap;
+  std::unordered_map<std::string, std::string> _pinMap;
 };
 
 struct MeasurePoint {

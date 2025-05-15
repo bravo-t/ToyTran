@@ -479,7 +479,7 @@ addCell(const std::string& line, std::vector<ParserDevice>& devices)
   dev._name.assign(strs[0].begin() + 1, strs[0].end());
   dev._libCellName = strs[1];
   for (size_t i=2; i<strs.size(); i+=2) {
-    dev._termMap.insert({strs[i], strs[i+1]});
+    dev._pinMap.insert({strs[i], strs[i+1]});
   }
   devices.push_back(dev);
 }

@@ -180,12 +180,26 @@ class FixedLoadCap {
 
 class LibData {
   public:
+    LibData() = default;
     LibData(const std::vector<const char*>& datFiles);
+
+    void read(const std::vector<std::string>& datFiles);
+
     const NLDMArc* findNLDMArc(const char* cell, const char* fromPin, 
                                const char* toPin) const;
 
     const CCSArc* findCCSArc(const char* cell, const char* fromPin, 
                              const char* toPin) const;
+
+    bool isOutputPin(const char* cell, const char* pin) const;
+    
+    const NLDMArc* findNLDMArc(const std::string& cell, const std::string& fromPin, 
+                               const std::string& toPin) const;
+
+    const CCSArc* findCCSArc(const std::string& cell, const std::string& fromPin, 
+                             const std::string& toPin) const;
+
+    bool isOutputPin(const std::string& cell, const std::string& pin) const;
     
   private:
     double _delayRiseThres = 50;

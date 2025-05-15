@@ -349,6 +349,16 @@ LibData::LibData(const std::vector<const char*>& datFiles)
   }
 }
 
+void 
+LibData::read(const std::vector<std::string>& datFiles)
+{
+  LibReader reader(this);
+  for (const std::string& datFile : datFiles) {
+    printf("Reading Lib data file %s\n", datFile.data());
+    reader.readFile(datFile.data());
+  }
+}
+
 const NLDMArc*
 LibData::findNLDMArc(const char* cell, const char* fromPin, const char* toPin) const
 {
@@ -393,5 +403,85 @@ LibData::findCCSArc(const char* cell, const char* fromPin, const char* toPin) co
   } 
   return nullptr;
 }
+
+bool
+LibData::isOutputPin(const char* cell, const char* pin) const
+{
+  std::string cellStr(cell);
+  std::string pinStr(pin);
+  const auto& it = _loadCaps.find(cellStr);
+  if (it == _loadCaps.end()) {
+    return false;
+  }
+  const auto& pinCaps = it->second;
+  const auto& it2 = std::lower_bound(pinCaps.begin(), pinCaps.end(), pinStr, 
+                      [](const FixedLoadCap& a, const std::string& b) {
+                        return a.pinName() < b;
+                      });
+
+  if (it2 != pinCaps.end() && it2->pinName() == pinStr) {
+    return true;
+  }
+  return false;
+}
+
+const NLDMArc*
+LibData::findNLDMArc(const std::string& cell, const std::string& fromPin, const std::string& toPin) const
+{
+  const auto& it = _nldmData.find(cell);
+  if (it == _nldmData.end()) {
+    return nullptr;
+  } 
+  const auto& arcs = it->second;
+  NLDMArc tempArc;
+  tempArc.setFromToPin(fromPin, toPin, true);
+  const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
+  if (it2 != arcs.end() && 
+      strcmp(it2->fromPin(), fromPin.data()) == 0 && 
+      strcmp(it2->toPin(), toPin.data()) == 0) {
+    return &(*it2);
+  } 
+  return nullptr;
+}
+
+const CCSArc*
+LibData::findCCSArc(const std::string& cell, const std::string& fromPin, const std::string& toPin) const
+{
+  const auto& it = _ccsData.find(cell);
+  if (it == _ccsData.end()) {
+    return nullptr;
+  } 
+  const auto& arcs = it->second;
+  CCSArc tempArc;
+  tempArc.setFromToPin(fromPin, toPin, true);
+  const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
+  if (it2 != arcs.end() && 
+      strcmp(it2->fromPin(), fromPin.data()) == 0 && 
+      strcmp(it2->toPin(), toPin.data()) == 0) {
+    /// TODO: Find out why this strange syntax is needed
+    return &(*it2);
+  } 
+  return nullptr;
+}
+
+bool
+LibData::isOutputPin(const std::string& cell, const std::string& pin) const
+{
+  const auto& it = _loadCaps.find(cell);
+  if (it == _loadCaps.end()) {
+    return false;
+  }
+  const auto& pinCaps = it->second;
+  const auto& it2 = std::lower_bound(pinCaps.begin(), pinCaps.end(), pin, 
+                      [](const FixedLoadCap& a, const std::string& b) {
+                        return a.pinName() < b;
+                      });
+
+  if (it2 != pinCaps.end() && it2->pinName() == pin) {
+    return true;
+  }
+  return false;
+}
+
 
 }

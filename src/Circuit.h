@@ -3,10 +3,11 @@
 
 #include "Base.h"
 #include <cstddef>
+#include <vector>
+#include "NetlistParser.h"
+#include "LibData.h"
 
 namespace NA {
-
-class NetlistParser;
 
 class Circuit {
   public:
@@ -32,12 +33,19 @@ class Circuit {
     size_t order() const { return _order; }
 
   private:
+    std::string allNodes(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodes);
+    typedef std::unordered_map<std::string, size_t> StringIdMap;
+    std::vector<Device> elaborateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap);
+
+  private:
     size_t                         _groundNodeId;
     size_t                         _order;
     size_t                         _scalingFactor;
+    AnalysisParameter              _param;
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;
     std::vector<PWLValue>          _PWLData;
+    LibData                        _libData;
 }; 
 
 }

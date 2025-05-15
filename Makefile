@@ -27,19 +27,19 @@ SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))
 SRC_FULL_LIST = $(patsubst %,$(SRC_DIR)/%,$(SRC_LIST))
 OBJ_LIST = $(subst .cpp,.o,$(SRC_LIST_TMP))
 OBJ_FULL_LIST = $(subst ./,$(BUILD_DIR)/,$(OBJ_LIST))
-DEPS_FILE = .deps
+DEP_FILES = $(OBJ_FULL_LIST:%.o=%.d)
 
 default: $(PROG_NAME)
 
 $(PROG_NAME): src/main.cpp $(OBJ_FULL_LIST)
 	$(LD) $(OBJ_FULL_LIST) -o $(BIN_DIR)/$@
 
-$(DEPS_FILE): $(SRC_FULL_LIST)
-	@-$(foreach src, $(SRC_FULL_LIST), \
-		$(CC) $(CFLAG) -MM $(src) -MT $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(src)) >> "$@"; \
-	)
+$(BUILD_DIR)/%.d: $(SRC_DIR)/%.cpp
+	$(eval obj_file := $(subst .d,.o,$@))
+	@mkdir -p $(@D) || true
+	$(CC) $(CFLAG) -MM $< -MT $(obj_file) -MF $@ 
 
--include $(DEPS_FILE)
+-include $(DEP_FILES)
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D) || true
@@ -47,4 +47,4 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 .PHONY: clean 
 clean:
-	-rm -f $(BIN_DIR)/$(PROG_NAME) $(BUILD_DIR)/* $(DEPS_FILE)
+	-rm -f $(BIN_DIR)/$(PROG_NAME) $(BUILD_DIR)/*

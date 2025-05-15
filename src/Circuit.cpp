@@ -300,6 +300,12 @@ Circuit::Circuit(const NetlistParser& parser)
   if (parser.libDataFiles().empty() == false) {
     _libData.read(parser.libDataFiles());
   }
+  buildCircuit(parser);
+}
+
+void
+Circuit::buildCircuit(const NetlistParser& parser)
+{
   const std::vector<ParserDevice>& parserDevs = parser.devices();
   std::vector<std::string> allNodeNames;
   std::string groundNodeName = allNodes(parserDevs, allNodeNames);

@@ -38,6 +38,7 @@ class Circuit {
     void elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap);
     Device createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap);
     void updateNodeConnection(const Device& dev);
+    void buildCircuit(const NetlistParser& parser);
 
   private:
     size_t                         _groundNodeId;

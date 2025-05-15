@@ -194,6 +194,9 @@ createDriverVoltageSourceParserDevice(const std::string& inst, const std::string
   dev._posNode = internalVPosNodeName(inst, pin);
   dev._negNode = gnd;
   dev._type = DeviceType::VoltageSource;
+  dev._isPWLValue = false;
+  dev._isInternal = true;
+  dev._value = 0;
   return dev;
 }
 
@@ -205,6 +208,9 @@ createDriverResistorParserDevice(const std::string& inst, const std::string& pin
   dev._posNode = internalVPosNodeName(inst, pin);
   dev._negNode = pinNode;
   dev._type = DeviceType::Resistor;
+  dev._isPWLValue = false;
+  dev._isInternal = true;
+  dev._value = 0;
   return dev;
 }
 
@@ -217,6 +223,9 @@ createDriverCurrentSourceParserDevice(const std::string& inst, const std::string
   dev._posNode = pinNode;
   dev._negNode = gnd;
   dev._type = DeviceType::CurrentSource;
+  dev._isPWLValue = false;
+  dev._isInternal = true;
+  dev._value = 0;
   return dev;
 }
 
@@ -229,6 +238,9 @@ createLoaderCapParserDevice(const std::string& inst, const std::string& pin,
   dev._posNode = pinNode;
   dev._negNode = gnd;
   dev._type = DeviceType::Capacitor;
+  dev._isPWLValue = false;
+  dev._isInternal = true;
+  dev._value = 0;
   return dev;
 }
 
@@ -238,6 +250,7 @@ Circuit::createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap)
   Device dev;
   size_t devId = _devices.size();
   dev._devId = devId;
+  dev._isInternal = pDev._isInternal;
   if (::NA::createDevice(dev, pDev, nodeIdMap) == true) {
     _devices.push_back(dev);
     updateNodeConnection(dev);

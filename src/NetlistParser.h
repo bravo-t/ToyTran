@@ -16,6 +16,7 @@ struct ParserDevice {
   std::string _negSampleNode;
   DeviceType  _type;
   bool        _isPWLValue = false;
+  bool        _isInternal = false;
   union {
     double    _value;
     size_t    _PWLData = 0;

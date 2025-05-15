@@ -136,7 +136,8 @@ NetlistParser::NetlistParser(const char* fileName)
          "  %lu VCCS\n"
          "  %lu VCVS\n"
          "  %lu CCCS\n"
-         "  %lu CCVS\n", 
+         "  %lu CCVS\n"
+         "  %lu Standard cells\n", 
     fileName, 
     devCounter[static_cast<unsigned char>(DeviceType::Resistor)],
     devCounter[static_cast<unsigned char>(DeviceType::Capacitor)], 
@@ -146,7 +147,8 @@ NetlistParser::NetlistParser(const char* fileName)
     devCounter[static_cast<unsigned char>(DeviceType::VCCS)], 
     devCounter[static_cast<unsigned char>(DeviceType::VCVS)],
     devCounter[static_cast<unsigned char>(DeviceType::CCCS)], 
-    devCounter[static_cast<unsigned char>(DeviceType::CCVS)]);
+    devCounter[static_cast<unsigned char>(DeviceType::CCVS)],
+    devCounter[static_cast<unsigned char>(DeviceType::Cell)]);
 
 }
 

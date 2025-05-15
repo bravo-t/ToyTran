@@ -36,6 +36,7 @@ class Circuit {
     std::string allNodes(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodes);
     typedef std::unordered_map<std::string, size_t> StringIdMap;
     std::vector<Device> elaborateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap);
+    void updateNodeConnection(const Device& dev);
 
   private:
     size_t                         _groundNodeId;

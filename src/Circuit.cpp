@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstddef>
 #include <limits>
 #include <cmath>
 #include "Debug.h"
@@ -42,6 +43,41 @@ incrCountMap(StringIdMap& countMap, const std::string& key)
   }
 }
 
+static inline std::string 
+internalVPosNodeName(const std::string& inst, const std::string& pin) 
+{
+  std::string internalNode = inst + "/" + pin + "/VPOS";
+  return internalNode;
+}
+
+static inline std::string
+internalRampVoltageSourceName(const std::string& inst, const std::string& pin) 
+{
+  std::string devName = inst + "/" + pin + "/Vd";
+  return devName;
+}
+
+static inline std::string
+internalDriverResistorName(const std::string& inst, const std::string& pin)
+{
+  std::string devName = inst + "/" + pin + "/Rd";
+  return devName;
+}
+
+static inline std::string
+internalCurrentSourceName(const std::string& inst, const std::string& pin)
+{
+  std::string devName = inst + "/" + pin + "/Id";
+  return devName;
+}
+
+static inline std::string
+internalLoaderCapName(const std::string& inst, const std::string& pin)
+{
+  std::string devName = inst + "/" + pin + "/Cl";
+  return devName;
+}
+
 static void
 addInternalPosNodeForGate(StringIdMap& countMap, const ParserDevice& dev, const LibData& libData)
 {
@@ -52,7 +88,7 @@ addInternalPosNodeForGate(StringIdMap& countMap, const ParserDevice& dev, const 
     const std::string& nodeName = kv.second;
     incrCountMap(countMap, nodeName);
     if (libData.isOutputPin(libCell, pinName)) {
-      std::string internalNode = dev._name + "/" + pinName + "/VPOS";
+      const std::string& internalNode = internalVPosNodeName(dev._name, pinName);
       /// this internal node connects to voltage source and the resistor, 
       /// so increment it twice
       incrCountMap(countMap, internalNode);
@@ -150,6 +186,40 @@ createDevice(Device& dev, const ParserDevice& pDev, const StringIdMap& nodeIdMap
   return true;
 }
 
+ParserDevice 
+createRampVoltageSourceParseDevice(const std::string& inst, const std::string& pin, const std::string& gnd)
+{
+  ParserDevice dev;
+  dev._name = internalRampVoltageSourceName(inst, pin);
+  dev._posNode = internalVPosNodeName(inst, pin);
+  dev._negNode = gnd;
+  dev._type = DeviceType::VoltageSource;
+  return dev;
+}
+
+ParserDevice 
+createDriverResistorParseDevice(const std::string& inst, const std::string& pin, const std::string& pinNode)
+{
+  ParserDevice dev;
+  dev._name = internalDriverResistorName(inst, pin);
+  dev._posNode = internalVPosNodeName(inst, pin);
+  dev._negNode = pinNode;
+  dev._type = DeviceType::Resistor;
+  return dev;
+}
+
+ParserDevice 
+createLoaderCapParseDevice(const std::string& inst, const std::string& pin, 
+                               const std::string& gnd, const std::string& pinNode)
+{
+  ParserDevice dev;
+  dev._name = internalLoaderCapName(inst, pin);
+  dev._posNode = pinNode;
+  dev._negNode = gnd;
+  dev._type = DeviceType::Capacitor;
+  return dev;
+}
+
 std::vector<Device>
 Circuit::elaborateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap)
 {
@@ -222,10 +292,7 @@ Circuit::Circuit(const NetlistParser& parser)
       continue;
     }
     _devices.push_back(dev);
-    size_t posNode = dev._posNode;
-    _nodes[posNode]._connection.push_back(devId);
-    size_t negNode = dev._negNode;
-    _nodes[negNode]._connection.push_back(devId);
+    updateNodeConnection(dev);
   }
   _order = 0;
   double smallestValueOfDynamicDevice = std::numeric_limits<double>::max();
@@ -258,6 +325,16 @@ Circuit::Circuit(const NetlistParser& parser)
   if (_scalingFactor < 1) {
     _scalingFactor = 1;
   }
+}
+
+void
+Circuit::updateNodeConnection(const Device& dev)
+{
+  size_t devId = dev._devId;
+  size_t posNode = dev._posNode;
+  _nodes[posNode]._connection.push_back(devId);
+  size_t negNode = dev._negNode;
+  _nodes[negNode]._connection.push_back(devId);
 }
 
 const PWLValue&

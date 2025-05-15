@@ -103,10 +103,10 @@ struct Device {
   size_t      _sampleDevice = static_cast<size_t>(-1);
   DeviceType  _type;
   bool        _isPWLValue = false;
+  bool        _isInternal = false; /// this is true if the device is elaborated from Cell devices
   union {
     double    _value;
     size_t    _PWLData = 0;
-    
   };
 };
 

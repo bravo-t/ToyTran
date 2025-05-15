@@ -83,7 +83,7 @@ The ultimate goal of this project is a full stage delay calculation engine, whic
 
 `.delay`: Sets the analysis mode to full stage delay calculation. Internally the `X` devices, or standard cells, will be elaborated with basic devices, thus new devices and nodes will be created, based on the specified driver model and loader model. Specifically:
 
-`driver=rampvoltage` creates new devices `inst/driverPin/Vd` as the ramp voltage source, `inst/driverPin/Rd` as the resistor connected to the ramp voltage source, and new node `inst/driverPin/VPOS` as the positive terminal of the ramp voltage source. The internal structure of the driver model is shown as below:
+`driver=rampvoltage` creates new devices `inst/driverPin/Vd` as the ramp voltage source, `inst/driverPin/Rd` as the resistor connected to the ramp voltage source, and new node `inst/driverPin/VPOS` as the positive terminal of the ramp voltage source. The internal structure of cell instances (include both driver model and loader model) is shown as below:
 
  ```
   +---------------------------------------------------------------+  
@@ -107,7 +107,7 @@ The ultimate goal of this project is a full stage delay calculation engine, whic
   |    |     -----        ---                                     |  
   |    |      ---          -                                      |  
   |  Instance/loaderPin/Cl                                        |  
-  |                                         Instance              |  
+  |                                        StdCell Instance       |  
   +---------------------------------------------------------------+  
 ```
 

@@ -1,0 +1,11 @@
+.lib circuits/INVx2_ASAP7_75t_R.dat
+VVdd POS GND pwl(
+  0 0 
+  1ns 5)
+Xdriver INVx2_ASAP7_75t_R A POS Y N1
+C1 N1 GND 1E-6
+R1 N1 N2 1000
+C2 N2 GND 1E-6
+Xloader INVx2_ASAP7_75t_R A N2
+
+.delay driver=rampvoltage loader=fixed

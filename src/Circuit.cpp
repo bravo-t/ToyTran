@@ -294,8 +294,8 @@ isDynamicDevice(const Device& dev)
          dev._type == DeviceType::Inductor;
 }
 
-Circuit::Circuit(const NetlistParser& parser)
-: _PWLData(parser.PWLData())
+Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
+: _param(param), _PWLData(parser.PWLData())
 {
   if (parser.libDataFiles().empty() == false) {
     _libData.read(parser.libDataFiles());

@@ -11,7 +11,9 @@ namespace NA {
 
 class Circuit {
   public:
-    Circuit(const NetlistParser& parser);
+    Circuit(const NetlistParser& parser, const AnalysisParameter& param);
+
+    std::string simName() const { return _param._name; }
     
     size_t nodeNumber() const { return _nodes.size(); }
     size_t deviceNumber() const { return _devices.size(); }

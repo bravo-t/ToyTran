@@ -187,7 +187,7 @@ createDevice(Device& dev, const ParserDevice& pDev, const StringIdMap& nodeIdMap
 }
 
 ParserDevice 
-createRampVoltageSourceParseDevice(const std::string& inst, const std::string& pin, const std::string& gnd)
+createDriverVoltageSourceParserDevice(const std::string& inst, const std::string& pin, const std::string& gnd)
 {
   ParserDevice dev;
   dev._name = internalRampVoltageSourceName(inst, pin);
@@ -198,7 +198,7 @@ createRampVoltageSourceParseDevice(const std::string& inst, const std::string& p
 }
 
 ParserDevice 
-createDriverResistorParseDevice(const std::string& inst, const std::string& pin, const std::string& pinNode)
+createDriverResistorParserDevice(const std::string& inst, const std::string& pin, const std::string& pinNode)
 {
   ParserDevice dev;
   dev._name = internalDriverResistorName(inst, pin);
@@ -209,8 +209,20 @@ createDriverResistorParseDevice(const std::string& inst, const std::string& pin,
 }
 
 ParserDevice 
-createLoaderCapParseDevice(const std::string& inst, const std::string& pin, 
-                               const std::string& gnd, const std::string& pinNode)
+createDriverCurrentSourceParserDevice(const std::string& inst, const std::string& pin, 
+                           const std::string& gnd, const std::string& pinNode)
+{
+  ParserDevice dev;
+  dev._name = internalCurrentSourceName(inst, pin);
+  dev._posNode = pinNode;
+  dev._negNode = gnd;
+  dev._type = DeviceType::CurrentSource;
+  return dev;
+}
+
+ParserDevice 
+createLoaderCapParserDevice(const std::string& inst, const std::string& pin, 
+                           const std::string& gnd, const std::string& pinNode)
 {
   ParserDevice dev;
   dev._name = internalLoaderCapName(inst, pin);
@@ -220,26 +232,46 @@ createLoaderCapParseDevice(const std::string& inst, const std::string& pin,
   return dev;
 }
 
-std::vector<Device>
-Circuit::elaborateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap)
+Device
+Circuit::createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap)
+{
+  Device dev;
+  size_t devId = _devices.size();
+  dev._devId = devId;
+  if (::NA::createDevice(dev, pDev, nodeIdMap) == true) {
+    _devices.push_back(dev);
+    updateNodeConnection(dev);
+  } else {
+    dev._devId = static_cast<size_t>(-1);
+  }
+  return dev;
+}
+
+void
+Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap)
 {
   std::vector<Device> devs;
   const std::string& libCell = dev._libCellName;
   const auto& pinMap = dev._pinMap;
+  const std::string& gndNode = _nodes[_groundNodeId]._name;
   for (const auto& kv : pinMap) {
     const std::string& pinName = kv.first;
     const std::string& nodeName = kv.second;
     if (_libData.isOutputPin(libCell, pinName)) {
       if (_param._driverModel == DriverModel::RampVoltage) {
-
+        const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, pinName, gndNode);
+        createDevice(VRampPDev, nodeIdMap);
+        const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, pinName, nodeName);
+        createDevice(Rd, nodeIdMap);
       } else if (_param._driverModel == DriverModel::PWLCurrent) {
-
+        const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, pinName, gndNode, nodeName);
+        createDevice(Id, nodeIdMap);
       }
     } else {
-
+      const ParserDevice& Cl = createLoaderCapParserDevice(dev._name, pinName, gndNode, nodeName);
+      createDevice(Cl, nodeIdMap);
     }
   }
-  return devs;
 }
 
 static inline bool
@@ -285,14 +317,11 @@ Circuit::Circuit(const NetlistParser& parser)
 
   _devices.reserve(parserDevs.size());
   for (const ParserDevice& pDev : parserDevs) {
-    Device dev;
-    size_t devId = _devices.size();
-    dev._devId = devId;
-    if (createDevice(dev, pDev, nodeIdMap) == false) {
-      continue;
+    if (pDev._type == DeviceType::Cell) {
+      elaborateGateDevice(pDev, nodeIdMap);
+    } else {
+      createDevice(pDev, nodeIdMap);
     }
-    _devices.push_back(dev);
-    updateNodeConnection(dev);
   }
   _order = 0;
   double smallestValueOfDynamicDevice = std::numeric_limits<double>::max();

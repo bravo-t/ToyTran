@@ -295,6 +295,40 @@ isDynamicDevice(const Device& dev)
          dev._type == DeviceType::Inductor;
 }
 
+static inline void
+printInfo(const std::string& simName, const std::vector<Device>& devs, 
+          const std::vector<Node>& nodes, const LibData& libData)
+{
+  std::vector<size_t> devCounter(static_cast<unsigned char>(DeviceType::Total), 0);
+  for (const Device& dev : devs) {
+    ++devCounter[static_cast<unsigned char>(dev._type)];
+  }
+  printf("Circuit built for %s, devices created:\n"
+         "  %lu resistors\n"
+         "  %lu capacitors\n"
+         "  %lu inductors\n"
+         "  %lu independent voltage sources\n"
+         "  %lu independent current sources\n"
+         "  %lu VCCS\n"
+         "  %lu VCVS\n"
+         "  %lu CCCS\n"
+         "  %lu CCVS\n"
+         "%lu nodes created\n"
+         "%lu lib cells loaded\n",
+    simName.data(), 
+    devCounter[static_cast<unsigned char>(DeviceType::Resistor)],
+    devCounter[static_cast<unsigned char>(DeviceType::Capacitor)], 
+    devCounter[static_cast<unsigned char>(DeviceType::Inductor)], 
+    devCounter[static_cast<unsigned char>(DeviceType::VoltageSource)], 
+    devCounter[static_cast<unsigned char>(DeviceType::CurrentSource)], 
+    devCounter[static_cast<unsigned char>(DeviceType::VCCS)], 
+    devCounter[static_cast<unsigned char>(DeviceType::VCVS)],
+    devCounter[static_cast<unsigned char>(DeviceType::CCCS)], 
+    devCounter[static_cast<unsigned char>(DeviceType::CCVS)], 
+    nodes.size(),
+    libData.cellCount());
+}
+
 Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
 : _param(param), _PWLData(parser.PWLData())
 {
@@ -310,8 +344,13 @@ Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
   timespec cktEnd;
   clock_gettime(CLOCK_REALTIME, &cktEnd);
 
+  printInfo(simName(), _devices, _nodes, _libData);
   printf("Time spent in building circuit for %s: %.3f milliseconds\n",
          simName().data(), 1e-6*timeDiffNs(cktEnd, cktStart));
+
+  if (Debug::enabled()) {
+    debugPrint();
+  }
 }
 
 void

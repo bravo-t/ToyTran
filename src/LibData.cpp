@@ -1,6 +1,9 @@
+#include <cstddef>
 #include <fstream>
 #include <algorithm>
 #include <cassert>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include "LibData.h"
 #include "StringUtil.h"
 
@@ -8,6 +11,72 @@ namespace NA {
     
 typedef std::unordered_map<std::string, std::vector<NLDMArc>> NLDMMap;
 typedef std::unordered_map<std::string, std::vector<CCSArc>>  CCSMap;
+
+static inline size_t
+axisIndex(const std::vector<double>& values, double val)
+{
+  if (val <= values[1]) {
+    return 0;
+  }
+  size_t lastIndex = values.size() - 1;
+  if (val >= values[lastIndex]) {
+    return lastIndex - 1;
+  }
+  for (size_t index = 1; index < lastIndex; ++index) {
+    if (val < values[index]) {
+      return index - 1;
+    }
+  }
+  /// Suppress compiler warnings
+  return static_cast<size_t>(-1);
+}
+
+static inline void
+indexValues(const std::vector<double>& values, size_t X, size_t Y, size_t YDim, 
+            double& Z1, double& Z2, double& Z3, double& Z4) 
+{
+  size_t i = 0;
+  i = X * YDim + Y;
+  Z1 = values[i];
+  Z3 = values[i+1];
+  i += YDim;
+  Z2 = values[i];
+  Z4 = values[i+1];
+}
+
+double 
+NLDMLUT::value(double inputTran, double outputLoad) const
+{
+  size_t index1 = axisIndex(_index1, inputTran);
+  size_t index2 = axisIndex(_index2, outputLoad);
+  size_t index2Dim = _index2.size();
+
+  double x1 = _index1[index1];
+  double x2 = _index1[index1+1];
+  double y1 = _index2[index2];
+  double y2 = _index2[index2+1];
+  double z1, z2, z3, z4;
+  indexValues(_values, index1, index2, index2Dim, z1, z2, z3, z4);
+  /*
+               (X)  x1      (X)  x2
+  (Y)  y1      (Z)  z1      (Z)  z2
+  (Y)  y2      (Z)  z3      (Z)  z4
+
+  z1 = A + B*x1 + C*y1 + D*x1*y1
+  z2 = A + B*x2 + C*y1 + D*x2*y1
+  z3 = A + B*x1 + C*y2 + D*x1*y2
+  z4 = A + B*x2 + C*y2 + D*x2*y2
+  */
+  Eigen::Matrix4d A;
+  A(0, 0) = 1; A(0, 1) = x1; A(0, 2) = y1; A(0, 3) = x1 * y1;
+  A(1, 0) = 1; A(1, 1) = x2; A(1, 2) = y1; A(1, 3) = x2 * y1;
+  A(2, 0) = 1; A(2, 1) = x1; A(2, 2) = y2; A(0, 3) = x1 * y2;
+  A(3, 0) = 1; A(3, 1) = x2; A(3, 2) = y2; A(1, 3) = x2 * y2;
+  Eigen::Vector4d b;
+  b(0) = z1; b(1) = z2; b(2) = z3; b(3) = z4;
+  Eigen::Vector4d x = A.partialPivLu().solve(b);
+  return x(0) + x(1) * inputTran + x(2) * outputLoad + x(3) * inputTran * outputLoad;
+}
 
 NLDMLUT&
 NLDMArc::getLUT(DataType dataType) 
@@ -222,12 +291,17 @@ LibReader::readFile(const char* datFile)
     line = trim(line);
     if (numSpace == 0) {
       if (cellName.size() > 0) {
-        std::sort(nldmData.begin(), nldmData.end(), SortArcDataByPin());
-        std::sort(ccsData.begin(), ccsData.end(), SortArcDataByPin());
-        _owner->_nldmData.insert({cellName, nldmData});
-        _owner->_ccsData.insert({cellName, ccsData});
+        if (nldmData.empty() == false) {
+          std::sort(nldmData.begin(), nldmData.end(), SortArcDataByPin());
+          _owner->_nldmData.insert({cellName, nldmData});
+        }
+        if (ccsData.empty() == false) {
+          std::sort(ccsData.begin(), ccsData.end(), SortArcDataByPin());
+          _owner->_ccsData.insert({cellName, ccsData});
+        }
         nldmData.clear();
         ccsData.clear();
+        cellName.clear();
       }
       std::vector<std::string> strs;
       splitWithAny(line, " ", strs);
@@ -273,7 +347,7 @@ LibReader::readFile(const char* datFile)
           }
         }
       } else {
-        cellName = line;
+        cellName = strs[0];
         std::vector<FixedLoadCap> pinCaps;
         for (size_t i=1; i<strs.size(); ++i) {
           FixedLoadCap cap;
@@ -290,10 +364,12 @@ LibReader::readFile(const char* datFile)
       }
     } else if (numSpace == 2) {
       if (fromPin.size() > 0 || toPin.size() > 0) {
-        nldmData.push_back(nldmArc);
-        ccsData.push_back(ccsArc);
+        if (nldmArc.empty() == false) nldmData.push_back(nldmArc);
+        if (ccsArc.empty() == false) ccsData.push_back(ccsArc);
         nldmArc.reset();
         ccsArc.reset();
+        fromPin.clear();
+        toPin.clear();
       }
       getArcInfo(line, fromPin, toPin, isInverted);
     } else if (numSpace == 4) {
@@ -336,6 +412,20 @@ LibReader::readFile(const char* datFile)
       } else if (line == "Receiver Cap Fall") {
         readNLDMLUT(infile, ccsArc.getRecvCap(DataType::FallRecvCap), timeUnit, capUnit, timeUnit);
       }
+    }
+  }
+  if (fromPin.size() > 0 || toPin.size() > 0) {
+    if (nldmArc.empty() == false) nldmData.push_back(nldmArc);
+    if (ccsArc.empty() == false) ccsData.push_back(ccsArc);
+  }
+  if (cellName.size() > 0) {
+    if (nldmData.empty() == false) {
+      std::sort(nldmData.begin(), nldmData.end(), SortArcDataByPin());
+      _owner->_nldmData.insert({cellName, nldmData});
+    }
+    if (ccsData.empty() == false) {
+      std::sort(ccsData.begin(), ccsData.end(), SortArcDataByPin());
+      _owner->_ccsData.insert({cellName, ccsData});
     }
   }
 }
@@ -410,9 +500,8 @@ LibData::isOutputPin(const char* cell, const char* pin) const
   std::string cellStr(cell);
   std::string pinStr(pin);
   const auto& it = _loadCaps.find(cellStr);
-  if (it == _loadCaps.end()) {
-    return false;
-  }
+  /// We don't allow missing lib data
+  assert(it != _loadCaps.end());
   const auto& pinCaps = it->second;
   const auto& it2 = std::lower_bound(pinCaps.begin(), pinCaps.end(), pinStr, 
                       [](const FixedLoadCap& a, const std::string& b) {
@@ -420,9 +509,9 @@ LibData::isOutputPin(const char* cell, const char* pin) const
                       });
 
   if (it2 != pinCaps.end() && it2->pinName() == pinStr) {
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 const NLDMArc*
@@ -468,9 +557,8 @@ bool
 LibData::isOutputPin(const std::string& cell, const std::string& pin) const
 {
   const auto& it = _loadCaps.find(cell);
-  if (it == _loadCaps.end()) {
-    return false;
-  }
+  /// We don't allow missing lib data
+  assert(it != _loadCaps.end());
   const auto& pinCaps = it->second;
   const auto& it2 = std::lower_bound(pinCaps.begin(), pinCaps.end(), pin, 
                       [](const FixedLoadCap& a, const std::string& b) {
@@ -478,9 +566,9 @@ LibData::isOutputPin(const std::string& cell, const std::string& pin) const
                       });
 
   if (it2 != pinCaps.end() && it2->pinName() == pin) {
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
 
 

@@ -34,6 +34,8 @@ class NLDMLUT {
     
     double value(double inputTran, double outputLoad) const;
 
+    bool empty() const { return _values.empty(); }
+
   private:
     std::vector<double> _index1;
     std::vector<double> _index2;
@@ -64,6 +66,8 @@ class NLDMArc {
 
     const char* fromPin() const { return _fromPin.data(); }
     const char* toPin() const { return _toPin.data(); }
+    bool empty() const { return _riseDelay.empty() && _fallDelay.empty() &&
+                                _riseTransition.empty() && _fallTransition.empty(); }
 
   private:
     std::string _fromPin;
@@ -101,6 +105,9 @@ class CCSLUT {
       _index3.clear();
       _values.clear();
     }
+
+    bool empty() const { return _values.empty(); }
+
   private:
     double              _referenceTime;
     double              _index1;
@@ -116,6 +123,8 @@ class CCSGroup {
     void reset() { _ccsluts.clear(); }
     CCSLUT value(double inputTran, double outputLoad) const;
     void sortTable();
+
+    bool empty() const { return _ccsluts.empty(); }
 
   private:
     std::vector<CCSLUT> _ccsluts;
@@ -149,6 +158,10 @@ class CCSArc {
     
     const char* fromPin() const { return _fromPin.data(); }
     const char* toPin() const { return _toPin.data(); }
+
+    bool empty() const { return _riseCurrent.empty() && _fallCurrent.empty() &&
+                                _riseRecvCap.empty() && _fallRecvCap.empty() &&
+                                _dcCurrent.empty(); }
 
   private:
     std::string _fromPin;
@@ -200,6 +213,8 @@ class LibData {
                              const std::string& toPin) const;
 
     bool isOutputPin(const std::string& cell, const std::string& pin) const;
+
+    size_t cellCount() const { return _nldmData.size(); }
     
   private:
     double _delayRiseThres = 50;

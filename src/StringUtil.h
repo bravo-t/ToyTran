@@ -50,7 +50,7 @@ splitWithAny(const std::string& src, const char *delim,
 
 inline std::string 
 trim(const std::string& str,
-     const std::string& whitespace = " \t")
+     const std::string& whitespace = " \t\n\r")
 {
     const auto strBegin = str.find_first_not_of(whitespace);
     if (strBegin == std::string::npos)

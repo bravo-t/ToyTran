@@ -8,6 +8,7 @@
 #include "Base.h"
 #include "Debug.h"
 #include "StringUtil.h"
+#include "Timer.h"
 
 namespace NA {
 
@@ -111,6 +112,9 @@ getClosedLine(std::ifstream& infile, std::string& content)
 
 NetlistParser::NetlistParser(const char* fileName) 
 {
+  timespec parseStart;
+  clock_gettime(CLOCK_REALTIME, &parseStart);
+  
   std::ifstream infile(fileName);
   if (!infile) {
     printf("ERROR: Cannot open %s\n", fileName);
@@ -123,6 +127,9 @@ NetlistParser::NetlistParser(const char* fileName)
     content.clear();
   }
 
+  timespec parseEnd;
+  clock_gettime(CLOCK_REALTIME, &parseEnd);
+  
   std::vector<size_t> devCounter(static_cast<unsigned char>(DeviceType::Total), 0);
   for (const ParserDevice& dev : _devices) {
     ++devCounter[static_cast<unsigned char>(dev._type)];
@@ -150,6 +157,8 @@ NetlistParser::NetlistParser(const char* fileName)
     devCounter[static_cast<unsigned char>(DeviceType::CCVS)],
     devCounter[static_cast<unsigned char>(DeviceType::Cell)]);
 
+  printf("Time spent in netlist parsing: %.3f milliseconds\n",
+         1e-6*timeDiffNs(parseEnd, parseStart));
 }
 
 static inline double 
@@ -501,6 +510,27 @@ getAnalysisParameter(const std::string& name, std::vector<AnalysisParameter>& pa
   return &(params[params.size()-1]);
 }
 
+AnalysisParameter*
+findAnalysisParameter(const std::string& name, std::vector<AnalysisParameter>& params)
+{
+  for (AnalysisParameter& p : params) {
+    if (p._name == name) {
+      return &p;
+    }
+  }
+  return nullptr;
+}
+
+const AnalysisParameter*
+findConstAnalysisParameter(const std::string& name, const std::vector<AnalysisParameter>& params)
+{
+  for (const AnalysisParameter& p : params) {
+    if (p._name == name) {
+      return &p;
+    }
+  }
+  return nullptr;
+}
 
 void
 NetlistParser::processOption(const std::string& line) 
@@ -534,7 +564,7 @@ NetlistParser::processOption(const std::string& line)
       if (analysisName.empty()) {
         analysisName = "tran";
       }
-      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
       param->_intMethod = intMethod;
     } else if (strs[i].compare("post") == 0) {
       ++i;
@@ -548,7 +578,7 @@ NetlistParser::processOption(const std::string& line)
       if (analysisName.empty()) {
         analysisName = "pz";
       }
-      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
       ++i;
       param->_order = strtoul(strs[i].data(), nullptr, 10);
     } else if (strs[i].compare("driver") == 0) {
@@ -556,7 +586,7 @@ NetlistParser::processOption(const std::string& line)
       if (analysisName.empty()) {
         analysisName = "fd";
       }
-      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
       ++i;
       if (iequals(strs[i], "rampvoltage")) {
         param->_driverModel = DriverModel::RampVoltage;
@@ -570,7 +600,7 @@ NetlistParser::processOption(const std::string& line)
       if (analysisName.empty()) {
         analysisName = "fd";
       }
-      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
       ++i;
       if (iequals(strs[i], "fixed")) {
         param->_loaderModel = LoaderModel::Fixed;
@@ -584,7 +614,7 @@ NetlistParser::processOption(const std::string& line)
       if (analysisName.empty()) {
         analysisName = "fd";
       }
-      AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+      AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
       ++i;
       if (iequals(strs[i], "tran")) {
         param->_netModel = NetworkModel::Tran;
@@ -734,7 +764,8 @@ processPlot(const std::string& line,
 
 void
 processMeasureCmds(const std::string& line, 
-                   std::vector<MeasurePoint>& meas)
+                   std::vector<MeasurePoint>& meas, 
+                   std::vector<AnalysisParameter>& analysisParams)
 {
   std::vector<std::string> strs;
   splitWithAny(line, " =", strs);
@@ -746,6 +777,8 @@ processMeasureCmds(const std::string& line,
   std::string::size_type divPos = strs[1].find('.');
   if (divPos != std::string::npos) {
     mp._simName = strs[1].substr(divPos, strs[1].size()-divPos);
+  } else {
+    mp._simName = strs[1];
   }
   bool inTriggerSection = false;
   bool inTargetSection = false;
@@ -808,7 +841,11 @@ processMeasureCmds(const std::string& line,
       }
     }
   }
-  meas.push_back(mp);
+  AnalysisParameter* param = findAnalysisParameter(mp._simName, analysisParams);
+  if (param != nullptr) {
+    param->_hasMeasurePoints = true;
+    meas.push_back(mp);
+  }
 }
 
 void
@@ -831,7 +868,7 @@ NetlistParser::processCommands(const std::string& line)
     }
     double simTick = numericalValue(strs[index], "sS");
     double simTime = numericalValue(strs[index+1], "sS");
-    AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+    AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
     if (param->_type != AnalysisType::None && param->_type != analysisType) {
       printf("ERROR: Found another kind of analysis with same analysis name \"%s\"\n", analysisName.data());
       exit(1);
@@ -877,7 +914,7 @@ NetlistParser::processCommands(const std::string& line)
       return;
     }
     std::string inDev = strs[index+1].substr(startIndex + 1, endIndex - startIndex - 1);
-    AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+    AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
     if (param->_type != AnalysisType::None && param->_type != analysisType) {
       printf("ERROR: Found another kind of analysis with same analysis name \"%s\"\n", analysisName.data());
       exit(1);
@@ -899,7 +936,7 @@ NetlistParser::processCommands(const std::string& line)
       analysisName = strs[1];
       index++;
     }
-    AnalysisParameter* param = getAnalysisParameter(analysisName, _anlaysisParams);
+    AnalysisParameter* param = getAnalysisParameter(analysisName, _analysisParams);
     if (param->_type != AnalysisType::None && param->_type != analysisType) {
       printf("ERROR: Found another kind of analysis with same analysis name \"%s\"\n", analysisName.data());
       exit(1);
@@ -913,10 +950,9 @@ NetlistParser::processCommands(const std::string& line)
   } else if (strs[0] == ".plot") {
     processPlot(line, _plotData, _plotWidth, _plotHeight);
   } else if (strs[0] == ".measure") {
-    processMeasureCmds(line, _measurePoints);
+    processMeasureCmds(line, _measurePoints, _analysisParams);
   } else if (strs[0] == ".lib") {
     _libDataFiles.push_back(strs[1]);
-    processMeasureCmds(line, _measurePoints);
   } else if (strs[0] == ".end") {
   } else {
     printf("command line %s is ignored\n", line.data());
@@ -980,5 +1016,26 @@ NetlistParser::parseLine(const std::string& line)
   }
 }
 
+bool 
+NetlistParser::haveMeasurePoints(const std::string& simName) const
+{
+  if (_measurePoints.empty()) {
+    return false;
+  }
+  const AnalysisParameter* param = findConstAnalysisParameter(simName, _analysisParams);
+  return param != nullptr && param->_hasMeasurePoints;
+}
+
+std::vector<MeasurePoint>
+NetlistParser::measurePoints(const std::string& simName) const
+{
+  std::vector<MeasurePoint> mps;
+  for (const MeasurePoint& mp : _measurePoints) {
+    if (mp._simName == simName) {
+      mps.push_back(mp);
+    }
+  }
+  return mps;
+}
 
 }

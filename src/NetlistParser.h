@@ -66,10 +66,10 @@ class NetlistParser {
     bool dumpData() const { return _saveData; }
 
     /// Measure information
-    bool haveMeasurePoints() const { return !_measurePoints.empty(); }
-    const std::vector<MeasurePoint>& measurePoints() const { return _measurePoints; }
+    bool haveMeasurePoints(const std::string& simName) const;
+    std::vector<MeasurePoint> measurePoints(const std::string& simName) const;
 
-    std::vector<AnalysisParameter> analysisParameters() const { return _anlaysisParams; }
+    std::vector<AnalysisParameter> analysisParameters() const { return _analysisParams; }
 
   private:
     void parseLine(const std::string& line);
@@ -82,7 +82,7 @@ class NetlistParser {
     std::vector<PWLValue>             _PWLData;
     std::vector<std::string>          _libDataFiles;
     std::vector<MeasurePoint>         _measurePoints;
-    std::vector<AnalysisParameter>    _anlaysisParams;
+    std::vector<AnalysisParameter>    _analysisParams;
     bool                              _saveData = false;
     size_t                            _plotWidth = static_cast<size_t>(-1);
     size_t                            _plotHeight = static_cast<size_t>(-1);

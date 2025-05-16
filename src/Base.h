@@ -53,7 +53,15 @@ enum class LoaderModel : unsigned char {
 };
 
 struct AnalysisParameter {
+  ~AnalysisParameter() 
+  {
+    if (_type == AnalysisType::PZ) {
+      delete _inDev;
+      delete _outNode;
+    }
+  }
   AnalysisType _type = AnalysisType::None;
+  bool         _hasMeasurePoints = false;
   std::string  _name;
   union {
     /// Parameters for transient analysis

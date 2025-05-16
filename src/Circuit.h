@@ -34,6 +34,8 @@ class Circuit {
     size_t scalingFactor() const { return _scalingFactor; }
     size_t order() const { return _order; }
 
+    void debugPrint() const;
+
   private:
     std::string allNodes(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodes);
     typedef std::unordered_map<std::string, size_t> StringIdMap;

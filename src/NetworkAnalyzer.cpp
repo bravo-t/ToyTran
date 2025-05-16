@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <ctime>
 #include "NetworkAnalyzer.h"
 #include "NetlistParser.h"
 #include "Circuit.h"
@@ -8,15 +7,9 @@
 #include "TR0Writer.h"
 #include "Plotter.h"
 #include "Measure.h"
+#include "Timer.h"
 
 namespace NA {
-
-inline uint64_t
-timeDiffNs(const timespec& endTime, const timespec& startTime)
-{
-  return (endTime.tv_sec - startTime.tv_sec) * 1e9 + 
-         (endTime.tv_nsec - startTime.tv_nsec);
-}
 
 std::string
 fileNameWithoutSuffix(const char* fname)
@@ -35,25 +28,14 @@ fileNameWithoutSuffix(const char* fname)
 void
 NetworkAnalyzer::run(const char* inFile) 
 {
-  timespec parseStart;
-  clock_gettime(CLOCK_REALTIME, &parseStart);
   NA::NetlistParser parser(inFile);
-  timespec parseEnd;
-  clock_gettime(CLOCK_REALTIME, &parseEnd);
 
-  timespec cktStart;
-  clock_gettime(CLOCK_REALTIME, &cktStart);
-  NA::Circuit circuit(parser);
-  timespec cktEnd;
-  clock_gettime(CLOCK_REALTIME, &cktEnd);
-
-  printf("Time spent in netlist parsing: %.3f milliseconds\n"
-         "Time spent in building circuit: %.3f milliseconds\n", 
-         1e-6*timeDiffNs(parseEnd, parseStart), 1e-6*timeDiffNs(cktEnd, cktStart));
-
+  std::vector<NA::Circuit> circuits;
   std::vector<NA::SimResult> results;
   const std::vector<NA::AnalysisParameter>& params = parser.analysisParameters();
   for (const NA::AnalysisParameter& param : params) {
+    NA::Circuit circuit(parser, param);
+    circuits.push_back(circuit);
     switch (param._type) {
       case NA::AnalysisType::Tran: {
         NA::Simulator tranSim(circuit, param);
@@ -75,14 +57,20 @@ NetworkAnalyzer::run(const char* inFile)
           writer.adjustNumberWidth(param._simTick, param._simTime);
           writer.writeData(tranSim.simulationResult());
         }
+        if (param._hasMeasurePoints) {
+          NA::Measure measure(tranSim.simulationResult(), parser.measurePoints(param._name));
+          measure.run();
+        }
         break;
       }
       case NA::AnalysisType::PZ: {
         NA::PoleZeroAnalysis pz(circuit, param);
         pz.run();
         results.push_back(pz.result());
-        delete param._inDev;
-        delete param._outNode;
+        if (param._hasMeasurePoints) {
+          NA::Measure measure(pz.result(), parser.measurePoints(param._name));
+          measure.run();
+        }
         break;
       }
       default:
@@ -92,17 +80,10 @@ NetworkAnalyzer::run(const char* inFile)
   }
 
   if (parser.needPlot()) {
-    NA::Plotter plt(parser, circuit, results);
+    NA::Plotter plt(parser, circuits, results);
     plt.plot();
   }
 
-  for (const NA::SimResult& result : results) {
-    if (parser.haveMeasurePoints()) {
-      NA::Measure measure(result, parser.measurePoints());
-      measure.run();
-    }
-
-  } 
 }
 
 }

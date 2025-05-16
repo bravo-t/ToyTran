@@ -6,6 +6,7 @@
 #include "Circuit.h"
 #include "Base.h"
 #include "NetlistParser.h"
+#include "Timer.h"
 
 namespace NA {
 
@@ -300,7 +301,36 @@ Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
   if (parser.libDataFiles().empty() == false) {
     _libData.read(parser.libDataFiles());
   }
+
+  timespec cktStart;
+  clock_gettime(CLOCK_REALTIME, &cktStart);
+  
   buildCircuit(parser);
+  
+  timespec cktEnd;
+  clock_gettime(CLOCK_REALTIME, &cktEnd);
+
+  printf("Time spent in building circuit for %s: %.3f milliseconds\n",
+         simName().data(), 1e-6*timeDiffNs(cktEnd, cktStart));
+}
+
+void
+Circuit::debugPrint() const 
+{
+  printf("DEBUG Devices: \n");
+  for (const Device& dev : _devices) {
+    printf("  Dev %s: ID: %lu, node %lu-> node %lu\n", 
+    dev._name.data(), dev._devId, dev._posNode, dev._negNode);
+  }
+
+  printf("DEBUG Nodes: \n");
+  for (const Node& node : _nodes) {
+    printf("Node %s: ID: %lu, conn: ", node._name.data(), node._nodeId);
+    for (const size_t& devId : node._connection) {
+      printf("%lu ", devId);
+    }
+    printf("\n");
+  }
 }
 
 void

@@ -1,5 +1,6 @@
 #include "SimResult.h"
 #include "Circuit.h"
+#include <cmath>
 #include <cassert>
 #include <limits>
 #include <algorithm>
@@ -335,6 +336,51 @@ SimResult::deviceCurrentDerivative(const Device& device, size_t order, size_t st
     time.push_back(_ticks[i]);
   }
   return calcDerivative(current, time);
+}
+
+std::vector<WaveformPoint>
+SimResult::waveformData(size_t rowIndex, double* max, double* min) const
+{
+  std::vector<WaveformPoint> data;
+  if (max != nullptr) *max = std::numeric_limits<double>::lowest();
+  if (min != nullptr) *min = std::numeric_limits<double>::max();
+  size_t resultVectorSize = indexMap().size();
+  for (size_t tIndex=0; tIndex<ticks().size(); ++tIndex) {
+    size_t valueIndex = tIndex*resultVectorSize+rowIndex;
+    double value = this->value(valueIndex);
+    if (!std::isnan(value) && !std::isinf(value)) {
+      if (max != nullptr) *max = std::max(*max, value);
+      if (min != nullptr) *min = std::min(*min, value);
+      data.push_back({tick(tIndex), value});
+    }
+  }
+  return data;
+}
+    
+std::vector<WaveformPoint> 
+SimResult::nodeVoltageWaveform(const std::string& nodeName, 
+                       double* max, double* min) const
+{
+  const Node& node = _ckt.findNodeByName(nodeName);
+  if (node._nodeId == static_cast<size_t>(-1)) {
+    printf("Node %s not found\n", nodeName.data());
+    return std::vector<WaveformPoint>();
+  }
+  size_t rowIndex = nodeVectorIndex(node._nodeId);
+  return waveformData(rowIndex, max, min); 
+}
+
+std::vector<WaveformPoint> 
+SimResult::deviceCurrentWaveform(const std::string& devName, 
+                                 double *max, double* min) const
+{
+  const Device& device = _ckt.findDeviceByName(devName);
+  if (device._devId == static_cast<size_t>(-1)) {
+    printf("Device %s not found\n", devName.data());
+    return std::vector<WaveformPoint>();
+  }
+  size_t rowIndex = deviceVectorIndex(device._devId);
+  return waveformData(rowIndex, max, min); 
 }
 
 

@@ -31,7 +31,7 @@ class Circuit {
     bool isGroundNode(size_t nodeId) const { return _groundNodeId == nodeId; }
 
     /// For moment scaling in PZ and TF analysis
-    size_t scalingFactor() const { return _scalingFactor; }
+    double scalingFactor() const { return _scalingFactor; }
     size_t order() const { return _order; }
 
     void debugPrint() const;
@@ -47,12 +47,15 @@ class Circuit {
   private:
     size_t                         _groundNodeId;
     size_t                         _order;
-    size_t                         _scalingFactor;
+    double                         _scalingFactor;
     AnalysisParameter              _param;
     std::vector<Node>              _nodes;
     std::vector<Device>            _devices;
     std::vector<PWLValue>          _PWLData;
     LibData                        _libData;
+    /// Currently we only allow one driver, but let's keep it more general.
+    std::vector<size_t>            _driverOutputNodes;
+    std::vector<size_t>            _loaderInputNodes;
 }; 
 
 }

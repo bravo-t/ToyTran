@@ -271,15 +271,18 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
   for (const auto& kv : pinMap) {
     const std::string& pinName = kv.first;
     const std::string& nodeName = kv.second;
+    size_t nodeId = ::NA::findNodeByName(nodeIdMap, nodeName);
     if (_libData.isOutputPin(libCell, pinName)) {
       if (_param._driverModel == DriverModel::RampVoltage) {
         const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, pinName, gndNode);
         createDevice(VRampPDev, nodeIdMap);
         const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, pinName, nodeName);
         createDevice(Rd, nodeIdMap);
+        _driverOutputNodes.push_back(nodeId);
       } else if (_param._driverModel == DriverModel::PWLCurrent) {
         const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, pinName, gndNode, nodeName);
         createDevice(Id, nodeIdMap);
+        _loaderInputNodes.push_back(nodeId);
       }
     } else {
       const ParserDevice& Cl = createLoaderCapParserDevice(dev._name, pinName, gndNode, nodeName);

@@ -17,9 +17,9 @@ class Plotter {
     void plot() const;
 
   private:
-    void plotNodeVoltage(const std::string& nodeName, const std::string& simName, const Circuit* ckt, 
+    void plotNodeVoltage(const std::string& nodeName, const std::string& simName, 
                          const std::vector<SimResult>& results) const;
-    void plotDeviceCurrent(const std::string& devName, const std::string& simName, const Circuit* ckt, 
+    void plotDeviceCurrent(const std::string& devName, const std::string& simName, 
                            const std::vector<SimResult>& results) const;
     void plot(const PlotData& data) const;
 

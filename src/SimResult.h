@@ -9,6 +9,11 @@
 
 namespace NA {
 
+struct WaveformPoint {
+  double _time = 0;
+  double _value = 0;
+};
+
 
 /// @brief The map between numbers in x of Ax=b, and the actual meaning of 
 ///        the number
@@ -84,6 +89,10 @@ class SimResult {
     double deviceVoltageDerivative(const Device& device, size_t order, size_t steps) const;
     double deviceCurrentDerivative(const Device& device, size_t order, size_t steps) const;
 
+    /// Get waveform data
+    std::vector<WaveformPoint> nodeVoltageWaveform(const std::string& nodeName, double* max = nullptr, double* min = nullptr) const;
+    std::vector<WaveformPoint> deviceCurrentWaveform(const std::string& devName, double *max = nullptr, double* min = nullptr) const;
+
   
   private:
     void init(const Circuit& ckt);
@@ -91,6 +100,7 @@ class SimResult {
     double deviceCurrentImp(size_t devId, size_t timeStep) const;
     double nodeVoltageBackstepImp(size_t nodeId, size_t steps) const;
     double deviceCurrentBackstepImp(size_t devId, size_t steps) const;
+    std::vector<WaveformPoint> waveformData(size_t rowIndex, double* max, double* min) const;
   
   private:
     const Circuit&      _ckt;

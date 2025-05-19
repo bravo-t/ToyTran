@@ -34,8 +34,8 @@ NetworkAnalyzer::run(const char* inFile)
   std::vector<NA::SimResult> results;
   const std::vector<NA::AnalysisParameter>& params = parser.analysisParameters();
   for (const NA::AnalysisParameter& param : params) {
-    NA::Circuit circuit(parser, param);
-    circuits.push_back(circuit);
+    circuits.push_back(NA::Circuit(parser, param));
+    const NA::Circuit& circuit = circuits.back();
     switch (param._type) {
       case NA::AnalysisType::Tran: {
         NA::Simulator tranSim(circuit, param);

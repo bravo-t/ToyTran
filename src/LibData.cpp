@@ -12,6 +12,32 @@ namespace NA {
 typedef std::unordered_map<std::string, std::vector<NLDMArc>> NLDMMap;
 typedef std::unordered_map<std::string, std::vector<CCSArc>>  CCSMap;
 
+static inline size_t 
+binaryIndex(const std::vector<double>& values, float v)
+{
+  size_t lower = 1;
+  size_t upper = values.size()-2;
+  if (v <= values[lower]) {
+    return 0;
+  }
+  if (v >= values[upper]) {
+    return upper;
+  }
+  size_t idx = 0;
+  while (upper - lower > 1) {
+    idx = (lower + upper) >> 1;
+    if (values[idx] > v) {
+      upper = idx;
+    } else {
+      lower = idx;
+    }
+  }
+  if (values[idx] > v) {
+    --idx;
+  }
+  return idx;
+}
+
 static inline size_t
 axisIndex(const std::vector<double>& values, double val)
 {
@@ -47,8 +73,8 @@ indexValues(const std::vector<double>& values, size_t X, size_t Y, size_t YDim,
 double 
 NLDMLUT::value(double inputTran, double outputLoad) const
 {
-  size_t index1 = axisIndex(_index1, inputTran);
-  size_t index2 = axisIndex(_index2, outputLoad);
+  size_t index1 = binaryIndex(_index1, inputTran);
+  size_t index2 = binaryIndex(_index2, outputLoad);
   size_t index2Dim = _index2.size();
 
   double x1 = _index1[index1];
@@ -67,7 +93,7 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   z3 = A + B*x1 + C*y2 + D*x1*y2
   z4 = A + B*x2 + C*y2 + D*x2*y2
   */
-  Eigen::Matrix4d A;
+  Eigen::Matrix4d A(4, 4);
   A(0, 0) = 1; A(0, 1) = x1; A(0, 2) = y1; A(0, 3) = x1 * y1;
   A(1, 0) = 1; A(1, 1) = x2; A(1, 2) = y1; A(1, 3) = x2 * y1;
   A(2, 0) = 1; A(2, 1) = x1; A(2, 2) = y2; A(0, 3) = x1 * y2;

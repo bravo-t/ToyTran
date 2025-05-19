@@ -317,7 +317,7 @@ addTwoTermDevice(DeviceType type,
 {
   ParserDevice dev;
   dev._type = type;
-  dev._name.assign(strs[0].begin() + 1, strs[0].end());
+  dev._name.assign(strs[0].begin(), strs[0].end());
   dev._posNode = strs[1]; 
   dev._negNode = strs[2]; 
   dev._value = numericalValue(strs[3], units);
@@ -376,7 +376,7 @@ addIndependentSource(DeviceType type, const std::string& line,
     const PWLValue& pwlData = parsePWLData(strs, 3);
     ParserDevice dev;
     dev._type = type;
-    dev._name.assign(strs[0].begin() + 1, strs[0].end());
+    dev._name.assign(strs[0].begin(), strs[0].end());
     dev._posNode = strs[1]; 
     dev._negNode = strs[2]; 
     dev._isPWLValue = true;
@@ -411,7 +411,7 @@ addDependentDevice(DeviceType type,
 {
   ParserDevice dev;
   dev._type = type;
-  dev._name.assign(strs[0].begin() + 1, strs[0].end());
+  dev._name.assign(strs[0].begin(), strs[0].end());
   dev._posNode = strs[1]; 
   dev._negNode = strs[2];
   dev._posSampleNode = strs[3];
@@ -487,7 +487,7 @@ addCell(const std::string& line, std::vector<ParserDevice>& devices)
   }
   ParserDevice dev;
   dev._type = DeviceType::Cell;
-  dev._name.assign(strs[0].begin() + 1, strs[0].end());
+  dev._name.assign(strs[0].begin(), strs[0].end());
   dev._libCellName = strs[1];
   for (size_t i=2; i<strs.size(); i+=2) {
     dev._pinMap.insert({strs[i], strs[i+1]});

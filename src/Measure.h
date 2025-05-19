@@ -17,7 +17,7 @@ class Measure {
 
   private:
     const SimResult& _simResult;
-    const std::vector<MeasurePoint>& _measurePoints;
+    std::vector<MeasurePoint> _measurePoints;
 };
 
 }

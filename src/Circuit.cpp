@@ -485,9 +485,11 @@ Circuit::findNodeByName(const std::string& name) const
 {
   for (const Node& node : _nodes) {
     if (node._name == name) {
+      printf("DEBUG: Node: %s, looking for %s\n", node._name.data(), name.data());
       return node;
     }
   }
+  printf("DEBUG: looking for %s\n", name.data());
   static Node empty;
   return empty;
 }

@@ -115,15 +115,17 @@ Plotter::plot(const PlotData& data) const
     }
     double nodeMax = 0;
     double nodeMin = 0;
-    const std::vector<WaveformPoint>& nodeData = result->nodeVoltageWaveform(nodeName, &nodeMax, &nodeMin);
-    simData.push_back(nodeData);
-    max = std::max(max, nodeMax);
-    min = std::min(min, nodeMin);
-    std::string l(1, markers[plotCounter]);
-    l += ": Voltage of node ";
-    l += nodeName;
-    legend.push_back(l);
-    ++plotCounter;
+    const std::vector<WaveformPoint>& nodeData = result->nodeVoltageWaveform(nodeName, nodeMax, nodeMin);
+    if (nodeData.size() > 0) {
+      simData.push_back(nodeData);
+      max = std::max(max, nodeMax);
+      min = std::min(min, nodeMin);
+      std::string l(1, markers[plotCounter]);
+      l += ": Voltage of node ";
+      l += nodeName;
+      legend.push_back(l);
+      ++plotCounter;
+    }
   }
   for (size_t i=0; i<data._deviceToPlot.size(); ++i) {
     const std::string& devName = data._deviceToPlot[i];
@@ -140,15 +142,17 @@ Plotter::plot(const PlotData& data) const
     }
     double devMax = 0;
     double devMin = 0;
-    const std::vector<WaveformPoint>& devData = result->deviceCurrentWaveform(devName, &devMax, &devMin);
-    simData.push_back(devData);
-    max = std::max(max, devMax);
-    min = std::min(min, devMin);
-    std::string l(1, markers[plotCounter]);
-    l += ": Current of device ";
-    l += devName;
-    legend.push_back(l);
-    ++plotCounter;
+    const std::vector<WaveformPoint>& devData = result->deviceCurrentWaveform(devName, devMax, devMin);
+    if (devData.size() > 0) {
+      simData.push_back(devData);
+      max = std::max(max, devMax);
+      min = std::min(min, devMin);
+      std::string l(1, markers[plotCounter]);
+      l += ": Current of device ";
+      l += devName;
+      legend.push_back(l);
+      ++plotCounter;
+    }
   }
   std::vector<std::string> canvas;
   initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
@@ -175,14 +179,16 @@ Plotter::plotNodeVoltage(const std::string& nodeName, const std::string& simName
   }
   double max = 0;
   double min = 0;
-  const std::vector<WaveformPoint>& data = result->nodeVoltageWaveform(nodeName, &max, &min);
-  std::vector<std::string> canvas;
-  initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
-  plotData(data, max, min, canvas, '*');
-  for (const std::string& line : canvas) {
-    printf("%s\n", line.data());
+  const std::vector<WaveformPoint>& data = result->nodeVoltageWaveform(nodeName, max, min);
+  if (data.size() > 0) {
+    std::vector<std::string> canvas;
+    initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
+    plotData(data, max, min, canvas, '*');
+    for (const std::string& line : canvas) {
+      printf("%s\n", line.data());
+    }
+    printf("  Voltage of node %s\n", nodeName.data());
   }
-  printf("  Voltage of node %s\n", nodeName.data());
 }
 
 void 
@@ -196,14 +202,16 @@ Plotter::plotDeviceCurrent(const std::string& devName, const std::string& simNam
   }
   double max = 0;
   double min = 0;
-  const std::vector<WaveformPoint>& data = result->deviceCurrentWaveform(devName, &max, &min);
-  std::vector<std::string> canvas;
-  initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
-  plotData(data, max, min, canvas, '*');
-  for (const std::string& line : canvas) {
-    printf("%s\n", line.data());
+  const std::vector<WaveformPoint>& data = result->deviceCurrentWaveform(devName, max, min);
+  if (data.size() > 0) {
+    std::vector<std::string> canvas;
+    initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
+    plotData(data, max, min, canvas, '*');
+    for (const std::string& line : canvas) {
+      printf("%s\n", line.data());
+    }
+    printf("  Current of device %s\n", devName.data());
   }
-  printf("  Current of device %s\n", devName.data());
 }
 
 void

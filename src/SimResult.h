@@ -90,8 +90,10 @@ class SimResult {
     double deviceCurrentDerivative(const Device& device, size_t order, size_t steps) const;
 
     /// Get waveform data
-    std::vector<WaveformPoint> nodeVoltageWaveform(const std::string& nodeName, double* max = nullptr, double* min = nullptr) const;
-    std::vector<WaveformPoint> deviceCurrentWaveform(const std::string& devName, double *max = nullptr, double* min = nullptr) const;
+    std::vector<WaveformPoint> nodeVoltageWaveform(const std::string& nodeName, double& max, double& min) const;
+    std::vector<WaveformPoint> deviceCurrentWaveform(const std::string& devName, double& max, double& min) const;
+    std::vector<WaveformPoint> nodeVoltageWaveform(size_t nodeId) const;
+    std::vector<WaveformPoint> deviceCurrentWaveform(size_t devId) const;
 
   
   private:

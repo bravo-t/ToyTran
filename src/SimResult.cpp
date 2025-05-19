@@ -358,8 +358,22 @@ SimResult::waveformData(size_t rowIndex, double* max, double* min) const
 }
     
 std::vector<WaveformPoint> 
+SimResult::nodeVoltageWaveform(size_t nodeId) const
+{
+  size_t rowIndex = nodeVectorIndex(nodeId);
+  return waveformData(rowIndex, nullptr, nullptr); 
+}
+
+std::vector<WaveformPoint> 
+SimResult::deviceCurrentWaveform(size_t devId) const
+{
+  size_t rowIndex = deviceVectorIndex(devId);
+  return waveformData(rowIndex, nullptr, nullptr); 
+}
+
+std::vector<WaveformPoint> 
 SimResult::nodeVoltageWaveform(const std::string& nodeName, 
-                       double* max, double* min) const
+                               double& max, double& min) const
 {
   const Node& node = _ckt.findNodeByName(nodeName);
   if (node._nodeId == static_cast<size_t>(-1)) {
@@ -367,12 +381,12 @@ SimResult::nodeVoltageWaveform(const std::string& nodeName,
     return std::vector<WaveformPoint>();
   }
   size_t rowIndex = nodeVectorIndex(node._nodeId);
-  return waveformData(rowIndex, max, min); 
+  return waveformData(rowIndex, &max, &min); 
 }
 
 std::vector<WaveformPoint> 
 SimResult::deviceCurrentWaveform(const std::string& devName, 
-                                 double *max, double* min) const
+                                 double& max, double& min) const
 {
   const Device& device = _ckt.findDeviceByName(devName);
   if (device._devId == static_cast<size_t>(-1)) {
@@ -380,7 +394,7 @@ SimResult::deviceCurrentWaveform(const std::string& devName,
     return std::vector<WaveformPoint>();
   }
   size_t rowIndex = deviceVectorIndex(device._devId);
-  return waveformData(rowIndex, max, min); 
+  return waveformData(rowIndex, &max, &min); 
 }
 
 

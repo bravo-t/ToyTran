@@ -10,9 +10,17 @@ chargeInTimeInterval(double I0, double I1, double timeInterval)
 }
 
 static double
-totalCharge(const Circuit& ckt, const SimResult& result, const Device& device)
+totalCharge(const std::vector<WaveformPoint>& waveform)
 {
-
+  double charge = 0;
+  double prevT = 0;
+  double prevI = 0;
+  for (const WaveformPoint& p : waveform) {
+    charge += chargeInTimeInterval(prevI, p.value, p.time - prevT);
+    prevT = p.time;
+    prevI = p.value;
+  }
+  return charge;
 }
 
 double
@@ -25,12 +33,21 @@ EffCap::charge(const Circuit& ckt, const SimResult& result, const Device& device
   if (device._type == DeviceType::Resistor) {
     const std::vector<WaveformPoint>& posWaveform = result.nodeVoltageWaveform(device._posNode);
     const std::vector<WaveformPoint>& negWaveform = result.nodeVoltageWaveform(device._negNode);
+    std::vector<WaveformPoint>& currentWaveform;
+    currentWaveform.reserve(posWaveform.size());
     for (size_t i = 0; i < posWaveform.size(); ++i) {
-      
+      const WaveformPoint& posData = posWaveform[i];
+      const WaveformPoint& negData = negWaveform[i];
+      currentWaveform.push_back({posData.time, (posData.value - negData.value)/device._value});
+      return totalCharge(currentWaveform);
     }
   } else {
     const std::vector<WaveformPoint>& currentWaveform = result.deviceCurrentWaveform(device._devId);
+    return totalCharge(currentWaveform);
   }
+  return 0;
 }
+
+
 
 }

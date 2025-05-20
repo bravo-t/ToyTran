@@ -152,6 +152,11 @@ class CCSArc {
       _isInverted = isInverted;
     }   
 
+    void setMillerCaps(double riseCap, double fallCap)
+    {
+      _riseMillerCap = riseCap; _fallMillerCap = fallCap;
+    }
+
     NLDMLUT& getRecvCap(DataType dataType);
     CCSGroup& getCurrent(DataType dataType);
     NLDMLUT& getDCCurrent();
@@ -166,6 +171,8 @@ class CCSArc {
   private:
     std::string _fromPin;
     std::string _toPin;
+    double      _riseMillerCap;
+    double      _fallMillerCap;
     bool        _isInverted; /// negative_unate -> true
     CCSGroup    _riseCurrent;
     CCSGroup    _fallCurrent;

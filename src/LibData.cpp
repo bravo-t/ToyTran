@@ -93,7 +93,7 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   z3 = A + B*x1 + C*y2 + D*x1*y2
   z4 = A + B*x2 + C*y2 + D*x2*y2
   */
-  Eigen::Matrix4d A(4, 4);
+  Eigen::MatrixXd A(4, 4);
   A(0, 0) = 1; A(0, 1) = x1; A(0, 2) = y1; A(0, 3) = x1 * y1;
   A(1, 0) = 1; A(1, 1) = x2; A(1, 2) = y1; A(1, 3) = x2 * y1;
   A(2, 0) = 1; A(2, 1) = x1; A(2, 2) = y2; A(0, 3) = x1 * y2;
@@ -408,12 +408,17 @@ LibReader::readFile(const char* datFile)
       } else if (line == "Fall Transition") {
         readNLDMLUT(infile, nldmArc.getLUT(DataType::FallTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "DC Current") {
+        std::string capLine;
+        std::getline(infile, capLine);
+        capLine = trim(capLine);
+        const std::vector<double> caps = parseLineNumbers(capLine, capUnit);
+        ccsArc.setMillerCaps(caps[0], caps[1]);
         readNLDMLUT(infile, ccsArc.getDCCurrent(), voltageUnit, voltageUnit, currentUnit);
       } else if (line == "Current Rise") {
-        std::string line;
-        std::getline(infile, line);
-        line = trim(line);
-        size_t tableCount = std::stoi(line);
+        std::string numLine;
+        std::getline(infile, numLine);
+        numLine = trim(numLine);
+        size_t tableCount = std::stoi(numLine);
         CCSGroup& riseCurrents = ccsArc.getCurrent(DataType::RiseCurrent);
         for (size_t i=0; i<tableCount; ++i) {
           CCSLUT lut;
@@ -422,10 +427,10 @@ LibReader::readFile(const char* datFile)
         }
         riseCurrents.sortTable();
       } else if (line == "Current Fall") {
-        std::string line;
-        std::getline(infile, line);
-        line = trim(line);
-        size_t tableCount = std::stoi(line);
+        std::string numLine;
+        std::getline(infile, numLine);
+        numLine = trim(numLine);
+        size_t tableCount = std::stoi(numLine);
         CCSGroup& fallCurrents = ccsArc.getCurrent(DataType::FallCurrent);
         for (size_t i=0; i<tableCount; ++i) {
           CCSLUT lut;

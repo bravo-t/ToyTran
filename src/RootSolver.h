@@ -23,6 +23,7 @@ class RootSolver {
 
     bool run();
     std::vector<double> solution() const;
+    size_t iterCount() const { return _iterCount; }
 
   private:
     bool check() const;
@@ -33,6 +34,7 @@ class RootSolver {
     Eigen::VectorXd         _x;
     double                  _xTol = 0.01;
     size_t                  _maxIter = 20;
+    size_t                  _iterCount = 0;
 };
 
 }

@@ -109,7 +109,7 @@ RootSolver::run()
   if (check() == false) {
     return false;
   }
-  size_t iterCount = 0;
+  _iterCount = 0;
   bool converged = false;
   while (!converged) {
     Eigen::Matrix Jac = Jacobian(_functions, _derivatives, _x);
@@ -126,8 +126,8 @@ RootSolver::run()
         break;
       }
     }
-    ++iterCount;
-    if (iterCount > _maxIter) {
+    ++_iterCount;
+    if (_iterCount > _maxIter) {
       return false;
     }
   }
@@ -156,44 +156,51 @@ testRootSolver()
     return std::pow(x1, 3) - x1 * std::pow(x2, 3) - 4;
   };
   
-  Function devF1 = [](const Eigen::VectorXd& x)->double {
+  Function df1dx1 = [](const Eigen::VectorXd& x)->double {
     double x1 = x(0);
     double x2 = x(1);
     return 2 * x1 * std::pow(x2, 3) - std::pow(x2, 3);
   };
-  Function devF2 = [](const Eigen::VectorXd& x)->double {
+  Function df1dx2 = [](const Eigen::VectorXd& x)->double {
     double x1 = x(0);
     double x2 = x(1);
     return 3 * (std::pow(x1, 2) * std::pow(x2, 2) - x1 * std::pow(x2, 2));
   };
-  Function devF3 = [](const Eigen::VectorXd& x)->double {
+  Function df2dx1 = [](const Eigen::VectorXd& x)->double {
     double x1 = x(0);
     double x2 = x(1);
     return 3 * std::pow(x1, 2) - std::pow(x2, 3);
   };
-  Function devF4 = [](const Eigen::VectorXd& x)->double {
+  Function df2dx2 = [](const Eigen::VectorXd& x)->double {
     double x1 = x(0);
     double x2 = x(1);
     return -3 * x1 * std::pow(x2, 2);
   };
 
+  double answer[2] = {1.74762, 0.91472};
   ::NA::RootSolver solver;
   solver.addFunction(f1);
   solver.addFunction(f2);
   solver.setInitX({1, 1});
+  solver.setXTol(1e-4);
   solver.run();
   const std::vector<double>& sol = solver.solution();
-  printf("Without derivatives: x1 = %f, x2 = %f\n", sol[0], sol[1]);
+  printf("Without derivatives %lu iter: x1 = %f, x2 = %f\n", solver.iterCount(), sol[0], sol[1]);
+  assert(std::abs(answer[0]-sol[0]) < 1e-5 && 
+         std::abs(answer[1]-sol[1]) < 1e-5);
 
   ::NA::RootSolver solver2;
   solver2.addFunction(f1);
   solver2.addFunction(f2);
-  solver2.addDerivativeFunction(devF1);
-  solver2.addDerivativeFunction(devF2);
-  solver2.addDerivativeFunction(devF3);
-  solver2.addDerivativeFunction(devF4);
+  solver2.addDerivativeFunction(df1dx1);
+  solver2.addDerivativeFunction(df1dx2);
+  solver2.addDerivativeFunction(df2dx1);
+  solver2.addDerivativeFunction(df2dx2);
   solver2.setInitX({1, 1});
+  solver2.setXTol(1e-4);
   solver2.run();
   const std::vector<double>& sol2 = solver2.solution();
-  printf("With derivatives: x1 = %f, x2 = %f\n", sol[0], sol[1]);
+  printf("With derivatives %lu iter: x1 = %f, x2 = %f\n", solver2.iterCount(), sol[0], sol[1]);
+  assert(std::abs(answer[0]-sol2[0]) < 1e-5 && 
+         std::abs(answer[1]-sol2[1]) < 1e-5);
 }

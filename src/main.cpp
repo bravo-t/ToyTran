@@ -12,5 +12,6 @@ int main(int argc, char** argv)
   NA::NetworkAnalyzer::run(argv[1]);
 
   testRootSolver();
+
   return 0;
 }

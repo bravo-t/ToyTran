@@ -1,5 +1,6 @@
 #include <cstdio>
 #include "NetworkAnalyzer.h"
+#include "RootSolver.h"
 
 int main(int argc, char** argv) 
 {
@@ -9,5 +10,7 @@ int main(int argc, char** argv)
   }
 
   NA::NetworkAnalyzer::run(argv[1]);
+
+  testRootSolver();
   return 0;
 }

@@ -307,8 +307,8 @@ LibReader::readFile(const char* datFile)
   std::string fromPin;
   std::string toPin;
   bool isInverted;
-  NLDMArc nldmArc;
-  CCSArc ccsArc;
+  NLDMArc nldmArc(this);
+  CCSArc ccsArc(this);
   std::vector<NLDMArc> nldmData;
   std::vector<CCSArc> ccsData;
   std::string line;

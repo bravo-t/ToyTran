@@ -10,6 +10,8 @@
 
 namespace NA {
 
+static const size_t invalidId = static_cast<size_t>(-1);
+
 static size_t 
 findDeviceId(size_t nodeId1, size_t nodeId2, 
              const std::vector<Node>& nodes)
@@ -268,6 +270,8 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
   const std::string& libCell = dev._libCellName;
   const auto& pinMap = dev._pinMap;
   const std::string& gndNode = _nodes[_groundNodeId]._name;
+  size_t driverSourceId = invalidId;
+  size_t loaderCapId = invalidId;
   for (const auto& kv : pinMap) {
     const std::string& pinName = kv.first;
     const std::string& nodeName = kv.second;
@@ -275,19 +279,25 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
     if (_libData.isOutputPin(libCell, pinName)) {
       if (_param._driverModel == DriverModel::RampVoltage) {
         const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, pinName, gndNode);
-        createDevice(VRampPDev, nodeIdMap);
+        const Device& driverSource = createDevice(VRampPDev, nodeIdMap);
+        driverSourceId = driverSource._devId;
         const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, pinName, nodeName);
         createDevice(Rd, nodeIdMap);
         _driverOutputNodes.push_back(nodeId);
       } else if (_param._driverModel == DriverModel::PWLCurrent) {
         const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, pinName, gndNode, nodeName);
-        createDevice(Id, nodeIdMap);
+        const Device& driverSource = createDevice(Id, nodeIdMap);
+        driverSourceId = driverSource._devId;
         _loaderInputNodes.push_back(nodeId);
       }
     } else {
       const ParserDevice& Cl = createLoaderCapParserDevice(dev._name, pinName, gndNode, nodeName);
-      createDevice(Cl, nodeIdMap);
+      const Device& loaderCap = createDevice(Cl, nodeIdMap);
+      loaderCapId = loaderCap._devId;
     }
+  }
+  if (driverSourceId != invalidId && loaderCapId != invalidId) {
+    _devices[driverSourceId]._sampleDevice = loaderCapId;
   }
 }
 

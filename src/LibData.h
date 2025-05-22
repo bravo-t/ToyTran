@@ -6,6 +6,8 @@
 
 namespace NA {
 
+class LibData;
+
 enum class DataType {
   RiseDelay,
   FallDelay,
@@ -44,7 +46,8 @@ class NLDMLUT {
 
 class NLDMArc {
   public:
-    NLDMArc() = default;
+    NLDMArc(LibData* owner)
+    : _owner(owner) {}
 
     void reset() 
     {
@@ -70,13 +73,14 @@ class NLDMArc {
                                 _riseTransition.empty() && _fallTransition.empty(); }
 
   private:
-    std::string _fromPin;
-    std::string _toPin;
-    bool        _isInverted; /// negative_unate -> true
-    NLDMLUT     _riseDelay;
-    NLDMLUT     _fallDelay;
-    NLDMLUT     _riseTransition;
-    NLDMLUT     _fallTransition;
+    const LibData* _owner = nullptr;
+    std::string    _fromPin;
+    std::string    _toPin;
+    bool           _isInverted; /// negative_unate -> true
+    NLDMLUT        _riseDelay;
+    NLDMLUT        _fallDelay;
+    NLDMLUT        _riseTransition;
+    NLDMLUT        _fallTransition;
 };
 
 class CCSLUT {
@@ -132,7 +136,8 @@ class CCSGroup {
 
 class CCSArc {
   public:
-    CCSArc() = default;
+    CCSArc(const LibData* owner)
+    : _owner(owner) {}
 
     void reset()
     {

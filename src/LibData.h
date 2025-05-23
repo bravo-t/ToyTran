@@ -174,16 +174,17 @@ class CCSArc {
                                 _dcCurrent.empty(); }
 
   private:
-    std::string _fromPin;
-    std::string _toPin;
-    double      _riseMillerCap;
-    double      _fallMillerCap;
-    bool        _isInverted; /// negative_unate -> true
-    CCSGroup    _riseCurrent;
-    CCSGroup    _fallCurrent;
-    NLDMLUT     _riseRecvCap;
-    NLDMLUT     _fallRecvCap;
-    NLDMLUT     _dcCurrent;
+    const LibData* _owner = nullptr;
+    std::string    _fromPin;
+    std::string    _toPin;
+    double         _riseMillerCap;
+    double         _fallMillerCap;
+    bool           _isInverted; /// negative_unate -> true
+    CCSGroup       _riseCurrent;
+    CCSGroup       _fallCurrent;
+    NLDMLUT        _riseRecvCap;
+    NLDMLUT        _fallRecvCap;
+    NLDMLUT        _dcCurrent;
 };
 
 class FixedLoadCap {
@@ -227,6 +228,8 @@ class LibData {
     bool isOutputPin(const std::string& cell, const std::string& pin) const;
 
     size_t cellCount() const { return _nldmData.size(); }
+
+    std::vector<std::string> cellArcInputPins(const std::string& cell, const std::string& outPin) const;
     
   private:
     double _delayRiseThres = 50;

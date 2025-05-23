@@ -9,6 +9,26 @@
 
 namespace NA {
 
+class CellArc {
+  public: 
+    CellArc(const LibData* libData, const std::string& cellName, 
+            const std::string& fromPin, const std::string& toPin);
+
+    void setInputTranNode(size_t node) { _inputTranNode = node; }
+    void setDriverResistorId(size_t dev) { _driverResistor = dev; }
+  
+    bool empty() const { return _nldmArc == nullptr; }
+
+  private:
+    size_t         _inputTranNode = static_cast<size_t>(-1);
+    size_t         _driverResistor = static_cast<size_t>(-1);
+    std::string    _cellName;
+    std::string    _fromPin;
+    std::string    _toPin;
+    const NLDMArc* _nldmArc = nullptr;
+    const CCSArc*  _ccsArc = nullptr;
+};
+
 class Circuit {
   public:
     Circuit(const NetlistParser& parser, const AnalysisParameter& param);
@@ -40,7 +60,7 @@ class Circuit {
     std::string allNodes(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodes);
     typedef std::unordered_map<std::string, size_t> StringIdMap;
     void elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap);
-    Device createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap);
+    Device* createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap);
     void updateNodeConnection(const Device& dev);
     void buildCircuit(const NetlistParser& parser);
 
@@ -56,6 +76,7 @@ class Circuit {
     /// Currently we only allow one driver, but let's keep it more general.
     std::vector<size_t>            _driverOutputNodes;
     std::vector<size_t>            _loaderInputNodes;
+    std::vector<CellArc>           _cellArcs;
 }; 
 
 }

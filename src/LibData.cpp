@@ -277,16 +277,25 @@ readCCSLUT(std::ifstream& infile, CCSLUT& data,
 
 struct SortArcDataByPin {
   bool operator()(const NLDMArc& a, const NLDMArc& b) const {
-    if (a.fromPin() == b.fromPin()) {
-      return a.toPin() < b.toPin();
+    if (a.toPin() == b.toPin()) {
+      return a.fromPin() < b.fromPin();
     }
-    return a.fromPin() < b.fromPin();
+    return a.toPin() < b.toPin();
   }
   bool operator()(const CCSArc& a, const CCSArc& b) const {
-    if (a.fromPin() == b.fromPin()) {
-      return a.toPin() < b.toPin();
+    if (a.toPin() == b.toPin()) {
+      return a.fromPin() < b.fromPin();
     }
-    return a.fromPin() < b.fromPin();
+    return a.toPin() < b.toPin();
+  }
+  /// Used to find input pins from output pin
+  bool operator()(const NLDMArc& a, const std::string& toPinToFind) const
+  {
+    return a.toPin() < toPinToFind;
+  }
+  bool operator()(const std::string& toPinToFind, const NLDMArc& a) const
+  {
+    return toPinToFind < a.toPin();
   }
 };
 
@@ -307,8 +316,8 @@ LibReader::readFile(const char* datFile)
   std::string fromPin;
   std::string toPin;
   bool isInverted;
-  NLDMArc nldmArc(this);
-  CCSArc ccsArc(this);
+  NLDMArc nldmArc(_owner);
+  CCSArc ccsArc(_owner);
   std::vector<NLDMArc> nldmData;
   std::vector<CCSArc> ccsData;
   std::string line;
@@ -491,7 +500,7 @@ LibData::findNLDMArc(const char* cell, const char* fromPin, const char* toPin) c
     return nullptr;
   } 
   const auto& arcs = it->second;
-  NLDMArc tempArc;
+  NLDMArc tempArc(nullptr);
   tempArc.setFromToPin(fromPinStr, toPinStr, true);
   const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
   if (it2 != arcs.end() && 
@@ -513,7 +522,7 @@ LibData::findCCSArc(const char* cell, const char* fromPin, const char* toPin) co
     return nullptr;
   } 
   const auto& arcs = it->second;
-  CCSArc tempArc;
+  CCSArc tempArc(nullptr);
   tempArc.setFromToPin(fromPinStr, toPinStr, true);
   const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
   if (it2 != arcs.end() && 
@@ -553,7 +562,7 @@ LibData::findNLDMArc(const std::string& cell, const std::string& fromPin, const 
     return nullptr;
   } 
   const auto& arcs = it->second;
-  NLDMArc tempArc;
+  NLDMArc tempArc(nullptr);
   tempArc.setFromToPin(fromPin, toPin, true);
   const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
   if (it2 != arcs.end() && 
@@ -572,7 +581,7 @@ LibData::findCCSArc(const std::string& cell, const std::string& fromPin, const s
     return nullptr;
   } 
   const auto& arcs = it->second;
-  CCSArc tempArc;
+  CCSArc tempArc(nullptr);
   tempArc.setFromToPin(fromPin, toPin, true);
   const auto& it2 = std::lower_bound(arcs.begin(), arcs.end(), tempArc, SortArcDataByPin());
   if (it2 != arcs.end() && 
@@ -602,5 +611,20 @@ LibData::isOutputPin(const std::string& cell, const std::string& pin) const
   return true;
 }
 
+std::vector<std::string>
+LibData::cellArcInputPins(const std::string& cell, const std::string& outPin) const
+{
+  std::vector<std::string> inputPins;
+  const auto& it = _nldmData.find(cell);
+  if (it == _nldmData.end()) {
+    return inputPins;
+  }
+  const std::vector<NLDMArc>& nldmArcs = it->second;
+  const auto& iters = std::equal_range(nldmArcs.begin(), nldmArcs.end(), outPin, SortArcDataByPin());
+  for (auto it2 = iters.first; it2 != iters.second; ++it2) {
+    inputPins.push_back(it2->fromPin());
+  }
+  return inputPins;
+}
 
 }

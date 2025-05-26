@@ -278,24 +278,25 @@ readCCSLUT(std::ifstream& infile, CCSLUT& data,
 struct SortArcDataByPin {
   bool operator()(const NLDMArc& a, const NLDMArc& b) const {
     if (a.toPin() == b.toPin()) {
-      return a.fromPin() < b.fromPin();
+      return strcmp(a.fromPin(), b.fromPin()) < 0;
     }
-    return a.toPin() < b.toPin();
+    return strcmp(a.toPin(), b.toPin()) < 0;
   }
   bool operator()(const CCSArc& a, const CCSArc& b) const {
     if (a.toPin() == b.toPin()) {
+      return strcmp(a.fromPin(), b.fromPin()) < 0;
       return a.fromPin() < b.fromPin();
     }
-    return a.toPin() < b.toPin();
+    return strcmp(a.toPin(), b.toPin()) < 0;
   }
   /// Used to find input pins from output pin
   bool operator()(const NLDMArc& a, const std::string& toPinToFind) const
   {
-    return a.toPin() < toPinToFind;
+    return strcmp(a.toPin(), toPinToFind.data()) < 0;
   }
   bool operator()(const std::string& toPinToFind, const NLDMArc& a) const
   {
-    return toPinToFind < a.toPin();
+    return strcmp(toPinToFind.data(), a.toPin()) < 0;
   }
 };
 
@@ -407,6 +408,8 @@ LibReader::readFile(const char* datFile)
         toPin.clear();
       }
       getArcInfo(line, fromPin, toPin, isInverted);
+      nldmArc.setFromToPin(fromPin, toPin, isInverted);
+      ccsArc.setFromToPin(fromPin, toPin, isInverted);
     } else if (numSpace == 4) {
       if (line == "Rise Delay") {
         readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseDelay), timeUnit, capUnit, timeUnit);
@@ -620,7 +623,7 @@ LibData::cellArcInputPins(const std::string& cell, const std::string& outPin) co
     return inputPins;
   }
   const std::vector<NLDMArc>& nldmArcs = it->second;
-  const auto& iters = std::equal_range(nldmArcs.begin(), nldmArcs.end(), outPin, SortArcDataByPin());
+  const auto& iters = std::equal_range(nldmArcs.begin(), nldmArcs.end(), outPin, SortArcDataByPin{});
   for (auto it2 = iters.first; it2 != iters.second; ++it2) {
     inputPins.push_back(it2->fromPin());
   }

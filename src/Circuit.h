@@ -9,6 +9,8 @@
 
 namespace NA {
 
+class Circuit;
+
 class CellArc {
   public: 
     CellArc(const LibData* libData, const std::string& cellName, 
@@ -18,6 +20,8 @@ class CellArc {
     void setDriverResistorId(size_t dev) { _driverResistor = dev; }
   
     bool empty() const { return _nldmArc == nullptr; }
+
+    double inputTransition(const Circuit* ckt) const;
 
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
@@ -53,6 +57,10 @@ class Circuit {
     /// For moment scaling in PZ and TF analysis
     double scalingFactor() const { return _scalingFactor; }
     size_t order() const { return _order; }
+
+    /// Trace circuit from specified Device
+    std::vector<Device*> traceDevice(const Device* dev) const;
+    std::vector<Device*> traceDevice(size_t devId) const;
 
     void debugPrint() const;
 

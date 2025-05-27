@@ -72,6 +72,8 @@ class NLDMArc {
     bool empty() const { return _riseDelay.empty() && _fallDelay.empty() &&
                                 _riseTransition.empty() && _fallTransition.empty(); }
 
+    const LibData* owner() const { return _owner; }
+
   private:
     const LibData* _owner = nullptr;
     std::string    _fromPin;
@@ -230,6 +232,12 @@ class LibData {
     size_t cellCount() const { return _nldmData.size(); }
 
     std::vector<std::string> cellArcInputPins(const std::string& cell, const std::string& outPin) const;
+
+    double voltage() const { return _voltage; }
+    double riseTransitionLowThres() const { return _transitionRiseLowThres; }
+    double riseTransitionHighThres() const { return _transitionRiseHighThres; }
+    double fallTransitionLowThres() const { return _transitionFallLowThres; }
+    double fallTransitionHighThres() const { return _transitionFallHighThres; }
     
   private:
     double _delayRiseThres = 50;

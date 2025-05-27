@@ -8,6 +8,27 @@
 
 namespace NA {
 
+double
+Waveform::measure(double targetValue) const
+{
+  double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+  for (size_t i=1; i<_points.size(); ++i) {
+    if (_points[i-1]._value <= targetValue && _points[i]._value >= targetValue) {
+      x1 = _points[i-1]._time;
+      y1 = _points[i-1]._value;
+      x2 = _points[i]._time;
+      y2 = _points[i]._value;
+      break;
+    }
+  }
+  if (x1 == 0 && x2 == 0) {
+    return 1e99;
+  }
+  double k = (y2 - y1) / (x2 - x1);
+  double b = y1 - k * x1;
+  return (targetValue - b) / k;
+}
+
 static inline bool
 needExtraDim(const Device& dev) 
 {

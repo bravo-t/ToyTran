@@ -380,7 +380,9 @@ Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
   timespec cktEnd;
   clock_gettime(CLOCK_REALTIME, &cktEnd);
 
-  printInfo(simName(), _devices, _nodes, _libData);
+  if (_cellArcs.empty() == false) { 
+    printInfo(simName(), _devices, _nodes, _libData);
+  }
   printf("Time spent in building circuit for %s: %.3f milliseconds\n",
          simName().data(), 1e-6*timeDiffNs(cktEnd, cktStart));
 
@@ -518,13 +520,27 @@ Circuit::findNodeByName(const std::string& name) const
 {
   for (const Node& node : _nodes) {
     if (node._name == name) {
-      printf("DEBUG: Node: %s, looking for %s\n", node._name.data(), name.data());
       return node;
     }
   }
-  printf("DEBUG: looking for %s\n", name.data());
   static Node empty;
   return empty;
+}
+
+static std::vector<Device*> 
+getConnectedDevices(size_t nodeId, const Circuit* ckt)
+{
+  std::vector<Device*> devs;
+  return devs;
+}
+
+std::vector<Device*> 
+Circuit::traceDevice(size_t devId) const
+{
+  std::vector<Device*> devs;
+  const Device* dev = &device(devId);
+  
+  return devs;
 }
 
 CellArc::CellArc(const LibData* libData, const std::string& cell, 
@@ -533,6 +549,52 @@ CellArc::CellArc(const LibData* libData, const std::string& cell,
 {
   _nldmArc = libData->findNLDMArc(cell, fromPin, toPin);
   _ccsArc = libData->findCCSArc(cell, fromPin, toPin);
+}
+
+static double
+transitionTime(const PWLValue& data, double voltage, double thres1, double thres2) 
+{
+  double t1 = data.measure(voltage * thres1 / 100);
+  double t2 = data.measure(voltage * thres2 / 100);
+  if (t1 == 1e99 || t2 == 1e99) {
+    return 0;
+  }
+  return t2 - t1;
+}
+
+static double
+transitionTime(const Device* vSrc, const Circuit* ckt, const LibData* libData)
+{
+  if (vSrc->_isPWLValue == false) {
+    return 0;
+  } 
+  const PWLValue& data = ckt->PWLData(*vSrc);
+  double voltage = libData->voltage();
+  if (data.isRiseTransition()) {
+    return transitionTime(data, voltage, libData->riseTransitionLowThres(), libData->riseTransitionHighThres());
+  } else {
+    return transitionTime(data, voltage, libData->fallTransitionHighThres(), libData->fallTransitionLowThres());
+  }
+  return 0;
+}
+
+double
+CellArc::inputTransition(const Circuit* ckt) const
+{
+  const Node& inputTranNode = ckt->node(_inputTranNode);
+  const Device* inputSource = nullptr;
+  for (size_t connDevId : inputTranNode._connection) {
+    const Device& connDev = ckt->device(connDevId);
+    if (connDev._type != DeviceType::Capacitor) {
+      inputSource = &connDev;
+      break;
+    }
+  }
+  if (inputSource == nullptr) {
+    return 0;
+  }
+  const LibData* libData = _nldmArc->owner();
+  return transitionTime(inputSource, ckt, libData);
 }
 
 }

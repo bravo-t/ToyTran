@@ -144,6 +144,30 @@ struct PWLValue {
     }
     return _value.back();
   }
+  double measure(double targetValue) const
+  {
+    double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    for (size_t i=1; i<_value.size(); ++i) {
+      if (_value[i-1] <= targetValue && _value[i] >= targetValue) {
+        x1 = _time[i-1];
+        y1 = _value[i-1];
+        x2 = _time[i];
+        y2 = _value[i];
+        break;
+      }
+    }
+    if (x1 == 0 && x2 == 0) {
+      return 1e99;
+    }
+    double k = (y2 - y1) / (x2 - x1);
+    double b = y1 - k * x1;
+    return (targetValue - b) / k;
+  }
+
+  bool isRiseTransition() const 
+  {
+    return _value[0] < _value.back();
+  }
 
   std::vector<double> _time;
   std::vector<double> _value;

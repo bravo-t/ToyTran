@@ -14,6 +14,15 @@ struct WaveformPoint {
   double _value = 0;
 };
 
+struct Waveform {
+  Waveform(const std::vector<WaveformPoint>& points)
+  : _points(points) {}
+
+  double measure(double targetValue) const;
+
+  std::vector<WaveformPoint> _points;
+};
+
 
 /// @brief The map between numbers in x of Ax=b, and the actual meaning of 
 ///        the number

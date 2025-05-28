@@ -531,15 +531,50 @@ static std::vector<Device*>
 getConnectedDevices(size_t nodeId, const Circuit* ckt)
 {
   std::vector<Device*> devs;
+  const Node& node = ckt->node(nodeId);
+  if (node._isGround) {
+    return devs;
+  }
+  for (size_t devId : node._connection) {
+    const Device& dev = ckt->device(devId);
+    devs.push_back(&dev);
+  }
   return devs;
+}
+
+size_t
+getOtherSideNodeId(const Device* dev, size_t nodeId) 
+{
+  if (dev->_posNode == nodeId) {
+    return dev->_negNode;
+  } else {
+    return dev->_posNode;
+  }
 }
 
 std::vector<Device*> 
 Circuit::traceDevice(size_t devId) const
 {
+  std::unordered_set<size_t> visitedNodes;
   std::vector<Device*> devs;
   const Device* dev = &device(devId);
-  
+  std::unordered_set<size_t> wavefront;
+  std::unordered_set<size_t> nextWavefront;
+  wavefront.insert(dev->_posNode);
+  while (!wavefront.empty()) {
+    nextWavefront.clear();
+    for (size_t nodeId : wavefront) {
+      if (visitedNodes.find(nodeId) == visitedNodes.end()) {
+        const std::vector<Device*>& connDevs = getConnectedDevices(nodeId, this);
+        devs.insert(devs.end(), connDevs.begin(), connDevs.end());
+        visitedNodes.insert(nodeId);
+        for (const Device* connDev : connDevs) {
+          nextWavefront.insert(getOtherSideNodeId(connDev, nodeId));
+        }
+      }
+      wavefront.swap(nextWavefront); 
+    }
+  }
   return devs;
 }
 

@@ -43,10 +43,10 @@ calcNLDMLUTDelayTrantion(const NLDMArc* nldmData, double inputTran,
                          double outputLoad, bool isRise, 
                          double& delay, double& trans)
 {
-  LUTType delayLUTType = LUTType::CellRise;
+  LUTType delayLUTType = LUTType::RiseDelay;
   LUTType transLUTType = LUTType::RiseTransition;
   if (isRise == false) {
-    delayLUTType = LUTType::CellFall;
+    delayLUTType = LUTType::FallDelay;
     transLUTType = LUTType::FallTransition;
   }
   const NLDMLUT& delayLUT = nldmData->getLUT(delayLUTType);
@@ -58,7 +58,7 @@ calcNLDMLUTDelayTrantion(const NLDMArc* nldmData, double inputTran,
 void
 RampVDelay::initParameters()
 {
-  size_t vSrcId = _cellArc->inputSourceDevId();
+  size_t vSrcId = _cellArc->inputSourceDevId(_ckt);
   if (vSrcId == invalidId) {
     printf("Cannot find input source device on driver model\n");
     return;
@@ -98,6 +98,7 @@ bool
 RampVDelay::calculate() 
 {
   
+  return true;
 }
 
 

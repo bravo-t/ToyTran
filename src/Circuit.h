@@ -22,6 +22,11 @@ class CellArc {
     bool empty() const { return _nldmArc == nullptr; }
 
     double inputTransition(const Circuit* ckt) const;
+    size_t driverResistorId() const { return _driverResistor; }
+    size_t inputSourceDevId(const Circuit* ckt) const;
+    bool isInvertedArc() const { return _nldmArc->isInverted(); }
+    const NLDMArc* nldmData() const { return _nldmArc; }
+    const CCSArc* ccsData() const { return _ccsArc; }
 
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
@@ -59,8 +64,8 @@ class Circuit {
     size_t order() const { return _order; }
 
     /// Trace circuit from specified Device
-    std::vector<Device*> traceDevice(const Device* dev) const;
-    std::vector<Device*> traceDevice(size_t devId) const;
+    std::vector<const Device*> traceDevice(const Device* dev) const;
+    std::vector<const Device*> traceDevice(size_t devId) const;
 
     void debugPrint() const;
 

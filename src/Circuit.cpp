@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <limits>
 #include <cmath>
+#include <unordered_set>
 #include "Debug.h"
 #include "Circuit.h"
 #include "Base.h"
@@ -527,10 +528,10 @@ Circuit::findNodeByName(const std::string& name) const
   return empty;
 }
 
-static std::vector<Device*> 
+static std::vector<const Device*> 
 getConnectedDevices(size_t nodeId, const Circuit* ckt)
 {
-  std::vector<Device*> devs;
+  std::vector<const Device*> devs;
   const Node& node = ckt->node(nodeId);
   if (node._isGround) {
     return devs;
@@ -552,11 +553,11 @@ getOtherSideNodeId(const Device* dev, size_t nodeId)
   }
 }
 
-std::vector<Device*> 
+std::vector<const Device*> 
 Circuit::traceDevice(size_t devId) const
 {
   std::unordered_set<size_t> visitedNodes;
-  std::vector<Device*> devs;
+  std::vector<const Device*> devs;
   const Device* dev = &device(devId);
   std::unordered_set<size_t> wavefront;
   std::unordered_set<size_t> nextWavefront;
@@ -565,7 +566,7 @@ Circuit::traceDevice(size_t devId) const
     nextWavefront.clear();
     for (size_t nodeId : wavefront) {
       if (visitedNodes.find(nodeId) == visitedNodes.end()) {
-        const std::vector<Device*>& connDevs = getConnectedDevices(nodeId, this);
+        const std::vector<const Device*>& connDevs = getConnectedDevices(nodeId, this);
         devs.insert(devs.end(), connDevs.begin(), connDevs.end());
         visitedNodes.insert(nodeId);
         for (const Device* connDev : connDevs) {
@@ -616,20 +617,27 @@ transitionTime(const Device* vSrc, const Circuit* ckt, const LibData* libData)
 double
 CellArc::inputTransition(const Circuit* ckt) const
 {
+  size_t inputSourceId = inputSourceDevId(ckt);
+  if (inputSourceId == invalidId) {
+    return 0;
+  }
+  const Device& inputSource = ckt->device(inputSourceId);
+  const LibData* libData = _nldmArc->owner();
+  return transitionTime(&inputSource, ckt, libData);
+}
+
+size_t
+CellArc::inputSourceDevId(const Circuit* ckt) const
+{
   const Node& inputTranNode = ckt->node(_inputTranNode);
   const Device* inputSource = nullptr;
   for (size_t connDevId : inputTranNode._connection) {
     const Device& connDev = ckt->device(connDevId);
     if (connDev._type != DeviceType::Capacitor) {
-      inputSource = &connDev;
-      break;
+      return connDev._devId;
     }
   }
-  if (inputSource == nullptr) {
-    return 0;
-  }
-  const LibData* libData = _nldmArc->owner();
-  return transitionTime(inputSource, ckt, libData);
+  return invalidId;
 }
 
 }

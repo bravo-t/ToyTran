@@ -104,20 +104,77 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   return x(0) + x(1) * inputTran + x(2) * outputLoad + x(3) * inputTran * outputLoad;
 }
 
-NLDMLUT&
-NLDMArc::getLUT(DataType dataType) 
+const NLDMLUT&
+NLDMArc::getLUT(LUTType dataType) const
 {
   switch (dataType) {
-    case DataType::RiseDelay: {
+    case LUTType::RiseDelay: {
       return _riseDelay;
     }
-    case DataType::FallDelay: {
+    case LUTType::FallDelay: {
       return _fallDelay;
     } 
-    case DataType::RiseTransition: {
+    case LUTType::RiseTransition: {
       return _riseTransition;
     } 
-    case DataType::FallTransition: {
+    case LUTType::FallTransition: {
+      return _fallTransition;
+    } 
+    default:
+      assert(false);
+  }
+}
+
+const NLDMLUT&
+CCSArc::getRecvCap(LUTType dataType) const
+{
+  switch (dataType) {
+    case LUTType::RiseRecvCap: {
+      return _riseRecvCap;
+    } 
+    case LUTType::FallRecvCap: {
+      return _fallRecvCap;
+    } 
+    default:
+      assert(false);
+  }
+}
+
+const CCSGroup&
+CCSArc::getCurrent(LUTType dataType) const
+{
+  switch (dataType) {
+    case LUTType::RiseCurrent: {
+      return _riseCurrent;
+    } 
+    case LUTType::FallCurrent: {
+      return _fallCurrent;
+    }
+    default:
+      assert(false);
+  }
+}
+
+const NLDMLUT&
+CCSArc::getDCCurrent() const
+{
+  return _dcCurrent;
+}
+
+NLDMLUT&
+NLDMArc::getLUT(LUTType dataType) 
+{
+  switch (dataType) {
+    case LUTType::RiseDelay: {
+      return _riseDelay;
+    }
+    case LUTType::FallDelay: {
+      return _fallDelay;
+    } 
+    case LUTType::RiseTransition: {
+      return _riseTransition;
+    } 
+    case LUTType::FallTransition: {
       return _fallTransition;
     } 
     default:
@@ -126,13 +183,13 @@ NLDMArc::getLUT(DataType dataType)
 }
 
 NLDMLUT&
-CCSArc::getRecvCap(DataType dataType)
+CCSArc::getRecvCap(LUTType dataType)
 {
   switch (dataType) {
-    case DataType::RiseRecvCap: {
+    case LUTType::RiseRecvCap: {
       return _riseRecvCap;
     } 
-    case DataType::FallRecvCap: {
+    case LUTType::FallRecvCap: {
       return _fallRecvCap;
     } 
     default:
@@ -141,13 +198,13 @@ CCSArc::getRecvCap(DataType dataType)
 }
 
 CCSGroup&
-CCSArc::getCurrent(DataType dataType)
+CCSArc::getCurrent(LUTType dataType)
 {
   switch (dataType) {
-    case DataType::RiseCurrent: {
+    case LUTType::RiseCurrent: {
       return _riseCurrent;
     } 
-    case DataType::FallCurrent: {
+    case LUTType::FallCurrent: {
       return _fallCurrent;
     }
     default:
@@ -412,13 +469,13 @@ LibReader::readFile(const char* datFile)
       ccsArc.setFromToPin(fromPin, toPin, isInverted);
     } else if (numSpace == 4) {
       if (line == "Rise Delay") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseDelay), timeUnit, capUnit, timeUnit);
+        readNLDMLUT(infile, nldmArc.getLUT(LUTType::RiseDelay), timeUnit, capUnit, timeUnit);
       } else if (line == "Fall Delay") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::FallDelay), timeUnit, capUnit, timeUnit);
+        readNLDMLUT(infile, nldmArc.getLUT(LUTType::FallDelay), timeUnit, capUnit, timeUnit);
       } else if (line == "Rise Transition") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::RiseTransition), timeUnit, capUnit, timeUnit);
+        readNLDMLUT(infile, nldmArc.getLUT(LUTType::RiseTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "Fall Transition") {
-        readNLDMLUT(infile, nldmArc.getLUT(DataType::FallTransition), timeUnit, capUnit, timeUnit);
+        readNLDMLUT(infile, nldmArc.getLUT(LUTType::FallTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "DC Current") {
         std::string capLine;
         std::getline(infile, capLine);
@@ -431,7 +488,7 @@ LibReader::readFile(const char* datFile)
         std::getline(infile, numLine);
         numLine = trim(numLine);
         size_t tableCount = std::stoi(numLine);
-        CCSGroup& riseCurrents = ccsArc.getCurrent(DataType::RiseCurrent);
+        CCSGroup& riseCurrents = ccsArc.getCurrent(LUTType::RiseCurrent);
         for (size_t i=0; i<tableCount; ++i) {
           CCSLUT lut;
           readCCSLUT(infile, lut, timeUnit, timeUnit, capUnit, timeUnit, currentUnit);
@@ -443,7 +500,7 @@ LibReader::readFile(const char* datFile)
         std::getline(infile, numLine);
         numLine = trim(numLine);
         size_t tableCount = std::stoi(numLine);
-        CCSGroup& fallCurrents = ccsArc.getCurrent(DataType::FallCurrent);
+        CCSGroup& fallCurrents = ccsArc.getCurrent(LUTType::FallCurrent);
         for (size_t i=0; i<tableCount; ++i) {
           CCSLUT lut;
           readCCSLUT(infile, lut, timeUnit, timeUnit, capUnit, timeUnit, currentUnit);
@@ -451,9 +508,9 @@ LibReader::readFile(const char* datFile)
         }
         fallCurrents.sortTable();
       } else if (line == "Receiver Cap Rise") {
-        readNLDMLUT(infile, ccsArc.getRecvCap(DataType::RiseRecvCap), timeUnit, capUnit, timeUnit);
+        readNLDMLUT(infile, ccsArc.getRecvCap(LUTType::RiseRecvCap), timeUnit, capUnit, timeUnit);
       } else if (line == "Receiver Cap Fall") {
-        readNLDMLUT(infile, ccsArc.getRecvCap(DataType::FallRecvCap), timeUnit, capUnit, timeUnit);
+        readNLDMLUT(infile, ccsArc.getRecvCap(LUTType::FallRecvCap), timeUnit, capUnit, timeUnit);
       }
     }
   }

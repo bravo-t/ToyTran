@@ -8,7 +8,7 @@ namespace NA {
 
 class LibData;
 
-enum class DataType {
+enum class LUTType {
   RiseDelay,
   FallDelay,
   RiseTransition,
@@ -65,7 +65,8 @@ class NLDMArc {
       _toPin = toPin; 
       _isInverted = isInverted;
     }   
-    NLDMLUT& getLUT(DataType dataType);
+    NLDMLUT& getLUT(LUTType dataType);
+    const NLDMLUT& getLUT(LUTType dataType) const;
 
     const char* fromPin() const { return _fromPin.data(); }
     const char* toPin() const { return _toPin.data(); }
@@ -73,6 +74,7 @@ class NLDMArc {
                                 _riseTransition.empty() && _fallTransition.empty(); }
 
     const LibData* owner() const { return _owner; }
+    bool isInverted() const { return _isInverted; }
 
   private:
     const LibData* _owner = nullptr;
@@ -164,12 +166,16 @@ class CCSArc {
       _riseMillerCap = riseCap; _fallMillerCap = fallCap;
     }
 
-    NLDMLUT& getRecvCap(DataType dataType);
-    CCSGroup& getCurrent(DataType dataType);
+    NLDMLUT& getRecvCap(LUTType dataType);
+    CCSGroup& getCurrent(LUTType dataType);
     NLDMLUT& getDCCurrent();
+    const NLDMLUT& getRecvCap(LUTType dataType) const;
+    const CCSGroup& getCurrent(LUTType dataType) const;
+    const NLDMLUT& getDCCurrent() const; 
     
     const char* fromPin() const { return _fromPin.data(); }
     const char* toPin() const { return _toPin.data(); }
+    bool isInverted() const { return _isInverted; }
 
     bool empty() const { return _riseCurrent.empty() && _fallCurrent.empty() &&
                                 _riseRecvCap.empty() && _fallRecvCap.empty() &&
@@ -238,6 +244,8 @@ class LibData {
     double riseTransitionHighThres() const { return _transitionRiseHighThres; }
     double fallTransitionLowThres() const { return _transitionFallLowThres; }
     double fallTransitionHighThres() const { return _transitionFallHighThres; }
+    double riseDelayThres() const { return _delayRiseThres; }
+    double fallDelayThres() const { return _delayFallThres; }
     
   private:
     double _delayRiseThres = 50;

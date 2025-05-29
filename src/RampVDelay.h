@@ -1,6 +1,9 @@
 #ifndef _NA_RAMPV_DLY_H_
 #define _NA_RAMPV_DLY_H_
 
+#include "Circuit.h"
+#include "LibData.h"
+
 namespace NA {
 
 class CellArc;
@@ -9,13 +12,23 @@ class Circuit;
 class RampVDelay {
   public: 
     RampVDelay(const CellArc* cellArc, const Circuit* ckt)
-    : _cellArc(cellArc), _ckt(ckt) {}
+    : _cellArc(cellArc), _ckt(ckt), _libData(cellArc->nldmData()->owner()) {}
 
     bool calculate();
 
   private:
+    void initParameters();
+    double extrapolateDelayTime(double t50, double trans, double targetThres) const;
+
+  private:
     const CellArc* _cellArc;
     const Circuit* _ckt;
+    const LibData* _libData;
+    bool   _isRiseOnDriverPin = true;
+    double _delayThres = 50;
+    double _tranThres1 = 10;
+    double _tranThres2 = 90;
+    double _effCap = 0;
     double _tZero = 0;
     double _tDelta = 0;
     double _rd = 0;

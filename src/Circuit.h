@@ -51,6 +51,7 @@ class Circuit {
     std::vector<Device> devices() const { return _devices; }
     std::vector<PWLValue> PWLData() const { return _PWLData; }
     const PWLValue& PWLData(const Device& dev) const;
+    PWLValue& PWLData(const Device& dev);
     const Device& device(size_t id) const { return _devices[id]; }
     const Node& node(size_t id) const { return _nodes[id]; }
 

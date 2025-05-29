@@ -308,6 +308,10 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
           const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, outPin, gndNode);
           Device* driverSource = createDevice(VRampPDev, nodeIdMap);
           driverSource->_sampleDevice = _cellArcs.size();
+          driverSource->_isPWLValue = true;
+          driverSource->_PWLData = _PWLData.size();
+          PWLValue empty;
+          _PWLData.push_back(empty);
           const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, outPin, outputNode);
           Device* driverRes = createDevice(Rd, nodeIdMap);
           driverRes->_sampleDevice = _cellArcs.size();
@@ -317,6 +321,10 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
           const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, outPin, gndNode, outputNode);
           Device* driverSource = createDevice(Id, nodeIdMap);
           driverSource->_sampleDevice = _cellArcs.size();
+          driverSource->_isPWLValue = true;
+          driverSource->_PWLData = _PWLData.size();
+          PWLValue empty;
+          _PWLData.push_back(empty);
           _cellArcs.push_back(cellArcData);
         }
         _driverOutputNodes.push_back(outputNodeId);

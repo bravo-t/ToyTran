@@ -94,10 +94,38 @@ RampVDelay::extrapolateDelayTime(double t50, double trans, double targetThres) c
   return ::NA::extrapolateDelayTime(t50, _delayThres, trans, targetThres, _tranThres1, _tranThres2);
 }
 
+static inline double
+y0(double t, double tZero, double tDelta, double rd, double effCap)
+{
+  double tShift = t - tZero;
+  double tConstant = rd * effCap;
+  double inParen = 1 - exp(-tShift/tConstant);
+  double a = tConstant * inParen;
+  double b = tShift - a;
+  return b;
+}
+
+static inline double
+y(double t, double tZero, double tDelta, double rd, double effCap)
+{
+  double tShift = t - tZero;
+  if (tShift <= 0) {
+    return 0;
+  } else if (tShift < tDelta) {
+    return y0(t, tZero, tDelta, rd, effCap) / tDelta;
+  } else {
+    double y0a = y0(t, tZero, tDelta, rd, effCap);
+    double y0b = y0(t-tDelta, tZero, tDelta, rd, effCap);
+    return (y0a - y0b) / tDelta;
+  }
+}
+
+
+
 bool
 RampVDelay::calculate() 
 {
-  
+  while  
   return true;
 }
 

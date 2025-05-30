@@ -2,6 +2,8 @@
 #include <vector>
 #include <cmath>
 #include "RampVCellDelay.h"
+#include "RootSolver.h"
+#include "Debug.h"
 
 namespace NA {
 
@@ -55,6 +57,25 @@ calcNLDMLUTDelayTrantion(const NLDMArc* nldmData, double inputTran,
   trans = transLUT.value(inputTran, outputLoad);
 }
 
+void 
+RampVCellDelay::updateTParams() 
+{
+  calcNLDMLUTDelayTrantion(_cellArc->nldmData(), _inputTran, _effCap, 
+                           _isRiseOnDriverPin, _t50, _driverPinTran);
+  if (_isRiseOnDriverPin) {
+    _t20 = extrapolateDelayTime(_t50, _inputTran, delayMatchPoint);
+  } else {
+    _t20 = extrapolateDelayTime(_t50, _inputTran, 100 - delayMatchPoint);
+  }
+}
+
+void 
+RampVCellDelay::updateRd()
+{
+  double t90 = extrapolateDelayTime(_t50, _driverPinTran, rdMatchPoint);
+  _rd = (t90 - _t50) / (_effCap * log(5));
+}
+
 void
 RampVCellDelay::initParameters()
 {
@@ -66,13 +87,6 @@ RampVCellDelay::initParameters()
   const Device& vSrc = _ckt->device(vSrcId);
   const PWLValue& data = _ckt->PWLData(vSrc);
 
-  _isRiseOnDriverPin = (data.isRiseTransition() != _cellArc->isInvertedArc());
-  _effCap =  totalLoadOnDriver(_ckt, _cellArc->driverResistorId());
-  double inputTran = _cellArc->inputTransition(_ckt);
-  double t50 = 0;
-  double trans = 0;
-  calcNLDMLUTDelayTrantion(_cellArc->nldmData(), inputTran, _effCap, 
-                           _isRiseOnDriverPin, t50, trans);
   _delayThres = _libData->riseDelayThres();
   _tranThres1 = _libData->riseTransitionLowThres();
   _tranThres2 = _libData->riseTransitionHighThres();
@@ -81,11 +95,13 @@ RampVCellDelay::initParameters()
     _tranThres1 = _libData->fallTransitionHighThres();
     _tranThres2 = _libData->fallTransitionLowThres();
   }
-  double t20 = extrapolateDelayTime(t50, trans, delayMatchPoint);
-  double t90 = extrapolateDelayTime(t50, trans, rdMatchPoint);
-  _tDelta = (t50-t20)*10/3;
-  _rd = (t90 - t50) / (_effCap * log(5));
-  _tZero = t50 - 0.69*_rd*_effCap - _tDelta/2;
+  _isRiseOnDriverPin = (data.isRiseTransition() != _cellArc->isInvertedArc());
+  _effCap =  totalLoadOnDriver(_ckt, _cellArc->driverResistorId());
+  _inputTran = _cellArc->inputTransition(_ckt);
+  updateTParams();
+  updateRd();
+  _tDelta = (_t50-_t20)*10/3;
+  _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
 }
 
 double 
@@ -120,11 +136,72 @@ y(double t, double tZero, double tDelta, double rd, double effCap)
   }
 }
 
+static inline double
+effCapCharge(double tDelta, double effCap, double rd, double vdd)
+{
+  double tConstant = effCap * rd;
+  double parenA = tConstant * tDelta;
+  double parenB = tConstant * tConstant * (1-exp(-tDelta/tConstant));
+  return vdd * (parenA - parenB) / (rd * tDelta);
+}
 
+static void
+populatePWLData(double tZero, double tDelta, double vdd, 
+                bool isRise, PWLValue& pwlData)
+{
+  double v1 = 0;
+  double v2 = vdd;
+  if (isRise == false) {
+    v1 = vdd;
+    v2 = 0;
+  }
+  pwlData._time.push_back(0);
+  pwlData._value.push_back(v1);
+  pwlData._time.push_back(tZero);
+  pwlData._value.push_back(v1);
+  pwlData._time.push_back(tDelta);
+  pwlData._value.push_back(v2);
+}
+
+bool 
+RampVCellDelay::calcIteration()
+{
+  RootSolver::Function f1 = [this](const Eigen::VectorXd& x)->double {
+    return y(this->_t50, x(0), x(1), _rd, _effCap) - 0.5;
+  };
+  RootSolver::Function f2 = [this](const Eigen::VectorXd& x)->double {
+    double b = delayMatchPoint;
+    if (this->_isRiseOnDriverPin == false) {
+      b = 100 - delayMatchPoint;
+    }
+    b = b / 100;
+    return y(this->_t20, x(0), x(1), _rd, _effCap) - b;
+  };
+  RootSolver tSolver;
+  tSolver.addFunction(f1);
+  tSolver.addFunction(f2);
+  tSolver.setInitX({_tZero, _tDelta});
+  tSolver.run();
+  const std::vector<double>& sol = tSolver.solution();
+  _tZero = sol[0];
+  _tDelta = sol[1];
+  if (Debug::enabled()) {
+    printf("DEBUG: new tZero = %G, tDelta = %G solved after %lu iterations\n", _tZero, _tDelta, tSolver.iterCount());
+  }
+
+}
 
 bool
 RampVCellDelay::calculate() 
 {
+  if (Debug::enabled()) {
+    printf("DEBUG: Start calculate delay of cell arc %s : %s->%s\n", 
+      _cellArc->instance().data(), _cellArc->fromPin().data(), _cellArc->toPin().data());
+  }
+  initParameters();
+  while (true) {
+    calcIteration();
+  }
   return true;
 }
 

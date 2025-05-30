@@ -31,6 +31,10 @@ class CellArc {
 
     std::string fromPinFullName() const { return _instName + "/" + _fromPin; }
 
+    std::string instance() const { return _instName; }
+    std::string fromPin() const { return _fromPin; }
+    std::string toPin() const { return _toPin; }
+
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
     size_t         _driverResistor = static_cast<size_t>(-1);

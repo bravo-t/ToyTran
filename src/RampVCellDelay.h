@@ -18,7 +18,11 @@ class RampVCellDelay {
 
   private:
     void initParameters();
+    void updateParameters();
     double extrapolateDelayTime(double t50, double trans, double targetThres) const;
+    void updateTParams();
+    void updateRd();
+    bool calcIteration();
 
   private:
     const CellArc* _cellArc;
@@ -28,10 +32,14 @@ class RampVCellDelay {
     double _delayThres = 50;
     double _tranThres1 = 10;
     double _tranThres2 = 90;
+    double _inputTran = 0;
+    double _driverPinTran = 0;
     double _effCap = 0;
     double _tZero = 0;
     double _tDelta = 0;
     double _rd = 0;
+    double _t50 = 0;
+    double _t20 = 0;
 };
 
 }

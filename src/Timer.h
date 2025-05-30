@@ -1,6 +1,7 @@
 #ifndef _NA_TIMER_H_
 #define _NA_TIMER_H_
 
+#include <cstdint>
 #include <ctime>
 
 namespace NA {

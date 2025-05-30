@@ -13,7 +13,8 @@ class Circuit;
 
 class CellArc {
   public: 
-    CellArc(const LibData* libData, const std::string& cellName, 
+    CellArc(const LibData* libData, const std::string& instName, 
+            const std::string& cellName, 
             const std::string& fromPin, const std::string& toPin);
 
     void setInputTranNode(size_t node) { _inputTranNode = node; }
@@ -28,9 +29,12 @@ class CellArc {
     const NLDMArc* nldmData() const { return _nldmArc; }
     const CCSArc* ccsData() const { return _ccsArc; }
 
+    std::string fromPinFullName() const { return _instName + "/" + _fromPin; }
+
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
     size_t         _driverResistor = static_cast<size_t>(-1);
+    std::string    _instName;
     std::string    _cellName;
     std::string    _fromPin;
     std::string    _toPin;
@@ -67,6 +71,9 @@ class Circuit {
     /// Trace circuit from specified Device
     std::vector<const Device*> traceDevice(const Device* dev) const;
     std::vector<const Device*> traceDevice(size_t devId) const;
+
+    /// Find CellArc data
+    const CellArc* cellArc(const std::string& fromPin) const;
 
     void debugPrint() const;
 

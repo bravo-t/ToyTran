@@ -930,7 +930,7 @@ NetlistParser::processCommands(const std::string& line)
     AnalysisType analysisType = AnalysisType::FD;
     std::string analysisName;
     size_t index = 1;
-    if (strs.size() == 1) {
+    if (strs.size() % 2 == 1) {
       analysisName = "fd";
     } else {
       analysisName = strs[1];
@@ -943,6 +943,9 @@ NetlistParser::processCommands(const std::string& line)
     }
     param->_type = analysisType;
     param->_name = analysisName;
+    for (; index<strs.size(); index+=2) {
+      _delayArcs.push_back({strs[index], strs[index+1]});
+    }
   } else if (strs[0] == ".debug") {
     Debug::setLevel(numericalValue(strs[1], ""));
   } else if (strs[0] == ".option") {

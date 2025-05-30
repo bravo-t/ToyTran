@@ -1,6 +1,6 @@
 #include <cstdio>
+#include "DelayCalculator.h"
 #include "NetworkAnalyzer.h"
-#include "RootSolver.h"
 
 int main(int argc, char** argv) 
 {
@@ -10,6 +10,8 @@ int main(int argc, char** argv)
   }
 
   NA::NetworkAnalyzer::run(argv[1]);
+  /// TODO: separate delay calculator to another main file
+  NA::DelayCalculator::run(argv[1]);
 
   return 0;
 }

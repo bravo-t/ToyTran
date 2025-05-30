@@ -19,10 +19,25 @@ BIN_DIR     = .
 
 CFLAG+=-I$(SRC_DIR)/submodule/eigen
 
-SRC_LIST = main.cpp NetworkAnalyzer.cpp Plotter.cpp TR0Writer.cpp Debug.cpp \
-		   Measure.cpp RampVDelay.cpp PoleZero.cpp Simulator.cpp StepControl.cpp \
-		   SimResult.cpp Circuit.cpp MNAStamper.cpp  NetlistParser.cpp LibData.cpp \
-		   RootSolver.cpp rpoly.cpp
+SRC_LIST = main.cpp \
+		   DelayCalculator.cpp \
+		   NetworkAnalyzer.cpp \
+		   Plotter.cpp \
+		   TR0Writer.cpp \
+		   Debug.cpp \
+		   Measure.cpp \
+		   RampVDelay.cpp \
+		   RampVCellDelay.cpp \
+		   PoleZero.cpp \
+		   Simulator.cpp \
+		   StepControl.cpp \
+		   SimResult.cpp \
+		   Circuit.cpp \
+		   MNAStamper.cpp \
+		   NetlistParser.cpp \
+		   LibData.cpp \
+		   RootSolver.cpp \
+		   rpoly.cpp
 
 SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))
 SRC_FULL_LIST = $(patsubst %,$(SRC_DIR)/%,$(SRC_LIST))

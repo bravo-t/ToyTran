@@ -296,7 +296,7 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
       size_t inputNodeId = ::NA::findNodeByName(nodeIdMap, inputNode);
       const auto& foundOutputNode = pinMap.find(outPin);
       if (foundOutputNode != pinMap.end()) {
-        CellArc cellArcData(&_libData, libCell, inPin, outPin);
+        CellArc cellArcData(&_libData, dev._name, libCell, inPin, outPin);
         if (cellArcData.empty()) {
           printf("ERROR: Lib data for cell arc %s->%s of cell %s is missing\n", inPin.data(), outPin.data(), libCell.data());
           continue;
@@ -511,6 +511,16 @@ Circuit::PWLData(const Device& dev) const
   return _PWLData[dev._PWLData];
 }
 
+PWLValue&
+Circuit::PWLData(const Device& dev)
+{
+  static PWLValue empty;
+  if (dev._isPWLValue == false) {
+    return empty;
+  }
+  return _PWLData[dev._PWLData];
+}
+
 const Device& 
 Circuit::findDeviceByName(const std::string& name) const
 {
@@ -587,9 +597,20 @@ Circuit::traceDevice(size_t devId) const
   return devs;
 }
 
-CellArc::CellArc(const LibData* libData, const std::string& cell, 
+const CellArc*
+Circuit::cellArc(const std::string& fromPin) const
+{
+  for (const CellArc& arc : _cellArcs) {
+    if (arc.fromPinFullName() == fromPin) {
+      return &arc;
+    }
+  }
+  return nullptr;
+}
+
+CellArc::CellArc(const LibData* libData, const std::string& inst, const std::string& cell, 
                 const std::string& fromPin, const std::string& toPin) 
-: _cellName(cell), _fromPin(fromPin), _toPin(toPin)
+: _instName(inst), _cellName(cell), _fromPin(fromPin), _toPin(toPin)
 {
   _nldmArc = libData->findNLDMArc(cell, fromPin, toPin);
   _ccsArc = libData->findCCSArc(cell, fromPin, toPin);
@@ -638,7 +659,6 @@ size_t
 CellArc::inputSourceDevId(const Circuit* ckt) const
 {
   const Node& inputTranNode = ckt->node(_inputTranNode);
-  const Device* inputSource = nullptr;
   for (size_t connDevId : inputTranNode._connection) {
     const Device& connDev = ckt->device(connDevId);
     if (connDev._type != DeviceType::Capacitor) {

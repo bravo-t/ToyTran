@@ -8,22 +8,9 @@
 #include "Plotter.h"
 #include "Measure.h"
 #include "Timer.h"
+#include "StringUtil.h"
 
 namespace NA {
-
-std::string
-fileNameWithoutSuffix(const char* fname)
-{
-  size_t nameLength = strlen(fname);
-  size_t nameEnd = 0;
-  for (size_t i=0; i<nameLength; ++i) {
-    nameEnd = i;
-    if (fname[i] == '.') {
-      break;
-    }
-  }
-  return std::string(fname, nameEnd);
-}
 
 void
 NetworkAnalyzer::run(const char* inFile) 
@@ -34,6 +21,9 @@ NetworkAnalyzer::run(const char* inFile)
   std::vector<NA::SimResult> results;
   const std::vector<NA::AnalysisParameter>& params = parser.analysisParameters();
   for (const NA::AnalysisParameter& param : params) {
+    if (param._type == NA::AnalysisType::FD) {
+      continue;
+    }
     circuits.push_back(NA::Circuit(parser, param));
     const NA::Circuit& circuit = circuits.back();
     switch (param._type) {

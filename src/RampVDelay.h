@@ -1,37 +1,28 @@
 #ifndef _NA_RAMPV_DLY_H_
 #define _NA_RAMPV_DLY_H_
 
+#include <tuple>
+#include <vector>
+#include "Base.h"
+#include "NetlistParser.h"
 #include "Circuit.h"
-#include "LibData.h"
 
 namespace NA {
 
-class CellArc;
-class Circuit;
+typedef std::pair<const CellArc*, const CellArc*> ArcPair;
 
 class RampVDelay {
-  public: 
-    RampVDelay(const CellArc* cellArc, const Circuit* ckt)
-    : _cellArc(cellArc), _ckt(ckt), _libData(cellArc->nldmData()->owner()) {}
+  public:
+    RampVDelay(const AnalysisParameter& param, const NetlistParser& parser);
 
-    bool calculate();
-
-  private:
-    void initParameters();
-    double extrapolateDelayTime(double t50, double trans, double targetThres) const;
+    void calculate();
 
   private:
-    const CellArc* _cellArc;
-    const Circuit* _ckt;
-    const LibData* _libData;
-    bool   _isRiseOnDriverPin = true;
-    double _delayThres = 50;
-    double _tranThres1 = 10;
-    double _tranThres2 = 90;
-    double _effCap = 0;
-    double _tZero = 0;
-    double _tDelta = 0;
-    double _rd = 0;
+    void calculateArc(const CellArc* driverArc, const CellArc* loaderArc);
+
+  private:
+    Circuit _ckt;
+    std::vector<ArcPair> _cellArcs;
 };
 
 }

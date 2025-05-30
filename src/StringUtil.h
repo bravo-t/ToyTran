@@ -76,6 +76,20 @@ iequals(const std::string& a, const std::string& b)
          std::equal(a.begin(), a.end(), b.begin(), ichar_equals);
 }
 
+inline std::string
+fileNameWithoutSuffix(const char* fname)
+{
+  size_t nameLength = strlen(fname);
+  size_t nameEnd = 0;
+  for (size_t i=0; i<nameLength; ++i) {
+    nameEnd = i;
+    if (fname[i] == '.') {
+      break;
+    }
+  }
+  return std::string(fname, nameEnd);
+}
+
 
 }
 

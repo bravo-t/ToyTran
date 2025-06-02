@@ -312,6 +312,7 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
           driverSource->_PWLData = _PWLData.size();
           PWLValue empty;
           _PWLData.push_back(empty);
+          cellArcData.setDriverSourceId(driverSource->_devId);
           const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, outPin, outputNode);
           Device* driverRes = createDevice(Rd, nodeIdMap);
           driverRes->_sampleDevice = _cellArcs.size();

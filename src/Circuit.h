@@ -19,11 +19,13 @@ class CellArc {
 
     void setInputTranNode(size_t node) { _inputTranNode = node; }
     void setDriverResistorId(size_t dev) { _driverResistor = dev; }
+    void setDriverSourceId(size_t dev) { _driverSource = dev; }
   
     bool empty() const { return _nldmArc == nullptr; }
 
     double inputTransition(const Circuit* ckt) const;
     size_t driverResistorId() const { return _driverResistor; }
+    size_t driverSourceId() const { return _driverSource; }
     size_t inputSourceDevId(const Circuit* ckt) const;
     bool isInvertedArc() const { return _nldmArc->isInverted(); }
     const NLDMArc* nldmData() const { return _nldmArc; }
@@ -38,6 +40,7 @@ class CellArc {
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
     size_t         _driverResistor = static_cast<size_t>(-1);
+    size_t         _driverSource = static_cast<size_t>(-1);
     std::string    _instName;
     std::string    _cellName;
     std::string    _fromPin;
@@ -61,6 +64,7 @@ class Circuit {
     const PWLValue& PWLData(const Device& dev) const;
     PWLValue& PWLData(const Device& dev);
     const Device& device(size_t id) const { return _devices[id]; }
+    Device& device(size_t id) { return _devices[id]; }
     const Node& node(size_t id) const { return _nodes[id]; }
 
     const Device& findDeviceByName(const std::string& name) const;

@@ -3,6 +3,7 @@
 #include <cmath>
 #include "RampVCellDelay.h"
 #include "RootSolver.h"
+#include "Simulator.h"
 #include "Debug.h"
 
 namespace NA {
@@ -136,15 +137,6 @@ y(double t, double tZero, double tDelta, double rd, double effCap)
   }
 }
 
-static inline double
-effCapCharge(double tDelta, double effCap, double rd, double vdd)
-{
-  double tConstant = effCap * rd;
-  double parenA = tConstant * tDelta;
-  double parenB = tConstant * tConstant * (1-exp(-tDelta/tConstant));
-  return vdd * (parenA - parenB) / (rd * tDelta);
-}
-
 static void
 populatePWLData(double tZero, double tDelta, double vdd, 
                 bool isRise, PWLValue& pwlData)
@@ -163,7 +155,72 @@ populatePWLData(double tZero, double tDelta, double vdd,
   pwlData._value.push_back(v2);
 }
 
-bool 
+static inline double
+chargeInTimeInterval(double I0, double I1, double timeInterval)
+{
+  return (I0 + I1) * timeInterval / 2;
+}
+
+static double
+totalCharge(const std::vector<WaveformPoint>& waveform)
+{
+  double charge = 0;
+  double prevT = 0;
+  double prevI = 0;
+  for (const WaveformPoint& p : waveform) {
+    charge += chargeInTimeInterval(prevI, p._value, p._time - prevT);
+    prevT = p._time;
+    prevI = p._value;
+  }
+  return charge;
+}
+
+static double
+simCapCharge(const SimResult& result, const Device& device)
+{
+  if (device._type != DeviceType::Resistor && device._type != DeviceType::VoltageSource) {
+    printf("ERROR: total charge calculation is only supported on resistors and voltage sources\n");
+    return 0;
+  }
+  if (device._type == DeviceType::Resistor) {
+    const std::vector<WaveformPoint>& posWaveform = result.nodeVoltageWaveform(device._posNode);
+    const std::vector<WaveformPoint>& negWaveform = result.nodeVoltageWaveform(device._negNode);
+    std::vector<WaveformPoint> currentWaveform;
+    currentWaveform.reserve(posWaveform.size());
+    for (size_t i = 0; i < posWaveform.size(); ++i) {
+      const WaveformPoint& posData = posWaveform[i];
+      const WaveformPoint& negData = negWaveform[i];
+      currentWaveform.push_back({posData._time, (posData._value - negData._value)/device._value});
+      return totalCharge(currentWaveform);
+    }
+  } else {
+    const std::vector<WaveformPoint>& currentWaveform = result.deviceCurrentWaveform(device._devId);
+    return totalCharge(currentWaveform);
+  }
+  return 0;
+}
+
+static inline double
+effCapCharge(double tDelta, double effCap, double rd, double vdd)
+{
+  double tConstant = effCap * rd;
+  double parenA = tConstant * tDelta;
+  double parenB = tConstant * tConstant * (1-exp(-tDelta/tConstant));
+  return vdd * (parenA - parenB) / (rd * tDelta);
+}
+
+void
+RampVCellDelay::updateCircuit()
+{
+  Device& driverResistor = _ckt->device(_cellArc->driverResistorId());
+  driverResistor._value = _rd;
+  const Device& driverSource = _ckt->device(_cellArc->driverSourceId());
+  PWLValue& driverData = _ckt->PWLData(driverSource);
+  double vdd = _cellArc->nldmData()->owner()->voltage();
+  populatePWLData(_tZero, _tDelta, vdd, _isRiseOnDriverPin, driverData);
+}
+
+double
 RampVCellDelay::calcIteration()
 {
   RootSolver::Function f1 = [this](const Eigen::VectorXd& x)->double {
@@ -188,7 +245,34 @@ RampVCellDelay::calcIteration()
   if (Debug::enabled()) {
     printf("DEBUG: new tZero = %G, tDelta = %G solved after %lu iterations\n", _tZero, _tDelta, tSolver.iterCount());
   }
-
+  updateCircuit();
+  AnalysisParameter simParam;
+  simParam._type = AnalysisType::Tran;
+  simParam._simTime = (_tZero + _tDelta) * 1.2;
+  simParam._simTick = simParam._simTime / 1000;
+  simParam._intMethod = IntegrateMethod::Trapezoidal;
+  Simulator sim(*_ckt, simParam);
+  if (Debug::enabled()) {
+    printf("DEBUG: start transient simualtion\n");
+  }
+  sim.run();
+  const SimResult& simResult = sim.simulationResult();
+  const Device& driverSource = _ckt->device(_cellArc->driverSourceId());
+  double totalCharge = simCapCharge(simResult, driverSource);
+  double vdd = _cellArc->nldmData()->owner()->voltage();
+  RootSolver::Function fEffCap = [this, totalCharge, vdd](const Eigen::VectorXd& x)->double {
+    return effCapCharge(this->_tDelta, x(0), _rd, vdd) - totalCharge;
+  };
+  RootSolver cSolver;
+  cSolver.addFunction(fEffCap);
+  cSolver.setInitX({_effCap});
+  cSolver.run();
+  const std::vector<double>& solvedCap = cSolver.solution();
+  double newEffCap = solvedCap[0];
+  if (Debug::enabled()) {
+    printf("DEBUG: new effCap calculated to be %G with total charge of %G in %lu iterations\n", newEffCap, totalCharge, cSolver.iterCount());
+  }
+  return newEffCap;
 }
 
 bool
@@ -200,7 +284,7 @@ RampVCellDelay::calculate()
   }
   initParameters();
   while (true) {
-    calcIteration();
+    _effCap = calcIteration();
   }
   return true;
 }

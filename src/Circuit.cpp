@@ -592,8 +592,8 @@ Circuit::traceDevice(size_t devId) const
           nextWavefront.insert(getOtherSideNodeId(connDev, nodeId));
         }
       }
-      wavefront.swap(nextWavefront); 
     }
+    wavefront.swap(nextWavefront); 
   }
   return devs;
 }

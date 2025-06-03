@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstddef>
 #include <fstream>
 #include <algorithm>
@@ -6,6 +7,7 @@
 #include <Eigen/Dense>
 #include "LibData.h"
 #include "StringUtil.h"
+#include "Debug.h"
 
 namespace NA {
     
@@ -83,6 +85,13 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   double y2 = _index2[index2+1];
   double z1, z2, z3, z4;
   indexValues(_values, index1, index2, index2Dim, z1, z2, z3, z4);
+  if (false) {
+    printf("DEBUG: inputTran: %G ([%G, %G]), outputLoad: %G ([%G, %G])\n", 
+           inputTran, x1, x2, outputLoad, y1, y2);
+    printf("DEBUG:                    (X1) %.6G      (X2) %.6G\n", x1, x2);
+    printf("DEBUG: (Y1) %.6G         (Z1) %.6G      (Z2) %.6G\n", y1, z1, z2);
+    printf("DEBUG: (Y2) %.6G         (Z3) %.6G      (Z4) %.6G\n", x2, z3, z4);
+  }
   /*
                (X)  x1      (X)  x2
   (Y)  y1      (Z)  z1      (Z)  z2

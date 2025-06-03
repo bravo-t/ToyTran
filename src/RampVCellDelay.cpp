@@ -64,9 +64,9 @@ RampVCellDelay::updateTParams()
   calcNLDMLUTDelayTrantion(_cellArc->nldmData(), _inputTran, _effCap, 
                            _isRiseOnDriverPin, _t50, _driverPinTran);
   if (_isRiseOnDriverPin) {
-    _t20 = extrapolateDelayTime(_t50, _inputTran, delayMatchPoint);
+    _t20 = extrapolateDelayTime(_t50, _driverPinTran, delayMatchPoint);
   } else {
-    _t20 = extrapolateDelayTime(_t50, _inputTran, 100 - delayMatchPoint);
+    _t20 = extrapolateDelayTime(_t50, _driverPinTran, 100 - delayMatchPoint);
   }
 }
 
@@ -88,21 +88,26 @@ RampVCellDelay::initParameters()
   const Device& vSrc = _ckt->device(vSrcId);
   const PWLValue& data = _ckt->PWLData(vSrc);
 
-  _delayThres = _libData->riseDelayThres();
-  _tranThres1 = _libData->riseTransitionLowThres();
-  _tranThres2 = _libData->riseTransitionHighThres();
-  if (_isRiseOnDriverPin == false) {
+  _isRiseOnDriverPin = (data.isRiseTransition() != _cellArc->isInvertedArc());
+  if (_isRiseOnDriverPin) {
+    _delayThres = _libData->riseDelayThres();
+    _tranThres1 = _libData->riseTransitionLowThres();
+    _tranThres2 = _libData->riseTransitionHighThres();
+  } else {
     _delayThres = _libData->fallDelayThres();
     _tranThres1 = _libData->fallTransitionHighThres();
     _tranThres2 = _libData->fallTransitionLowThres();
   }
-  _isRiseOnDriverPin = (data.isRiseTransition() != _cellArc->isInvertedArc());
   _effCap =  totalLoadOnDriver(_ckt, _cellArc->driverResistorId());
   _inputTran = _cellArc->inputTransition(_ckt);
   updateTParams();
   updateRd();
   _tDelta = (_t50-_t20)*10/3;
   _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
+  if (Debug::enabled()) {
+    printf("DEBUG: Init params: inTran: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
+           _inputTran, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);
+  }
 }
 
 double 
@@ -285,6 +290,12 @@ RampVCellDelay::calculate()
   initParameters();
   while (true) {
     _effCap = calcIteration();
+    updateTParams();
+    updateRd();
+    if (Debug::enabled()) {
+      printf("DEBUG: T50 updated to %G, output transition to %G, T20 to %G, Rd to %G\n", 
+             _t50, _driverPinTran, _t20, _rd);
+    }
   }
   return true;
 }

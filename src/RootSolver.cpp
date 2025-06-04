@@ -1,4 +1,5 @@
 #include "RootSolver.h"
+#include "Debug.h"
 
 namespace NA {
 
@@ -119,6 +120,11 @@ RootSolver::run()
     }
     Eigen::VectorXd d = Jac.partialPivLu().solve(f);
     _x -= d;
+    if (Debug::enabled()) {
+      Debug::printEquation(Jac, f);
+      Debug::printSolution("d", d);
+      Debug::printSolution("x-d", _x);
+    }
     converged = true;
     for (Eigen::Index i=0; i<_x.rows(); ++i) {
       if (std::abs(d(i)) > std::abs(_x(i)) * _xTol) {

@@ -36,7 +36,7 @@ extrapolateDelayTime(double tDelay, double delayThres,
                      double trans, double targetThres, 
                      double tranThres1, double tranThres2)
 {
-  double trans100 = trans / (100/tranThres2 - 100/tranThres1);
+  double trans100 = trans / (tranThres2-tranThres1) * 100;
   double zeroTime = tDelay - trans100/(100/delayThres);
   return zeroTime + targetThres*trans100/100;
 }
@@ -63,11 +63,7 @@ RampVCellDelay::updateTParams()
 {
   calcNLDMLUTDelayTrantion(_cellArc->nldmData(), _inputTran, _effCap, 
                            _isRiseOnDriverPin, _t50, _driverPinTran);
-  if (_isRiseOnDriverPin) {
-    _t20 = extrapolateDelayTime(_t50, _driverPinTran, delayMatchPoint);
-  } else {
-    _t20 = extrapolateDelayTime(_t50, _driverPinTran, 100 - delayMatchPoint);
-  }
+  _t20 = extrapolateDelayTime(_t50, _driverPinTran, delayMatchPoint);
 }
 
 void 
@@ -104,6 +100,7 @@ RampVCellDelay::initParameters()
   updateRd();
   _tDelta = (_t50-_t20)*10/3;
   _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
+  if (_tZero < 0) _tZero = 0;
   if (Debug::enabled()) {
     printf("DEBUG: Init params: inTran: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
            _inputTran, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);
@@ -113,7 +110,13 @@ RampVCellDelay::initParameters()
 double 
 RampVCellDelay::extrapolateDelayTime(double t50, double trans, double targetThres) const
 {
-  return ::NA::extrapolateDelayTime(t50, _delayThres, trans, targetThres, _tranThres1, _tranThres2);
+  if (_isRiseOnDriverPin) {
+    return ::NA::extrapolateDelayTime(t50, _delayThres, trans, targetThres, 
+                                      _tranThres1, _tranThres2);
+  } else {
+    return ::NA::extrapolateDelayTime(t50, _delayThres, trans, targetThres, 
+                                      _tranThres2, _tranThres1);
+  }
 }
 
 static inline double

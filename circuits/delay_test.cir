@@ -1,11 +1,11 @@
 .lib circuits/INVx2_ASAP7_75t_R.dat
 VVdd POS GND pwl(
-  0 0 
-  10ps 0.77)
+  0 0.77
+  0.25ns 0)
 Xdriver INVx2_ASAP7_75t_R A POS Y N1
-CC1 N1 GND 1E-14
-RR1 N1 N2 1000
-CC2 N2 GND 1E-14
+CC1 N1 GND 0.71E-12
+RR1 N1 N2 312
+CC2 N2 GND 0.24E-12
 Xloader INVx2_ASAP7_75t_R A N2 Y GND
 
 .delay Xdriver/A Xloader/A

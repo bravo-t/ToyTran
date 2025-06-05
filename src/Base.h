@@ -148,7 +148,8 @@ struct PWLValue {
   {
     double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
     for (size_t i=1; i<_value.size(); ++i) {
-      if (_value[i-1] <= targetValue && _value[i] >= targetValue) {
+      if ((_value[i-1] <= targetValue && _value[i] >= targetValue) ||
+          (_value[i-1] >= targetValue && _value[i] <= targetValue)) {
         x1 = _time[i-1];
         y1 = _value[i-1];
         x2 = _time[i];

@@ -235,11 +235,7 @@ RampVCellDelay::calcIteration()
     return y(this->_t50, x(0), x(1), _rd, _effCap) - 0.5;
   };
   RootSolver::Function f2 = [this](const Eigen::VectorXd& x)->double {
-    double b = delayMatchPoint;
-    if (this->_isRiseOnDriverPin == false) {
-      b = 100 - delayMatchPoint;
-    }
-    b = b / 100;
+    double b = delayMatchPoint / 100;
     return y(this->_t20, x(0), x(1), _rd, _effCap) - b;
   };
   RootSolver tSolver;

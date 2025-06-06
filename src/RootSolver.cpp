@@ -47,8 +47,9 @@ calcNumericalDerivative(const Function& func,
 {
   double h = 1e-6;
   Eigen::VectorXd xCP = x;
-  xCP(varIndex) += h;
-  double result = (func(xCP) - func(x)) / h;
+  double hVar = xCP(varIndex) * h;
+  xCP(varIndex) += hVar;
+  double result = (func(xCP) - func(x)) / hVar;
   return result;
 }
 

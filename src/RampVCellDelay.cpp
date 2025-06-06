@@ -102,8 +102,8 @@ RampVCellDelay::initParameters()
   _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
   if (_tZero < 0) _tZero = 0;
   if (Debug::enabled()) {
-    printf("DEBUG: Init params: inTran: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
-           _inputTran, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);
+    printf("DEBUG: Init params: inTran: %G, Rd: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
+           _inputTran, _rd, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);
   }
 }
 

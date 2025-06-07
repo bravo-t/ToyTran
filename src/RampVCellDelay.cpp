@@ -149,6 +149,8 @@ static void
 populatePWLData(double tZero, double tDelta, double vdd, 
                 bool isRise, PWLValue& pwlData)
 {
+  pwlData._time.clear();
+  pwlData._value.clear();
   double v1 = 0;
   double v2 = vdd;
   if (isRise == false) {

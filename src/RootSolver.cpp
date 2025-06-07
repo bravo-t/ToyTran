@@ -119,7 +119,7 @@ RootSolver::run()
     for (Eigen::Index i=0; i<_x.rows(); ++i) {
       f(i) = _functions[i](_x);
     }
-    Eigen::VectorXd d = Jac.fullPivLu().solve(f);
+    Eigen::VectorXd d = Jac.partialPivLu().solve(f);
     _x -= d;
     if (Debug::enabled()) {
       Debug::printEquation(Jac, f);

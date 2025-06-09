@@ -15,7 +15,7 @@ static double rdMatchPoint = 90;
 double
 totalLoadOnDriver(const Circuit* ckt, size_t rdId)
 {
-  const std::vector<const Device*> connDevs = ckt->traceDevice(rdId);
+  const std::vector<const Device*>& connDevs = ckt->traceDevice(rdId);
   double totalCap = 0;
   for (const Device* dev : connDevs) {
     if (dev->_type == DeviceType::Capacitor) {
@@ -74,6 +74,18 @@ RampVCellDelay::updateRd()
 }
 
 void
+RampVCellDelay::updateLoadCaps()
+{
+  size_t rdId = _cellArc->driverResistorId();
+  const std::vector<const Device*>& connDevs = _ckt->traceDevice(rdId);
+  for (const Device* dev : connDevs) {
+    if (dev->_isInternal && dev->_type == DeviceType::Capacitor) {
+      
+    }
+  }
+}
+
+void
 RampVCellDelay::initParameters()
 {
   size_t vSrcId = _cellArc->inputSourceDevId(_ckt);
@@ -101,7 +113,7 @@ RampVCellDelay::initParameters()
   _tDelta = (_t50-_t20)*10/3;
   _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
   if (_tZero < 0) _tZero = 0;
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: Init params: inTran: %G, Rd: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
            _inputTran, _rd, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);
   }
@@ -248,7 +260,7 @@ RampVCellDelay::calcIteration()
   const std::vector<double>& sol = tSolver.solution();
   _tZero = sol[0];
   _tDelta = sol[1];
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new tZero = %G, tDelta = %G solved after %lu iterations\n", _tZero, _tDelta, tSolver.iterCount());
   }
   updateCircuit();
@@ -258,7 +270,7 @@ RampVCellDelay::calcIteration()
   simParam._simTick = simParam._simTime / 1000;
   simParam._intMethod = IntegrateMethod::Trapezoidal;
   Simulator sim(*_ckt, simParam);
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: start transient simualtion\n");
   }
   sim.run();
@@ -275,7 +287,7 @@ RampVCellDelay::calcIteration()
   cSolver.run();
   const std::vector<double>& solvedCap = cSolver.solution();
   double newEffCap = solvedCap[0];
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new effCap calculated to be %G with total charge of %G in %lu iterations\n", newEffCap, totalCharge, cSolver.iterCount());
   }
   return newEffCap;
@@ -284,7 +296,7 @@ RampVCellDelay::calcIteration()
 bool
 RampVCellDelay::calculate() 
 {
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: Start calculate delay of cell arc %s : %s->%s\n", 
       _cellArc->instance().data(), _cellArc->fromPin().data(), _cellArc->toPin().data());
   }
@@ -293,7 +305,7 @@ RampVCellDelay::calculate()
     _effCap = calcIteration();
     updateTParams();
     updateRd();
-    if (Debug::enabled()) {
+    if (Debug::enabled(DebugModule::NLDM)) {
       printf("DEBUG: T50 updated to %G, output transition to %G, T20 to %G, Rd to %G\n", 
              _t50, _driverPinTran, _t20, _rd);
     }

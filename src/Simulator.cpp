@@ -56,7 +56,7 @@ Simulator::updateEquation()
   } else {
     MNAStamper stamper(_param, _circuit, _result);
     stamper.updateb(_b, integrateMethod());
-    if (Debug::enabled()) {
+    if (Debug::enabled(DebugModule::Sim)) {
       double prevTime = _result.ticks().back();
       Debug::printVector(prevTime+simulationTick(), "b", _b);
     }
@@ -76,7 +76,7 @@ Simulator::formulateEquation()
 
   Eigen::MatrixXd A = G + C;
   
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::Sim)) {
     Debug::printEquation(A, _b);
     /*Eigen::EigenSolver<Eigen::MatrixXd> es(A);
     printf("Eigenvalues of A: \n");
@@ -109,7 +109,7 @@ Simulator::solveEquation()
   }
   ticks.push_back(prevTime + simulationTick());
   values.insert(values.end(), x.begin(), x.end());
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::Sim)) {
     Debug::printSolution(prevTime+simulationTick(), "x", x, _result.indexMap(), _circuit);
   }
 }

@@ -121,7 +121,7 @@ RootSolver::run()
     }
     Eigen::VectorXd d = Jac.partialPivLu().solve(f);
     _x -= d;
-    if (Debug::enabled()) {
+    if (Debug::enabled(DebugModule::Root)) {
       Debug::printEquation(Jac, f);
       Debug::printSolution("d", d);
       Debug::printSolution("x-d", _x);

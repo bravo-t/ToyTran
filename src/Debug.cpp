@@ -4,7 +4,7 @@
 
 namespace NA {
 
-size_t Debug::_level = 0;
+std::unordered_map<DebugModule, size_t> Debug::_debugMap;
 
 const int debugDigits = 5;
 const int debugDigitLength = 8;

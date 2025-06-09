@@ -63,7 +63,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
   Vprev = GLU.solve(E);
   inputMoments.push_back(Vprev(inputIndex) / k);
   outputMoments.push_back(Vprev(outputIndex) / k);
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::PZ)) {
     Debug::printEquation(G, E);
     Debug::printSolution(0, "V0", Vprev, _result.indexMap(), _circuit);
     Debug::printEquation(C, E);
@@ -74,7 +74,7 @@ PoleZeroAnalysis::calcMoments(const MatrixXd& G,
     V = GLU.solve(RHS);
     inputMoments.push_back(V(inputIndex) / k);
     outputMoments.push_back(V(outputIndex) / k);
-    if (Debug::enabled()) {
+    if (Debug::enabled(DebugModule::PZ)) {
       char buf[50];
       sprintf(buf, "V%lu", i);
       Debug::printEquation(G, RHS);
@@ -106,7 +106,7 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
   }
   Eigen::FullPivLU<Eigen::MatrixXd> LU = M.fullPivLu();
   Eigen::VectorXd B = LU.solve(V);
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::PZ)) {
     Debug::printEquation(M, V);
     Debug::printSolution("B", B);
     //std::cout << DEBUG << std::endl;
@@ -119,7 +119,7 @@ PoleZeroAnalysis::calcTFDenominatorCoeff(const std::vector<double>& moments,
     coeff.push_back(B(i));
   }
   coeff.push_back(1.0);
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::PZ)) {
     printf("Denominator coeffcients in decreasing order:\n");
     for (double c : coeff) printf("%.6G ", c);
     printf("\n");
@@ -147,7 +147,7 @@ PoleZeroAnalysis::calcTFNumeratorCoeff(const std::vector<double>& moments,
     coeff[order-1-i] = a;
     //printf("\n");
   }
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::PZ)) {
     printf("Numerator coeffcients in decreasing order:\n");
     for (double c : coeff) printf("%.6f ", c);
     printf("\n");
@@ -234,7 +234,7 @@ PoleZeroAnalysis::calcResidues(const std::vector<Complex>& poles,
   }
   Eigen::FullPivLU<Eigen::MatrixXcd> LU = P.fullPivLu();
   Eigen::VectorXcd R = LU.solve(M);
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::PZ)) {
     Debug::printEquation(P, M);
     Debug::printSolution("R", R);
   }

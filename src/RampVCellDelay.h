@@ -22,6 +22,7 @@ class RampVCellDelay {
     double extrapolateDelayTime(double t50, double trans, double targetThres) const;
     void updateTParams();
     void updateRd();
+    void updateLoadCaps();
     double calcIteration();
     void updateCircuit();
 

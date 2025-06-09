@@ -97,7 +97,7 @@ addInternalPosNodeForGate(StringIdMap& countMap, const ParserDevice& dev, const 
       /// so increment it twice
       incrCountMap(countMap, internalNode);
       incrCountMap(countMap, internalNode);
-      if (Debug::enabled()) {
+      if (Debug::enabled(DebugModule::Circuit)) {
         printf("Created internal node %s\n", internalNode.data());
       }
     }
@@ -200,7 +200,7 @@ createDriverVoltageSourceParserDevice(const std::string& inst, const std::string
   dev._type = DeviceType::VoltageSource;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -214,7 +214,7 @@ createDriverResistorParserDevice(const std::string& inst, const std::string& pin
   dev._type = DeviceType::Resistor;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -229,7 +229,7 @@ createDriverCurrentSourceParserDevice(const std::string& inst, const std::string
   dev._type = DeviceType::CurrentSource;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -244,7 +244,7 @@ createLoaderCapParserDevice(const std::string& inst, const std::string& pin,
   dev._type = DeviceType::Capacitor;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -400,7 +400,7 @@ Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
   printf("Time spent in building circuit for %s: %.3f milliseconds\n",
          simName().data(), 1e-6*timeDiffNs(cktEnd, cktStart));
 
-  if (Debug::enabled()) {
+  if (Debug::enabled(DebugModule::Circuit)) {
     debugPrint();
   }
 }

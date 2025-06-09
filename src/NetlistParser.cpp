@@ -849,6 +849,20 @@ processMeasureCmds(const std::string& line,
 }
 
 void
+processDebugOption(std::vector<std::string>& strs)
+{
+  if (strs.size() == 2) {
+    Debug::setLevel(DebugModule::All, numericalValue(strs[1], ""));
+    return;
+  }
+  for (size_t i=2; i<strs.size(); ++i) {
+    DebugModule m = Debug::stringToDebugModule(strs[i-1]);
+    size_t l = numericalValue(strs[i], "");
+    Debug::setLevel(m, l);
+  }
+}
+
+void
 NetlistParser::processCommands(const std::string& line) 
 {
   std::vector<std::string> strs;
@@ -947,7 +961,7 @@ NetlistParser::processCommands(const std::string& line)
       _delayArcs.push_back({strs[index], strs[index+1]});
     }
   } else if (strs[0] == ".debug") {
-    Debug::setLevel(numericalValue(strs[1], ""));
+    processDebugOption(strs);
   } else if (strs[0] == ".option") {
     processOption(line);
   } else if (strs[0] == ".plot") {

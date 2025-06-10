@@ -944,7 +944,7 @@ NetlistParser::processCommands(const std::string& line)
     AnalysisType analysisType = AnalysisType::FD;
     std::string analysisName;
     size_t index = 1;
-    if (strs.size() % 2 == 1) {
+    if (strs.size() % 2 == 0) {
       analysisName = "fd";
     } else {
       analysisName = strs[1];

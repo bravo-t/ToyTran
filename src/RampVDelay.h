@@ -9,7 +9,6 @@
 
 namespace NA {
 
-typedef std::pair<const CellArc*, const CellArc*> ArcPair;
 
 class RampVDelay {
   public:
@@ -18,11 +17,11 @@ class RampVDelay {
     void calculate();
 
   private:
-    void calculateArc(const CellArc* driverArc, const CellArc* loaderArc);
+    void calculateArc(const CellArc* driverArc);
 
   private:
     Circuit _ckt;
-    std::vector<ArcPair> _cellArcs;
+    std::vector<const CellArc*> _cellArcs;
 };
 
 }

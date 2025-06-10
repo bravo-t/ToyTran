@@ -284,58 +284,64 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
   }
   for (const std::string& outPin : outputPins) {
     const std::vector<std::string>& inputPins = _libData.cellArcInputPins(libCell, outPin);
-    assert(inputPins.size() < 2 && "Multiple fanin cell arcs are beyond the scope of this code");
     if (inputPins.empty()) {
       printf("ERROR: Lib data for cell arc to pin %s of cell %s is missing\n", outPin.data(), libCell.data());
       continue;
     }
-    const std::string& inPin = inputPins[0];
-    const auto& foundInputNode = pinMap.find(inPin);
-    if (foundInputNode != pinMap.end()) {
-      const std::string& inputNode = foundInputNode->second;
-      size_t inputNodeId = ::NA::findNodeByName(nodeIdMap, inputNode);
-      const auto& foundOutputNode = pinMap.find(outPin);
-      if (foundOutputNode != pinMap.end()) {
-        CellArc cellArcData(&_libData, dev._name, libCell, inPin, outPin);
-        if (cellArcData.empty()) {
-          printf("ERROR: Lib data for cell arc %s->%s of cell %s is missing\n", inPin.data(), outPin.data(), libCell.data());
-          continue;
-        }
-        cellArcData.setInputTranNode(inputNodeId);
-        const std::string& outputNode = foundOutputNode->second;
-        size_t outputNodeId = ::NA::findNodeByName(nodeIdMap, outputNode);
-        if (_param._driverModel == DriverModel::RampVoltage) {
-          const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, outPin, gndNode);
-          Device* driverSource = createDevice(VRampPDev, nodeIdMap);
-          driverSource->_sampleDevice = _cellArcs.size();
-          driverSource->_isPWLValue = true;
-          driverSource->_PWLData = _PWLData.size();
-          PWLValue empty;
-          empty._time.push_back(1e99);
-          empty._value.push_back(0);
-          _PWLData.push_back(empty);
-          cellArcData.setDriverSourceId(driverSource->_devId);
-          const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, outPin, outputNode);
-          Device* driverRes = createDevice(Rd, nodeIdMap);
-          driverRes->_sampleDevice = _cellArcs.size();
-          cellArcData.setDriverResistorId(driverRes->_devId);
-          _cellArcs.push_back(cellArcData);
-        } else if (_param._driverModel == DriverModel::PWLCurrent) {
-          const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, outPin, gndNode, outputNode);
-          Device* driverSource = createDevice(Id, nodeIdMap);
-          driverSource->_sampleDevice = _cellArcs.size();
-          driverSource->_isPWLValue = true;
-          driverSource->_PWLData = _PWLData.size();
-          PWLValue empty;
-          empty._time.push_back(1e99);
-          empty._value.push_back(0);
-          _PWLData.push_back(empty);
-          _cellArcs.push_back(cellArcData);
-        }
-        _driverOutputNodes.push_back(outputNodeId);
-      }
-    }
-  }
+    for (const std::string& inPin : inputPins) {
+     //const ParserDevice& Cl = createLoaderCapParserDevice(dev._name, inPin, gndNode, nodeName);
+     //Device& loadCap = findDeviceByName(Cl._name);
+     //if (loadCap._devId == invalidId) {
+     // loadCap = *(createDevice(Cl, nodeIdMap));
+     //}
+     const auto& foundInputNode = pinMap.find(inPin);
+     if (foundInputNode != pinMap.end()) {
+       const std::string& inputNode = foundInputNode->second;
+       size_t inputNodeId = ::NA::findNodeByName(nodeIdMap, inputNode);
+       const auto& foundOutputNode = pinMap.find(outPin);
+       if (foundOutputNode != pinMap.end()) {
+         CellArc cellArcData(&_libData, dev._name, libCell, inPin, outPin);
+         if (cellArcData.empty()) {
+           printf("ERROR: Lib data for cell arc %s->%s of cell %s is missing\n", inPin.data(), outPin.data(), libCell.data());
+           continue;
+         }
+         cellArcData.setInputTranNode(inputNodeId);
+         const std::string& outputNode = foundOutputNode->second;
+         size_t outputNodeId = ::NA::findNodeByName(nodeIdMap, outputNode);
+         if (_param._driverModel == DriverModel::RampVoltage) {
+           const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, outPin, gndNode);
+           Device* driverSource = createDevice(VRampPDev, nodeIdMap);
+           driverSource->_isPWLValue = true;
+           driverSource->_PWLData = _PWLData.size();
+           PWLValue empty;
+           empty._time.push_back(1e99);
+           empty._value.push_back(0);
+           _PWLData.push_back(empty);
+           cellArcData.setDriverSourceId(driverSource->_devId);
+           const ParserDevice& Rd = createDriverResistorParserDevice(dev._name, outPin, outputNode);
+           Device* driverRes = createDevice(Rd, nodeIdMap);
+           cellArcData.setDriverResistorId(driverRes->_devId);
+           std::pair<std::string, std::string> key({cellArcData.fromPinFullName(), cellArcData.toPinFullName()});
+           _cellArcMap.insert({key, _cellArcs.size()});
+           _cellArcs.push_back(cellArcData);
+         } else if (_param._driverModel == DriverModel::PWLCurrent) {
+           const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, outPin, gndNode, outputNode);
+           Device* driverSource = createDevice(Id, nodeIdMap);
+           driverSource->_isPWLValue = true;
+           driverSource->_PWLData = _PWLData.size();
+           PWLValue empty;
+           empty._time.push_back(1e99);
+           empty._value.push_back(0);
+           _PWLData.push_back(empty);
+           std::pair<std::string, std::string> key({cellArcData.fromPinFullName(), cellArcData.toPinFullName()});
+           _cellArcMap.insert({key, _cellArcs.size()});
+           _cellArcs.push_back(cellArcData);
+         }
+         _driverOutputNodes.push_back(outputNodeId);
+       }
+     }
+   }
+ }
 }
 
 static inline bool
@@ -603,14 +609,39 @@ Circuit::traceDevice(size_t devId) const
 }
 
 const CellArc*
-Circuit::cellArc(const std::string& fromPin) const
+Circuit::cellArc(const std::string& fromPin, const std::string& toPin) const
 {
   for (const CellArc& arc : _cellArcs) {
-    if (arc.fromPinFullName() == fromPin) {
+    if (arc.fromPinFullName() == fromPin && 
+        arc.toPinFullName() == toPin) {
       return &arc;
     }
   }
   return nullptr;
+}
+
+std::vector<std::string>
+Circuit::cellArcFromPins(const std::string& toPin) const
+{
+  std::vector<std::string> frPins;
+  for (const CellArc& arc : _cellArcs) {
+    if (arc.toPinFullName() == toPin) {
+      frPins.push_back(arc.fromPinFullName());
+    }
+  }
+  return frPins;
+}
+
+std::vector<std::string>
+Circuit::cellArcToPins(const std::string& fromPin) const
+{
+  std::vector<std::string> toPins;
+  for (const CellArc& arc : _cellArcs) {
+    if (arc.fromPinFullName() == fromPin) {
+      toPins.push_back(arc.toPinFullName());
+    }
+  }
+  return toPins;
 }
 
 CellArc::CellArc(const LibData* libData, const std::string& inst, const std::string& cell, 

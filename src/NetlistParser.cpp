@@ -957,8 +957,8 @@ NetlistParser::processCommands(const std::string& line)
     }
     param->_type = analysisType;
     param->_name = analysisName;
-    for (; index<strs.size(); index+=2) {
-      _delayArcs.push_back({strs[index], strs[index+1]});
+    for (; index<strs.size(); index++) {
+      _cellOutPinsToCalc.push_back({strs[index]});
     }
   } else if (strs[0] == ".debug") {
     processDebugOption(strs);

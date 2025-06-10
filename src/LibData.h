@@ -238,6 +238,7 @@ class LibData {
     size_t cellCount() const { return _nldmData.size(); }
 
     std::vector<std::string> cellArcInputPins(const std::string& cell, const std::string& outPin) const;
+    std::vector<std::string> cellArcOutputPins(const std::string& cell, const std::string& inPin) const;
 
     double voltage() const { return _voltage; }
     double riseTransitionLowThres() const { return _transitionRiseLowThres; }

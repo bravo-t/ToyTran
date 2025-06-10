@@ -71,8 +71,7 @@ class NetlistParser {
 
     std::vector<AnalysisParameter> analysisParameters() const { return _analysisParams; }
 
-    typedef std::pair<std::string, std::string> StringPair;
-    std::vector<StringPair> delayArcs() const { return _delayArcs; }
+    std::vector<std::string> cellOutPinsToCalcDelay() const { return _cellOutPinsToCalc; }
 
   private:
     void parseLine(const std::string& line);
@@ -86,7 +85,7 @@ class NetlistParser {
     std::vector<std::string>          _libDataFiles;
     std::vector<MeasurePoint>         _measurePoints;
     std::vector<AnalysisParameter>    _analysisParams;
-    std::vector<StringPair>           _delayArcs;
+    std::vector<std::string>          _cellOutPinsToCalc;
     bool                              _saveData = false;
     size_t                            _plotWidth = static_cast<size_t>(-1);
     size_t                            _plotHeight = static_cast<size_t>(-1);

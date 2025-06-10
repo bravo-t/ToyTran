@@ -1,9 +1,10 @@
 #ifndef _TRAN_CKT_H_
 #define _TRAN_CKT_H_
 
-#include "Base.h"
 #include <cstddef>
 #include <vector>
+#include <unordered_map>
+#include "Base.h"
 #include "NetlistParser.h"
 #include "LibData.h"
 
@@ -32,6 +33,7 @@ class CellArc {
     const CCSArc* ccsData() const { return _ccsArc; }
 
     std::string fromPinFullName() const { return _instName + "/" + _fromPin; }
+    std::string toPinFullName() const { return _instName + "/" + _toPin; }
 
     std::string instance() const { return _instName; }
     std::string fromPin() const { return _fromPin; }
@@ -47,6 +49,12 @@ class CellArc {
     std::string    _toPin;
     const NLDMArc* _nldmArc = nullptr;
     const CCSArc*  _ccsArc = nullptr;
+};
+
+struct HashStringPair {
+  size_t operator()(const std::pair<std::string, std::string>& a) const {
+    return std::hash<std::string>()(a.first) ^ std::hash<std::string>()(a.second);
+  }
 };
 
 class Circuit {
@@ -81,7 +89,10 @@ class Circuit {
     std::vector<const Device*> traceDevice(size_t devId) const;
 
     /// Find CellArc data
-    const CellArc* cellArc(const std::string& fromPin) const;
+    const CellArc* cellArc(const std::string& fromPin, const std::string& toPin) const;
+    const LibData* libData() const { return &_libData; }
+    std::vector<std::string> cellArcFromPins(const std::string& toPin) const;
+    std::vector<std::string> cellArcToPins(const std::string& fromPin) const;
 
     void debugPrint() const;
 
@@ -94,6 +105,8 @@ class Circuit {
     void buildCircuit(const NetlistParser& parser);
 
   private:
+    typedef std::unordered_map<std::pair<std::string, std::string>, size_t, HashStringPair> CellArcMap;
+    
     size_t                         _groundNodeId;
     size_t                         _order;
     double                         _scalingFactor;
@@ -106,6 +119,7 @@ class Circuit {
     std::vector<size_t>            _driverOutputNodes;
     std::vector<size_t>            _loaderInputNodes;
     std::vector<CellArc>           _cellArcs;
+    CellArcMap                     _cellArcMap;
 }; 
 
 }

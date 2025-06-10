@@ -696,4 +696,21 @@ LibData::cellArcInputPins(const std::string& cell, const std::string& outPin) co
   return inputPins;
 }
 
+std::vector<std::string>
+LibData::cellArcOutputPins(const std::string& cell, const std::string& inPin) const
+{
+  std::vector<std::string> outputPins;
+  const auto& it = _nldmData.find(cell);
+  if (it == _nldmData.end()) {
+    return outputPins;
+  }
+  const std::vector<NLDMArc>& nldmArcs = it->second;
+  for (const NLDMArc& arc : nldmArcs) {
+    if (arc.fromPin() == inPin) {
+      outputPins.push_back(arc.toPin());
+    }
+  }
+  return outputPins;
+}
+
 }

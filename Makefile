@@ -9,7 +9,7 @@ else
 endif
 
 CC          = g++
-LD          = g++ 
+LD          = g++
 CFLAG       = -Wall -Wextra $(PRE_CFLAGS)
 PROG_NAME   = trans
 

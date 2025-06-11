@@ -24,7 +24,7 @@ class RampVCellDelay {
     void updateTParams();
     void updateRd();
     void updateLoadCaps();
-    double calcIteration();
+    bool calcIteration();
     void updateDriverParameter();
 
   private:

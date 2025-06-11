@@ -253,7 +253,7 @@ RampVCellDelay::updateDriverParameter()
   populatePWLData(_tZero, _tDelta, vdd, _isRiseOnDriverPin, driverData);
 }
 
-double
+bool
 RampVCellDelay::calcIteration()
 {
   RootSolver::Function f1 = [this](const Eigen::VectorXd& x)->double {
@@ -301,7 +301,13 @@ RampVCellDelay::calcIteration()
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new effCap calculated to be %G with total charge of %G in %lu iterations\n", newEffCap, totalCharge, cSolver.iterCount());
   }
-  return newEffCap;
+  if (std::abs((newEffCap - _effCap)/_effCap) < 0.01) {
+    _finalResult.copy(simResult);
+    return false;
+  } else {
+    _effCap = newEffCap;
+    return true;
+  }
 }
 
 bool
@@ -312,8 +318,8 @@ RampVCellDelay::calculate()
       _cellArc->instance().data(), _cellArc->fromPin().data(), _cellArc->toPin().data());
   }
   initParameters();
-  while (true) {
-    _effCap = calcIteration();
+  while (calcIteration()) {
+    updateDriverParameter();
     updateTParams();
     updateRd();
     if (Debug::enabled(DebugModule::NLDM)) {

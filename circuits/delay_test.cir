@@ -10,5 +10,5 @@ Xloader INVx2_ASAP7_75t_R A N2 Y GND
 
 .delay Xdriver/Y
 .option driver=rampvoltage loader=fixed
-.debug NLDM 1 sim 1
+.debug NLDM 1 sim 0
 

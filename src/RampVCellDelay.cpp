@@ -287,7 +287,7 @@ RampVCellDelay::calcIteration()
   sim.run();
   const SimResult& simResult = sim.simulationResult();
   const Device& driverSource = _ckt->device(_cellArc->driverSourceId());
-  double totalCharge = simCapCharge(simResult, driverSource);
+  double totalCharge = std::abs(simCapCharge(simResult, driverSource));
   double vdd = _cellArc->nldmData()->owner()->voltage();
   RootSolver::Function fEffCap = [this, totalCharge, vdd](const Eigen::VectorXd& x)->double {
     return effCapCharge(this->_tDelta, x(0), _rd, vdd) - totalCharge;

@@ -200,7 +200,7 @@ createDriverVoltageSourceParserDevice(const std::string& inst, const std::string
   dev._type = DeviceType::VoltageSource;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -214,7 +214,7 @@ createDriverResistorParserDevice(const std::string& inst, const std::string& pin
   dev._type = DeviceType::Resistor;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -229,7 +229,7 @@ createDriverCurrentSourceParserDevice(const std::string& inst, const std::string
   dev._type = DeviceType::CurrentSource;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 
@@ -244,7 +244,7 @@ createLoaderCapParserDevice(const std::string& inst, const std::string& pin,
   dev._type = DeviceType::Capacitor;
   dev._isPWLValue = false;
   dev._isInternal = true;
-  dev._value = 0;
+  dev._value = 1;
   return dev;
 }
 

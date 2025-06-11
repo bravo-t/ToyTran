@@ -13,7 +13,7 @@ namespace NA {
 using namespace Eigen;
 
 PoleZeroAnalysis::PoleZeroAnalysis(const Circuit& circuit, const AnalysisParameter& param)
-: _circuit(circuit), _param(param), _result(circuit, param._name)
+: _circuit(circuit), _param(param), _result(&circuit, param._name)
 {
   _inDev = _circuit.findDeviceByName(*(_param._inDev));
   _outNode = _circuit.findNodeByName(*(_param._outNode));

@@ -3,6 +3,7 @@
 
 #include "Circuit.h"
 #include "LibData.h"
+#include "SimResult.h"
 
 namespace NA {
 
@@ -30,6 +31,7 @@ class RampVCellDelay {
     const CellArc* _cellArc;
     Circuit* _ckt;
     const LibData* _libData;
+    SimResult _finalResult;
     bool   _isRiseOnInputPin = true;
     bool   _isRiseOnDriverPin = true;
     double _delayThres = 50;

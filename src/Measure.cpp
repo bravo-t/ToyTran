@@ -16,9 +16,9 @@ getSimData(const SimResultType& type, const std::string& point,
            const SimResult& result, double step, 
            double& value, double& nextValue)
 {
-  const Circuit& ckt = result.circuit();
+  const Circuit* ckt = result.circuit();
   if (type == SimResultType::Voltage) {
-    const Node& node = ckt.findNodeByName(point);
+    const Node& node = ckt->findNodeByName(point);
     if (node._nodeId == static_cast<size_t>(-1)) {
       printf("Measure error: Node %s not found\n", point.data());
       return false;
@@ -26,7 +26,7 @@ getSimData(const SimResultType& type, const std::string& point,
     value = result.nodeVoltage(node._nodeId, step);
     nextValue = result.nodeVoltage(node._nodeId, step+1);
   } else if (type == SimResultType::Current) {
-    const Device& dev = ckt.findDeviceByName(point);
+    const Device& dev = ckt->findDeviceByName(point);
     if (dev._devId == static_cast<size_t>(-1)) {
       printf("Measure error: device %s not found\n", point.data());
       return false;

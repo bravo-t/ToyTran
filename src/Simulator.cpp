@@ -42,7 +42,7 @@ Simulator::integrateMethod() const
 }
     
 Simulator::Simulator(const Circuit& ckt, const AnalysisParameter& param)
-: _circuit(ckt), _param(param), _result(ckt, _param._name)
+: _circuit(ckt), _param(param), _result(&ckt, _param._name)
 {}
 
 void 

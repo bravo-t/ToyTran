@@ -42,10 +42,10 @@ needExtraDim(const Device& dev)
 }
 
 std::vector<size_t>
-branchDevices(const Circuit& ckt)
+branchDevices(const Circuit* ckt)
 {
   std::vector<size_t> devIds;
-  const std::vector<Device>& devs = ckt.devices();
+  const std::vector<Device>& devs = ckt->devices();
   for (const Device& dev : devs) {
     if (needExtraDim(dev)) {
       devIds.push_back(dev._devId);
@@ -64,9 +64,9 @@ branchDevices(const Circuit& ckt)
 }
 
 void
-SimResult::init(const Circuit& ckt)
+SimResult::init(const Circuit* ckt)
 {
-  const std::vector<Node>& nodes = ckt.nodes();
+  const std::vector<Node>& nodes = ckt->nodes();
   _map._nodeVoltageMap.assign(nodes.size(), SimResultMap::invalidValue());
   size_t index = 0;
   for (const Node& node : nodes) {
@@ -76,7 +76,7 @@ SimResult::init(const Circuit& ckt)
     _map._nodeVoltageMap[node._nodeId] = index;
     ++index;
   }
-  _map._deviceCurrentMap.assign(ckt.deviceNumber(), SimResultMap::invalidValue());
+  _map._deviceCurrentMap.assign(ckt->deviceNumber(), SimResultMap::invalidValue());
   const std::vector<size_t>& branchIds = branchDevices(ckt);
   for (size_t id : branchIds) {
     _map._deviceCurrentMap[id] = index;
@@ -85,7 +85,7 @@ SimResult::init(const Circuit& ckt)
   _map.setDimention(index);
 }
 
-SimResult::SimResult(const Circuit& ckt, const std::string& name)
+SimResult::SimResult(const Circuit* ckt, const std::string& name)
 : _ckt(ckt), _name(name)
 {
   init(ckt);
@@ -127,17 +127,17 @@ SimResult::nodeVoltageImp(size_t nodeId, size_t timeStep) const
 double
 SimResult::nodeVoltage(size_t nodeId, size_t timeStep) const
 {
-  if (_ckt.isGroundNode(nodeId)) {
+  if (_ckt->isGroundNode(nodeId)) {
     return .0f;
   }
   double voltage = std::numeric_limits<double>::lowest();
-  const Node& node = _ckt.node(nodeId);
+  const Node& node = _ckt->node(nodeId);
   for (size_t devId : node._connection) {
-    const Device& dev = _ckt.device(devId);
+    const Device& dev = _ckt->device(devId);
     if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
       if (dev._isPWLValue) {
         double simTime = stepTime(timeStep);
-        const PWLValue& pwlData = _ckt.PWLData(dev);
+        const PWLValue& pwlData = _ckt->PWLData(dev);
         voltage = pwlData.valueAtTime(simTime);
       } else {
         voltage = dev._value;
@@ -164,11 +164,11 @@ SimResult::deviceCurrentImp(size_t deviceId, size_t timeStep) const
 double 
 SimResult::deviceCurrent(size_t deviceId, size_t timeStep) const
 {
-  const Device& dev = _ckt.device(deviceId);
+  const Device& dev = _ckt->device(deviceId);
   if (dev._type == DeviceType::CurrentSource) {
     if (dev._isPWLValue) {
       double simTime = stepTime(timeStep);
-      const PWLValue& pwlData = _ckt.PWLData(dev);
+      const PWLValue& pwlData = _ckt->PWLData(dev);
       return pwlData.valueAtTime(simTime);
     } else {
       return dev._value;
@@ -196,13 +196,13 @@ SimResult::nodeVoltageBackstepImp(size_t nodeId, size_t steps) const
 double
 SimResult::nodeVoltageBackstep(size_t nodeId, size_t steps) const
 {
-  if (_ckt.isGroundNode(nodeId)) {
+  if (_ckt->isGroundNode(nodeId)) {
     return .0f;
   }
   double voltage = std::numeric_limits<double>::lowest();
-  const Node& node = _ckt.node(nodeId);
+  const Node& node = _ckt->node(nodeId);
   for (size_t devId : node._connection) {
-    const Device& dev = _ckt.device(devId);
+    const Device& dev = _ckt->device(devId);
     if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
       voltage = std::max(voltage, dev._value);
     }
@@ -232,7 +232,7 @@ SimResult::deviceCurrentBackstepImp(size_t deviceId, size_t steps) const
 double 
 SimResult::deviceCurrentBackstep(size_t deviceId, size_t steps) const
 {
-  const Device& dev = _ckt.device(deviceId);
+  const Device& dev = _ckt->device(deviceId);
   if (dev._type == DeviceType::CurrentSource) {
     return dev._value;
   }
@@ -396,7 +396,7 @@ std::vector<WaveformPoint>
 SimResult::nodeVoltageWaveform(const std::string& nodeName, 
                                double& max, double& min) const
 {
-  const Node& node = _ckt.findNodeByName(nodeName);
+  const Node& node = _ckt->findNodeByName(nodeName);
   if (node._nodeId == static_cast<size_t>(-1)) {
     printf("Node %s not found\n", nodeName.data());
     return std::vector<WaveformPoint>();
@@ -409,7 +409,7 @@ std::vector<WaveformPoint>
 SimResult::deviceCurrentWaveform(const std::string& devName, 
                                  double& max, double& min) const
 {
-  const Device& device = _ckt.findDeviceByName(devName);
+  const Device& device = _ckt->findDeviceByName(devName);
   if (device._devId == static_cast<size_t>(-1)) {
     printf("Device %s not found\n", devName.data());
     return std::vector<WaveformPoint>();

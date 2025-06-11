@@ -122,11 +122,12 @@ class Circuit {
     std::vector<Device>            _devices;
     std::vector<PWLValue>          _PWLData;
     LibData                        _libData;
-    /// Currently we only allow one driver, but let's keep it more general.
     std::vector<size_t>            _driverOutputNodes;
     std::vector<size_t>            _loaderInputNodes;
     std::vector<CellArc>           _cellArcs;
     CellArcMap                     _cellArcMap;
+    std::vector<size_t>            _nodesToSimulate;
+    std::vector<size_t>            _devicesToSimulate;
 }; 
 
 }

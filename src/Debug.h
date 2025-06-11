@@ -50,7 +50,7 @@ class Debug {
         return true;
       } 
       const auto& foundAll = _debugMap.find(DebugModule::All);
-      if (foundAll != _debugMap.end() && found->second > l) {
+      if (foundAll != _debugMap.end() && foundAll->second > l) {
         return true;
       } 
       return false;

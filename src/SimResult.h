@@ -28,6 +28,14 @@ struct Waveform {
 ///        the number
 ///        size() should be the dimention of vector x
 struct SimResultMap {
+  SimResultMap() = default;
+  
+  void copy(const SimResultMap& other) 
+  {
+    _dimension = other._dimension;
+    _nodeVoltageMap = other._nodeVoltageMap;
+    _deviceCurrentMap =other._deviceCurrentMap;
+  }
   static size_t invalidValue() { return static_cast<size_t>(-2); }
   size_t _dimension = 0;
   std::vector<size_t> _nodeVoltageMap; /// node ID to matrix index
@@ -40,13 +48,23 @@ struct SimResultMap {
 /// @brief The solution data of every time step produced by solving Ax=b
 class SimResult {
   public:
-    SimResult(const Circuit& ckt, const std::string& name);
+    SimResult(const Circuit* ckt, const std::string& name);
+    SimResult() = default;
+
+    void copy(const SimResult& other)
+    {
+      _ckt = other._ckt;
+      _name = other._name;
+      _map.copy(other._map);
+      _ticks = other._ticks;
+      _values = other._values;
+    }
 
     std::string name() const { return _name; }
     /// Return Time of given step
     double stepTime(size_t step) const;
 
-    const Circuit& circuit() const { return _ckt; }
+    const Circuit* circuit() const { return _ckt; }
 
     const SimResultMap& indexMap() const { return _map; }
     const std::vector<double>& ticks() const { return _ticks; }
@@ -106,7 +124,7 @@ class SimResult {
 
   
   private:
-    void init(const Circuit& ckt);
+    void init(const Circuit* ckt);
     double nodeVoltageImp(size_t nodeId, size_t timeStep) const;
     double deviceCurrentImp(size_t devId, size_t timeStep) const;
     double nodeVoltageBackstepImp(size_t nodeId, size_t steps) const;
@@ -114,7 +132,7 @@ class SimResult {
     std::vector<WaveformPoint> waveformData(size_t rowIndex, double* max, double* min) const;
   
   private:
-    const Circuit&      _ckt;
+    const Circuit*      _ckt = nullptr;
     std::string         _name;
     SimResultMap        _map;
     std::vector<double> _ticks;

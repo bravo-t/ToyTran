@@ -454,7 +454,7 @@ LibReader::readFile(const char* datFile)
         for (size_t i=1; i<strs.size(); ++i) {
           FixedLoadCap cap;
           cap.setPinName(strs[i]);
-          cap.setCaps(std::stod(strs[i+1]), std::stod(strs[i+2]));
+          cap.setCaps(std::stod(strs[i+1])*capUnit, std::stod(strs[i+2])*capUnit);
           pinCaps.push_back(cap);
           i += 2;
         }
@@ -678,6 +678,25 @@ LibData::isOutputPin(const std::string& cell, const std::string& pin) const
     return false;
   }
   return true;
+}
+
+double
+LibData::fixedLoadCap(const std::string& cell, const std::string& pin, bool isRise) const
+{
+  const auto& it = _loadCaps.find(cell);
+  /// We don't allow missing lib data
+  assert(it != _loadCaps.end());
+  const auto& pinCaps = it->second;
+  const auto& it2 = std::lower_bound(pinCaps.begin(), pinCaps.end(), pin, 
+                      [](const FixedLoadCap& a, const std::string& b) {
+                        return a.pinName() < b;
+                      });
+
+  if (it2 != pinCaps.end() && it2->pinName() == pin) {
+    const FixedLoadCap& cap = *it2;
+    return cap.value(isRise);
+  }
+  return 0;
 }
 
 std::vector<std::string>

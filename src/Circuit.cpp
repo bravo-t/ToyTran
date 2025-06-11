@@ -644,6 +644,31 @@ Circuit::cellArcToPins(const std::string& fromPin) const
   return toPins;
 }
 
+std::vector<CellArc*>
+Circuit::cellArcsOfDevice(const Device* dev) const
+{
+  std::vector<CellArc*> arcs;
+  if (dev->_isInternal == false) {
+    return arcs;
+  }
+  for (const CellArc& arc : _cellArcs) {
+    if (dev->_type == DeviceType::Capacitor) {
+      if (arc.inputTranNode() == dev->_posNode) {
+        arcs.push_back(const_cast<CellArc*>(&arc));
+      }
+    } else if (dev->_type == DeviceType::Resistor) {
+      if (arc.driverResistorId() == dev->_devId) {
+        arcs.push_back(const_cast<CellArc*>(&arc));
+      } 
+    } else {
+      if (arc.driverSourceId() == dev->_devId) {
+        arcs.push_back(const_cast<CellArc*>(&arc));
+      }
+    }
+  }
+  return arcs;
+}
+
 CellArc::CellArc(const LibData* libData, const std::string& inst, const std::string& cell, 
                 const std::string& fromPin, const std::string& toPin) 
 : _instName(inst), _cellName(cell), _fromPin(fromPin), _toPin(toPin)

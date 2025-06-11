@@ -24,12 +24,13 @@ class RampVCellDelay {
     void updateRd();
     void updateLoadCaps();
     double calcIteration();
-    void updateCircuit();
+    void updateDriverParameter();
 
   private:
     const CellArc* _cellArc;
     Circuit* _ckt;
     const LibData* _libData;
+    bool   _isRiseOnInputPin = true;
     bool   _isRiseOnDriverPin = true;
     double _delayThres = 50;
     double _tranThres1 = 10;

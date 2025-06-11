@@ -855,7 +855,7 @@ processDebugOption(std::vector<std::string>& strs)
     Debug::setLevel(DebugModule::All, numericalValue(strs[1], ""));
     return;
   }
-  for (size_t i=2; i<strs.size(); ++i) {
+  for (size_t i=2; i<strs.size(); i+=2) {
     DebugModule m = Debug::stringToDebugModule(strs[i-1]);
     size_t l = numericalValue(strs[i], "");
     Debug::setLevel(m, l);

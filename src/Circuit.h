@@ -24,6 +24,7 @@ class CellArc {
   
     bool empty() const { return _nldmArc == nullptr; }
 
+    size_t inputTranNode() const { return _inputTranNode; }
     double inputTransition(const Circuit* ckt) const;
     size_t driverResistorId() const { return _driverResistor; }
     size_t driverSourceId() const { return _driverSource; }
@@ -38,6 +39,11 @@ class CellArc {
     std::string instance() const { return _instName; }
     std::string fromPin() const { return _fromPin; }
     std::string toPin() const { return _toPin; }
+
+    double fixedLoadCap(bool isRise) const 
+    {
+      return _nldmArc->owner()->fixedLoadCap(_cellName, _fromPin, isRise);
+    }
 
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
@@ -93,6 +99,7 @@ class Circuit {
     const LibData* libData() const { return &_libData; }
     std::vector<std::string> cellArcFromPins(const std::string& toPin) const;
     std::vector<std::string> cellArcToPins(const std::string& fromPin) const;
+    std::vector<CellArc*> cellArcsOfDevice(const Device* dev) const;
 
     void debugPrint() const;
 

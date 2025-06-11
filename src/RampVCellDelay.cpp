@@ -80,7 +80,15 @@ RampVCellDelay::updateLoadCaps()
   const std::vector<const Device*>& connDevs = _ckt->traceDevice(rdId);
   for (const Device* dev : connDevs) {
     if (dev->_isInternal && dev->_type == DeviceType::Capacitor) {
-      
+      const std::vector<CellArc*>& arcs = _ckt->cellArcsOfDevice(dev);
+      assert(arcs.empty() == false);
+      const CellArc* loadArc = arcs[0];
+      Device& mDev = _ckt->device(dev->_devId);
+      /// This is the load device, so they should follow the same transition direction of driver pin
+      mDev._value = loadArc->fixedLoadCap(_isRiseOnDriverPin);
+      if (Debug::enabled(DebugModule::NLDM)) {
+        printf("DEBUG: Load cap %s value updated to %G\n", dev->_name.data(), mDev._value);
+      }
     }
   }
 }
@@ -96,7 +104,9 @@ RampVCellDelay::initParameters()
   const Device& vSrc = _ckt->device(vSrcId);
   const PWLValue& data = _ckt->PWLData(vSrc);
 
-  _isRiseOnDriverPin = (data.isRiseTransition() != _cellArc->isInvertedArc());
+  _isRiseOnInputPin = data.isRiseTransition();
+
+  _isRiseOnDriverPin = (_isRiseOnInputPin != _cellArc->isInvertedArc());
   if (_isRiseOnDriverPin) {
     _delayThres = _libData->riseDelayThres();
     _tranThres1 = _libData->riseTransitionLowThres();
@@ -106,6 +116,7 @@ RampVCellDelay::initParameters()
     _tranThres1 = _libData->fallTransitionHighThres();
     _tranThres2 = _libData->fallTransitionLowThres();
   }
+  updateLoadCaps();
   _effCap =  totalLoadOnDriver(_ckt, _cellArc->driverResistorId());
   _inputTran = _cellArc->inputTransition(_ckt);
   updateTParams();
@@ -232,7 +243,7 @@ effCapCharge(double tDelta, double effCap, double rd, double vdd)
 }
 
 void
-RampVCellDelay::updateCircuit()
+RampVCellDelay::updateDriverParameter()
 {
   Device& driverResistor = _ckt->device(_cellArc->driverResistorId());
   driverResistor._value = _rd;
@@ -263,7 +274,7 @@ RampVCellDelay::calcIteration()
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new tZero = %G, tDelta = %G solved after %lu iterations\n", _tZero, _tDelta, tSolver.iterCount());
   }
-  updateCircuit();
+  updateDriverParameter();
   AnalysisParameter simParam;
   simParam._type = AnalysisType::Tran;
   simParam._simTime = (_tZero + _tDelta) * 1.2;

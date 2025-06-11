@@ -234,6 +234,7 @@ class LibData {
                              const std::string& toPin) const;
 
     bool isOutputPin(const std::string& cell, const std::string& pin) const;
+    double fixedLoadCap(const std::string& cell, const std::string& pin, bool isRise) const;
 
     size_t cellCount() const { return _nldmData.size(); }
 

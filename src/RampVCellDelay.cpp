@@ -275,6 +275,9 @@ RampVCellDelay::calcIteration()
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new tZero = %G, tDelta = %G solved after %lu iterations\n", _tZero, _tDelta, tSolver.iterCount());
   }
+  if (std::isnan(_tZero) || std::isnan(_tDelta)) {
+    return false;
+  }
   updateDriverParameter();
   AnalysisParameter simParam;
   simParam._type = AnalysisType::Tran;

@@ -400,6 +400,7 @@ Circuit::Circuit(const NetlistParser& parser, const AnalysisParameter& param)
   timespec cktEnd;
   clock_gettime(CLOCK_REALTIME, &cktEnd);
 
+  resetSimulationScope();
   if (_cellArcs.empty() == false) { 
     printInfo(simName(), _devices, _nodes, _libData);
   }
@@ -667,6 +668,37 @@ Circuit::cellArcsOfDevice(const Device* dev) const
     }
   }
   return arcs;
+}
+
+void
+Circuit::resetSimulationScope()
+{
+  _nodesToSimulate.clear();
+  _devicesToSimulate.clear();
+  for (const Device& dev : _devices) {
+    _devicesToSimulate.push_back(dev._devId);
+  }
+  for (const Node& node : _nodes) {
+    _nodesToSimulate.push_back(node._nodeId);
+  }
+}
+
+void 
+Circuit::markSimulationScope(const std::vector<const Device*>& devs)
+{
+  _nodesToSimulate.clear();
+  _devicesToSimulate.clear();
+  for (const Device* dev : devs) {
+    _devicesToSimulate.push_back(dev->_devId);
+    _nodesToSimulate.push_back(dev->_posNode);
+    _nodesToSimulate.push_back(dev->_negNode);
+  }
+  std::sort(_devicesToSimulate.begin(), _devicesToSimulate.end());
+  auto it1 = std::unique(_devicesToSimulate.begin(), _devicesToSimulate.end());
+  _devicesToSimulate.erase(it1, _devicesToSimulate.end());
+  std::sort(_nodesToSimulate.begin(), _nodesToSimulate.end());
+  auto it2 = std::unique(_nodesToSimulate.begin(), _nodesToSimulate.end());
+  _nodesToSimulate.erase(it2, _nodesToSimulate.end());
 }
 
 CellArc::CellArc(const LibData* libData, const std::string& inst, const std::string& cell, 

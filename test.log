@@ -1,0 +1,72 @@
+Netlist file circuits/delay_test.cir loaded, devices created:
+  1 resistors
+  2 capacitors
+  0 inductors
+  1 independent voltage sources
+  0 independent current sources
+  0 VCCS
+  0 VCVS
+  0 CCCS
+  0 CCVS
+  2 Standard cells
+Time spent in netlist parsing: 0.705 milliseconds
+Netlist file circuits/delay_test.cir loaded, devices created:
+  1 resistors
+  2 capacitors
+  0 inductors
+  1 independent voltage sources
+  0 independent current sources
+  0 VCCS
+  0 VCVS
+  0 CCCS
+  0 CCVS
+  2 Standard cells
+Time spent in netlist parsing: 0.112 milliseconds
+Reading Lib data file circuits/INVx2_ASAP7_75t_R.dat
+Ground node identified as node "GND"
+Circuit built for fd, devices created:
+  3 resistors
+  4 capacitors
+  0 inductors
+  3 independent voltage sources
+  0 independent current sources
+  0 VCCS
+  0 VCVS
+  0 CCCS
+  0 CCVS
+6 nodes created
+1 lib cells loaded
+Time spent in building circuit for fd: 0.099 milliseconds
+DEBUG: Start calculate delay of cell arc Xdriver : A->Y
+DEBUG: Load cap Xloader/A/Cl value updated to 1.31949E-15
+DEBUG: input v: 2E-10 values: 5E-12 1E-11 2E-11 4E-11 8E-11 1.6E-10 3.2E-10 
+DEBUG: input v: 9.5132E-13 values: 1.44E-15 2.88E-15 5.76E-15 1.152E-14 2.304E-14 4.608E-14 9.216E-14 
+DEBUG: inputTran: 2E-10 ([1.6E-10, 3.2E-10]), outputLoad: 9.51319E-13 ([4.608E-14, 9.216E-14])
+DEBUG:                    (X1) 1.6E-10      (X2) 3.2E-10
+DEBUG: (Y1) 4.608E-14         (Z1) 1.17479E-10      (Z2) 1.59068E-10
+DEBUG: (Y2) 3.2E-10         (Z3) 1.78268E-10      (Z4) 2.34122E-10
+  --                                           --         --          --
+  |          1    1.6e-10  4.608e-14  1.4746e-23 |         |  1.1748e-10 | 
+  |          1    3.2e-10  4.608e-14  2.9491e-23 |         |  1.5907e-10 | 
+  |          1    1.6e-10  9.216e-14  4.7669e-10 |  * X =  |  1.7827e-10 | 
+  |          1    3.2e-10  9.216e-14  5.4711e-10 |         |  2.3412e-10 | 
+  --                                           --         --          --
+DEBUG: x = [1.11665E-10, 0.259931, -776.376, 0.202573]
+DEBUG: 1.11665E-10 + 0.259931*2E-10 + -776.376*9.51319E-13 + 0.202573*2E-10*9.51319E-13 = -5.7493E-10
+DEBUG: input v: 2E-10 values: 5E-12 1E-11 2E-11 4E-11 8E-11 1.6E-10 3.2E-10 
+DEBUG: input v: 9.5132E-13 values: 1.44E-15 2.88E-15 5.76E-15 1.152E-14 2.304E-14 4.608E-14 9.216E-14 
+DEBUG: inputTran: 2E-10 ([1.6E-10, 3.2E-10]), outputLoad: 9.51319E-13 ([4.608E-14, 9.216E-14])
+DEBUG:                    (X1) 1.6E-10      (X2) 3.2E-10
+DEBUG: (Y1) 4.608E-14         (Z1) 1.61596E-10      (Z2) 2.03838E-10
+DEBUG: (Y2) 3.2E-10         (Z3) 2.88277E-10      (Z4) 3.22286E-10
+  --                                           --         --          --
+  |          1    1.6e-10  4.608e-14  1.4746e-23 |         |  1.616e-10 | 
+  |          1    3.2e-10  4.608e-14  2.9491e-23 |         |  2.0384e-10 | 
+  |          1    1.6e-10  9.216e-14  4.7669e-10 |  * X =  |  2.8828e-10 | 
+  |          1    3.2e-10  9.216e-14  5.4711e-10 |         |  3.2229e-10 | 
+  --                                           --         --          --
+DEBUG: x = [-6.30588E-11, 0.264013, 3958.61, -0.116914]
+DEBUG: -6.30588E-11 + 0.264013*2E-10 + 3958.61*9.51319E-13 + -0.116914*2E-10*9.51319E-13 = 3.75565E-09
+DEBUG: rise : T, inTran = 2E-10, outLoad = 9.51319E-13, delay = -5.7493E-10, trans = 3.75565E-09
+DEBUG: Init params: inTran: 2E-10, Rd: 1226.46, effCap: 9.51319E-13, T50: -5.7493E-10, outTran: 3.75565E-09. T20: -1.9833E-09, dT: 4.69456E-09, Tz: 0
+DEBUG: new tZero = -NAN, tDelta = -NAN solved after 1 iterations

@@ -101,6 +101,10 @@ class Circuit {
     std::vector<std::string> cellArcToPins(const std::string& fromPin) const;
     std::vector<CellArc*> cellArcsOfDevice(const Device* dev) const;
 
+    /// Set the scope of devices and nodes to run transient simulation
+    void markSimulationScope(const std::vector<const Device*>& devs);
+    void resetSimulationScope();
+
     void debugPrint() const;
 
   private:

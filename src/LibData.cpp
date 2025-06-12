@@ -117,6 +117,12 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   Eigen::Vector4d b;
   b(0) = z1; b(1) = z2; b(2) = z3; b(3) = z4;
   Eigen::Vector4d x = A.partialPivLu().solve(b);
+  if (true) {
+    Debug::printEquation(A, b);
+    printf("DEBUG: x = [%.6G, %.6G, %.6G, %.6G]\n", x(0), x(1), x(2), x(3));
+    printf("DEBUG: %G + %G*%G + %G*%G + %G*%G*%G = %G\n", x(0), x(1), inputTran, x(2), outputLoad, x(3), inputTran, outputLoad, 
+    x(0) + x(1) * inputTran + x(2) * outputLoad + x(3) * inputTran * outputLoad);
+  }
   return x(0) + x(1) * inputTran + x(2) * outputLoad + x(3) * inputTran * outputLoad;
 }
 

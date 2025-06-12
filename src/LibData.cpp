@@ -17,6 +17,9 @@ typedef std::unordered_map<std::string, std::vector<CCSArc>>  CCSMap;
 static inline size_t 
 binaryIndex(const std::vector<double>& values, float v)
 {
+  printf("DEBUG: input v: %G values: ", v);
+  for (double a : values) printf("%G ", a);
+  printf("\n");
   size_t lower = 1;
   size_t upper = values.size()-2;
   if (v <= values[lower]) {
@@ -28,12 +31,14 @@ binaryIndex(const std::vector<double>& values, float v)
   size_t idx = 0;
   while (upper - lower > 1) {
     idx = (lower + upper) >> 1;
+    printf("upper = %lu, lower = %lu, idx = %lu,  values[idx] = %G, v = %G\n", upper, lower, idx, values[idx], v);
     if (values[idx] > v) {
       upper = idx;
     } else {
       lower = idx;
     }
   }
+  printf("idx = %lu,  values[idx] = %G, v = %G\n",  idx, values[idx], v);
   if (values[idx] > v) {
     --idx;
   }
@@ -77,6 +82,8 @@ NLDMLUT::value(double inputTran, double outputLoad) const
 {
   size_t index1 = binaryIndex(_index1, inputTran);
   size_t index2 = binaryIndex(_index2, outputLoad);
+  //size_t index1 = axisIndex(_index1, inputTran);
+  //size_t index2 = axisIndex(_index2, outputLoad);
   size_t index2Dim = _index2.size();
 
   double x1 = _index1[index1];
@@ -85,7 +92,7 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   double y2 = _index2[index2+1];
   double z1, z2, z3, z4;
   indexValues(_values, index1, index2, index2Dim, z1, z2, z3, z4);
-  if (false) {
+  if (true) {
     printf("DEBUG: inputTran: %G ([%G, %G]), outputLoad: %G ([%G, %G])\n", 
            inputTran, x1, x2, outputLoad, y1, y2);
     printf("DEBUG:                    (X1) %.6G      (X2) %.6G\n", x1, x2);

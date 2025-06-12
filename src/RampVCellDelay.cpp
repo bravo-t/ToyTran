@@ -56,6 +56,7 @@ calcNLDMLUTDelayTrantion(const NLDMArc* nldmData, double inputTran,
   const NLDMLUT& transLUT = nldmData->getLUT(transLUTType);
   delay = delayLUT.value(inputTran, outputLoad);
   trans = transLUT.value(inputTran, outputLoad);
+  printf("DEBUG: rise : %s, inTran = %G, outLoad = %G, delay = %G, trans = %G\n", isRise ? "T" : "F", inputTran, outputLoad, delay, trans);
 }
 
 void 

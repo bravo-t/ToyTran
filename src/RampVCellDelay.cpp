@@ -56,7 +56,7 @@ calcNLDMLUTDelayTrantion(const NLDMArc* nldmData, double inputTran,
   const NLDMLUT& transLUT = nldmData->getLUT(transLUTType);
   delay = delayLUT.value(inputTran, outputLoad);
   trans = transLUT.value(inputTran, outputLoad);
-  printf("DEBUG: rise : %s, inTran = %G, outLoad = %G, delay = %G, trans = %G\n", isRise ? "T" : "F", inputTran, outputLoad, delay, trans);
+  //printf("DEBUG: rise : %s, inTran = %G, outLoad = %G, delay = %G, trans = %G\n", isRise ? "T" : "F", inputTran, outputLoad, delay, trans);
 }
 
 void 
@@ -124,7 +124,7 @@ RampVCellDelay::initParameters()
   updateRd();
   _tDelta = (_t50-_t20)*10/3;
   _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
-  if (_tZero < 0) _tZero = 0;
+  if (_tZero < 0) _tZero = 1e-15;
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: Init params: inTran: %G, Rd: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
            _inputTran, _rd, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);

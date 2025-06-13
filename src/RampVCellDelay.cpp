@@ -217,7 +217,7 @@ dydtD(double t, double tZero, double tDelta, double rd, double effCap)
 }
 
 static void
-populatePWLData(double tZero, double tDelta, double vdd, 
+populatePWLData(double tDelta, double vdd, 
                 bool isRise, PWLValue& pwlData)
 {
   pwlData._time.clear();
@@ -229,8 +229,6 @@ populatePWLData(double tZero, double tDelta, double vdd,
     v2 = 0;
   }
   pwlData._time.push_back(0);
-  pwlData._value.push_back(v1);
-  pwlData._time.push_back(tZero);
   pwlData._value.push_back(v1);
   pwlData._time.push_back(tDelta);
   pwlData._value.push_back(v2);
@@ -298,7 +296,8 @@ RampVCellDelay::updateDriverParameter()
   const Device& driverSource = _ckt->device(_cellArc->driverSourceId());
   PWLValue& driverData = _ckt->PWLData(driverSource);
   double vdd = _cellArc->nldmData()->owner()->voltage();
-  populatePWLData(_tZero, _tDelta, vdd, _isRiseOnDriverPin, driverData);
+  //populatePWLData(_tZero, _tDelta, vdd, _isRiseOnDriverPin, driverData);
+  populatePWLData(_tDelta, vdd, _isRiseOnDriverPin, driverData);
 }
 
 bool
@@ -344,7 +343,7 @@ RampVCellDelay::calcIteration()
   updateDriverParameter();
   AnalysisParameter simParam;
   simParam._type = AnalysisType::Tran;
-  simParam._simTime = (_tZero + _tDelta) * 1.2;
+  simParam._simTime = _tDelta * 1.2;
   simParam._simTick = simParam._simTime / 1000;
   simParam._intMethod = IntegrateMethod::Trapezoidal;
   Simulator sim(*_ckt, simParam);
@@ -368,7 +367,7 @@ RampVCellDelay::calcIteration()
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new effCap calculated to be %G with total charge of %G in %lu iterations\n", newEffCap, totalCharge, cSolver.iterCount());
   }
-  if (std::abs((newEffCap - _effCap)/_effCap) < 0.01) {
+  if (std::abs((newEffCap - _effCap)/_effCap) < 0.001) {
     _finalResult.copy(simResult);
     return false;
   } else {

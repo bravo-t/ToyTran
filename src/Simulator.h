@@ -34,6 +34,17 @@ class Simulator {
     double relTotal() const { return _param._relTotal; }
     IntegrateMethod intMethod() const { return _param._intMethod; }
 
+    void setTerminationNodeVoltage(size_t nodeId, double value) 
+    {
+      _termNodeId = nodeId;
+      _termValue = value;
+    }
+    void setTerminationDeviceCurrent(size_t devId, double value) 
+    {
+      _termDeviceId = devId;
+      _termValue = value;
+    }
+
   private:
     void formulateEquation();
     void updateEquation();
@@ -41,6 +52,7 @@ class Simulator {
     void adjustSimTick();
     void solveEquation();
     void checkNeedRebuild();
+    bool checkTerminateCondition();
 
   private:
     size_t             _eqnDim = 0;
@@ -54,6 +66,10 @@ class Simulator {
     Eigen::VectorXd    _b;
     /// Cache data
     Eigen::FullPivLU<Eigen::MatrixXd> _Alu;
+
+    size_t             _termNodeId = static_cast<size_t>(-1);
+    size_t             _termDeviceId = static_cast<size_t>(-1);
+    double             _termValue = 0;
 };
 
 }

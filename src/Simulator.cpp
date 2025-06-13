@@ -8,6 +8,8 @@
 
 namespace NA {
 
+static size_t invalidId = static_cast<size_t>(-1);
+
 IntegrateMethod
 Simulator::integrateMethod() const
 {
@@ -162,5 +164,22 @@ Simulator::checkNeedRebuild()
     _needRebuild = true;
   }
 }
+
+bool
+Simulator::checkTerminateCondition()
+{
+  if (_termNodeId == invalidId && 
+      _termDeviceId == invalidId) {
+    return false;
+  }
+  double currentValue = 0;
+  if (_termNodeId != invalidId) {
+    currentValue = _result.values()[_termNodeId];
+
+
+
+  return false;
+}
+
 
 }

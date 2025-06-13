@@ -124,7 +124,7 @@ RampVCellDelay::initParameters()
   updateRd();
   _tDelta = (_t50-_t20)*10/3;
   _tZero = _t50 - 0.69*_rd*_effCap - _tDelta/2;
-  if (_tZero < 0) _tZero = 1e-15;
+  //if (_tZero < 0) _tZero = 1e-15;
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: Init params: inTran: %G, Rd: %G, effCap: %G, T50: %G, outTran: %G. T20: %G, dT: %G, Tz: %G\n", 
            _inputTran, _rd, _effCap, _t50, _driverPinTran, _t20, _tDelta, _tZero);
@@ -166,6 +166,45 @@ y(double t, double tZero, double tDelta, double rd, double effCap)
     double y0a = y0(t, tZero, rd, effCap);
     double y0b = y0(t-tDelta, tZero, rd, effCap);
     return (y0a - y0b) / tDelta;
+  }
+}
+
+static inline double 
+dy0dtz(double t, double tZero, double rd, double effCap)
+{
+  double tShift = t - tZero;
+  double tConstant = rd * effCap;
+  return std::exp(-tShift/tConstant) - 1;
+}
+
+static inline double
+dydtz(double t, double tZero, double tDelta, double rd, double effCap)
+{
+  double tShift = t - tZero;
+  if (tShift <= 0) {
+    return 0;
+  } else if (tShift < tDelta) {
+    return dy0dtz(t, tZero, rd, effCap) / tDelta;
+  } else {
+    double dy0a = dy0dtz(t, tZero, rd, effCap);
+    double dy0b = dy0dtz(t-tDelta, tZero, rd, effCap);
+    return dy0a - dy0b;
+  }
+}
+
+static inline double
+dydtD(double t, double tZero, double tDelta, double rd, double effCap)
+{
+  double tShift = t - tZero;
+  if (tShift <= 0) {
+    return 0;
+  } else if (tShift < tDelta) {
+    return -y0(t, tZero, rd, effCap) / (tDelta*tDelta);
+  } else {
+    double dy0a = -y0(t, tZero, rd, effCap) / (tDelta * tDelta);
+    double tmtD = t - tDelta;
+    double dy0b = -y0(tmtD, tZero, rd, effCap) / (tmtD * tmtD);
+    return dy0a + dy0b;
   }
 }
 
@@ -264,9 +303,25 @@ RampVCellDelay::calcIteration()
     double b = delayMatchPoint / 100;
     return y(this->_t20, x(0), x(1), _rd, _effCap) - b;
   };
+  RootSolver::Function df1dtz = [this](const Eigen::VectorXd& x)->double {
+    return dydtz(this->_t50, x(0), x(1), _rd, _effCap);
+  };
+  RootSolver::Function df2dtz = [this](const Eigen::VectorXd& x)->double {
+    return dydtz(this->_t20, x(0), x(1), _rd, _effCap);
+  };
+  RootSolver::Function df1dtD = [this](const Eigen::VectorXd& x)->double {
+    return dydtD(this->_t50, x(0), x(1), _rd, _effCap);
+  };
+  RootSolver::Function df2dtD = [this](const Eigen::VectorXd& x)->double {
+    return dydtD(this->_t20, x(0), x(1), _rd, _effCap);
+  };
   RootSolver tSolver;
   tSolver.addFunction(f1);
   tSolver.addFunction(f2);
+  tSolver.addDerivativeFunction(df1dtz);
+  tSolver.addDerivativeFunction(df1dtD);
+  tSolver.addDerivativeFunction(df2dtz);
+  tSolver.addDerivativeFunction(df2dtD);
   tSolver.setInitX({_tZero, _tDelta});
   tSolver.run();
   const std::vector<double>& sol = tSolver.solution();

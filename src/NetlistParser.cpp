@@ -245,6 +245,7 @@ static PWLValue
 parsePWLData(std::vector<std::string>& strs, size_t startIndex)
 {
   PWLValue pwlData;
+  size_t dataIndex = 0;
   for (size_t i=startIndex; i<strs.size(); ++i) {
     std::string& str = strs[i];
     if (i == startIndex) {
@@ -260,13 +261,14 @@ parsePWLData(std::vector<std::string>& strs, size_t startIndex)
       str.pop_back();
     }
     if (str.size() > 0) {
-      if (((i - startIndex) & 0x1) == 1) {
+      if ((dataIndex & 0x1) == 0) {
         double value = numericalValue(str, "Ss");
         pwlData._time.push_back(value);
       } else {
         double value = numericalValue(str, "VvAa");
         pwlData._value.push_back(value);
       }
+      ++dataIndex;
     }
   }
   assert(pwlData._time.size() == pwlData._value.size() &&

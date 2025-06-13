@@ -591,7 +591,7 @@ MNAStamper::stamp(Eigen::MatrixXd& G,
   stampFunc[static_cast<size_t>(DeviceType::CCVS)] = &NA::MNAStamper::stampCCVS;
   stampFunc[static_cast<size_t>(DeviceType::CCCS)] = &NA::MNAStamper::stampCCCS;
 
-  const std::vector<Device>& devices = _circuit.devices();
+  const std::vector<Device>& devices = _circuit.devicesToSimulate();
   for (const Device& device : devices) {
     (this->*stampFunc[static_cast<size_t>(device._type)])(G, C, b, device, intMethod);
   }
@@ -622,7 +622,7 @@ MNAStamper::updateb(Eigen::VectorXd& b, IntegrateMethod intMethod)
   updatebFunc[static_cast<size_t>(DeviceType::CCCS)] = &NA::MNAStamper::updatebNoop;
 
   b.setZero();
-  const std::vector<Device>& devices = _circuit.devices();
+  const std::vector<Device>& devices = _circuit.devicesToSimulate();
   for (const Device& device : devices) {
     (this->*updatebFunc[static_cast<size_t>(device._type)])(b, device, intMethod);
   }

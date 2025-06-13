@@ -105,6 +105,9 @@ class Circuit {
     void markSimulationScope(const std::vector<const Device*>& devs);
     void resetSimulationScope();
 
+    std::vector<Device> devicesToSimulate() const;
+    std::vector<Node> nodesToSimulate() const;
+
     void debugPrint() const;
 
   private:

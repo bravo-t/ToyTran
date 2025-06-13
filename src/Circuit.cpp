@@ -701,6 +701,26 @@ Circuit::markSimulationScope(const std::vector<const Device*>& devs)
   _nodesToSimulate.erase(it2, _nodesToSimulate.end());
 }
 
+std::vector<Device>
+Circuit::devicesToSimulate() const
+{
+  std::vector<Device> devs;
+  for (size_t devId : _devicesToSimulate) {
+    devs.push_back(device(devId));
+  }
+  return devs;
+}
+
+std::vector<Node>
+Circuit::nodesToSimulate() const
+{
+  std::vector<Node> nodes;
+  for (size_t nodeId : _nodesToSimulate) {
+    nodes.push_back(node(nodeId));
+  }
+  return nodes;
+}
+
 CellArc::CellArc(const LibData* libData, const std::string& inst, const std::string& cell, 
                 const std::string& fromPin, const std::string& toPin) 
 : _instName(inst), _cellName(cell), _fromPin(fromPin), _toPin(toPin)

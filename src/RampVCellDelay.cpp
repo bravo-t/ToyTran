@@ -25,6 +25,13 @@ totalLoadOnDriver(const Circuit* ckt, size_t rdId)
   return totalCap;
 }
 
+void
+markSimulationScope(size_t rdId, Circuit* ckt)
+{
+  const std::vector<const Device*>& connDevs = ckt->traceDevice(rdId);
+  ckt->markSimulationScope(connDevs);
+}
+
 /// tranThres1 and tranThres2 are two threshold that defines transition time,
 /// the output voltage will go through tranThres1 first, tranThres2 second.
 /// for rise transition they correspond to low and high thresholds, 
@@ -120,6 +127,7 @@ RampVCellDelay::initParameters()
   updateLoadCaps();
   _effCap =  totalLoadOnDriver(_ckt, _cellArc->driverResistorId());
   _inputTran = _cellArc->inputTransition(_ckt);
+  markSimulationScope(_cellArc->driverResistorId(), _ckt);
   updateTParams();
   updateRd();
   _tDelta = (_t50-_t20)*10/3;

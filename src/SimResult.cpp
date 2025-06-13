@@ -45,7 +45,7 @@ std::vector<size_t>
 branchDevices(const Circuit* ckt)
 {
   std::vector<size_t> devIds;
-  const std::vector<Device>& devs = ckt->devices();
+  const std::vector<Device>& devs = ckt->devicesToSimulate();
   for (const Device& dev : devs) {
     if (needExtraDim(dev)) {
       devIds.push_back(dev._devId);
@@ -66,8 +66,8 @@ branchDevices(const Circuit* ckt)
 void
 SimResult::init(const Circuit* ckt)
 {
-  const std::vector<Node>& nodes = ckt->nodes();
-  _map._nodeVoltageMap.assign(nodes.size(), SimResultMap::invalidValue());
+  const std::vector<Node>& nodes = ckt->nodesToSimulate();
+  _map._nodeVoltageMap.assign(ckt->nodeNumber(), SimResultMap::invalidValue());
   size_t index = 0;
   for (const Node& node : nodes) {
     if (node._isGround) {

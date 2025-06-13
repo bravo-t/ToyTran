@@ -107,7 +107,7 @@ LTE::maxLTE(const Simulator* sim)
   lteFunc[static_cast<size_t>(DeviceType::CCCS)] = lteNoop;
 
   double lteValue = .0f;
-  const std::vector<Device>& devices = sim->circuit().devices();
+  const std::vector<Device>& devices = sim->circuit().devicesToSimulate();
   for (const Device& device : devices) {
     double devLTE = lteFunc[static_cast<size_t>(device._type)](device, sim);
     lteValue = std::max(lteValue, std::abs(devLTE));
@@ -244,7 +244,7 @@ StepControl::stepLimit(const Simulator* sim, double relTol)
   stepSizeFunc[static_cast<size_t>(DeviceType::CCCS)] = stepNoop;
 
   double stepSizeLimit = std::numeric_limits<double>::max();
-  const std::vector<Device>& devices = sim->circuit().devices();
+  const std::vector<Device>& devices = sim->circuit().devicesToSimulate();
   for (const Device& device : devices) {
     double devStepSize = stepSizeFunc[static_cast<size_t>(device._type)](device, sim, relTol);
     stepSizeLimit = std::min(stepSizeLimit, devStepSize);

@@ -52,7 +52,7 @@ class Simulator {
     void adjustSimTick();
     void solveEquation();
     void checkNeedRebuild();
-    bool checkTerminateCondition();
+    bool checkTerminateCondition() const;
 
   private:
     size_t             _eqnDim = 0;

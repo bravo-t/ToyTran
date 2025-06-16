@@ -119,6 +119,9 @@ Simulator::solveEquation()
 bool
 Simulator::converged() const
 {
+  if (checkTerminateCondition()) {
+    return true;
+  }
   double simTime = 0;
   if (_result.ticks().empty() == false) {
     simTime = _result.ticks().back();
@@ -166,18 +169,24 @@ Simulator::checkNeedRebuild()
 }
 
 bool
-Simulator::checkTerminateCondition()
+Simulator::checkTerminateCondition() const
 {
   if (_termNodeId == invalidId && 
       _termDeviceId == invalidId) {
     return false;
   }
-  double currentValue = 0;
+  double val1, val2;
   if (_termNodeId != invalidId) {
-    currentValue = _result.values()[_termNodeId];
-
-
-
+    val1 = _result.nodeVoltageBackstep(_termNodeId, 1);
+    val2 = _result.nodeVoltageBackstep(_termNodeId, 2);
+  } else {
+    val1 = _result.deviceCurrentBackstep(_termDeviceId, 1);
+    val2 = _result.deviceCurrentBackstep(_termDeviceId, 2);
+  }
+  if ((val1 <= _termValue && val2 >= _termValue) || 
+      (val1 >= _termValue && val2 <= _termValue)) {
+    return true;
+  }
   return false;
 }
 

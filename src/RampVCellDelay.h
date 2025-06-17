@@ -17,6 +17,12 @@ class RampVCellDelay {
 
     bool calculate();
 
+    double tZero() const { return _tZero; }
+    double tDelta() const { return _tDelta; }
+    double Rd() const { return _rd; }
+    double effCap() const { return _effCap; }
+    SimResult() const { return _finalResult; }
+
   private:
     void initParameters();
     void updateParameters();
@@ -34,6 +40,7 @@ class RampVCellDelay {
     SimResult _finalResult;
     bool   _isRiseOnInputPin = true;
     bool   _isRiseOnDriverPin = true;
+    bool   _setTerminationCondition = false;
     double _delayThres = 50;
     double _tranThres1 = 10;
     double _tranThres2 = 90;

@@ -347,6 +347,9 @@ RampVCellDelay::calcIteration()
   simParam._simTick = simParam._simTime / 1000;
   simParam._intMethod = IntegrateMethod::Trapezoidal;
   Simulator sim(*_ckt, simParam);
+  if (_setTerminationCondition) {
+    sim.setTerminationNodeVoltage(, double value)
+  }
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: start transient simualtion\n");
   }
@@ -367,7 +370,11 @@ RampVCellDelay::calcIteration()
   if (Debug::enabled(DebugModule::NLDM)) {
     printf("DEBUG: new effCap calculated to be %G with total charge of %G in %lu iterations\n", newEffCap, totalCharge, cSolver.iterCount());
   }
-  if (std::abs((newEffCap - _effCap)/_effCap) < 0.001) {
+  double absDiff = std::abs((newEffCap - _effCap)/_effCap);
+  if (absDiff < 0.1) {
+    _setTerminationCondition = true;
+  }
+  if (absDiff < 0.001) {
     _finalResult.copy(simResult);
     return false;
   } else {

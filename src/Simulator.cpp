@@ -168,15 +168,11 @@ Simulator::checkNeedRebuild()
   }
 }
 
-bool
-Simulator::checkTerminateCondition() const
+static bool
+checkTermCondition(size_t id, bool isNodeId, double value)
 {
-  if (_termNodeId == invalidId && 
-      _termDeviceId == invalidId) {
-    return false;
-  }
   double val1, val2;
-  if (_termNodeId != invalidId) {
+  if (isNodeId) {
     val1 = _result.nodeVoltageBackstep(_termNodeId, 1);
     val2 = _result.nodeVoltageBackstep(_termNodeId, 2);
   } else {
@@ -188,6 +184,25 @@ Simulator::checkTerminateCondition() const
     return true;
   }
   return false;
+}
+
+bool
+Simulator::checkTerminateCondition() const
+{
+  if (_termNodeIds.empty() && _termDeviceIds.empty()) {
+    return false;
+  }
+  for (size_t id : _termNodeIds) {
+    if (checkTermCondition(id, true, _value) == false) {
+      return false;
+    }
+  }
+  for (size_t id : _termDeviceIds) {
+    if (checkTermCondition(id, false, _value) == false) {
+      return false;
+    }
+  }
+  return true;
 }
 
 

@@ -169,18 +169,18 @@ Simulator::checkNeedRebuild()
 }
 
 static bool
-checkTermCondition(size_t id, bool isNodeId, double value)
+checkTermCondition(size_t id, bool isNodeId, double value, const SimResult& result)
 {
   double val1, val2;
   if (isNodeId) {
-    val1 = _result.nodeVoltageBackstep(_termNodeId, 1);
-    val2 = _result.nodeVoltageBackstep(_termNodeId, 2);
+    val1 = result.nodeVoltageBackstep(id, 1);
+    val2 = result.nodeVoltageBackstep(id, 2);
   } else {
-    val1 = _result.deviceCurrentBackstep(_termDeviceId, 1);
-    val2 = _result.deviceCurrentBackstep(_termDeviceId, 2);
+    val1 = result.deviceCurrentBackstep(id, 1);
+    val2 = result.deviceCurrentBackstep(id, 2);
   }
-  if ((val1 <= _termValue && val2 >= _termValue) || 
-      (val1 >= _termValue && val2 <= _termValue)) {
+  if ((val1 <= value && val2 >= value) || 
+      (val1 >= value && val2 <= value)) {
     return true;
   }
   return false;
@@ -193,12 +193,12 @@ Simulator::checkTerminateCondition() const
     return false;
   }
   for (size_t id : _termNodeIds) {
-    if (checkTermCondition(id, true, _value) == false) {
+    if (checkTermCondition(id, true, _termValue, _result) == false) {
       return false;
     }
   }
   for (size_t id : _termDeviceIds) {
-    if (checkTermCondition(id, false, _value) == false) {
+    if (checkTermCondition(id, false, _termValue, _result) == false) {
       return false;
     }
   }

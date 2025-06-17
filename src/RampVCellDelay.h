@@ -21,7 +21,7 @@ class RampVCellDelay {
     double tDelta() const { return _tDelta; }
     double Rd() const { return _rd; }
     double effCap() const { return _effCap; }
-    SimResult() const { return _finalResult; }
+    SimResult result() const { return _finalResult; }
 
   private:
     void initParameters();

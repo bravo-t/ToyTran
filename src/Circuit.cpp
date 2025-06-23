@@ -782,17 +782,9 @@ CellArc::inputSourceDevId(const Circuit* ckt) const
 }
 
 size_t 
-CellArc::inputNode(const Circuit* ckt) const
+CellArc::inputNode() const
 {
-  const Device& inputSrc = ckt->device(inputSourceDevId(ckt));
-  size_t inputNodeId;
-  if (ckt->isGroundNode(inputSrc._posNode)) {
-    inputNodeId = inputSrc._negNode;
-  } else {
-    inputNodeId = inputSrc._posNode;
-  }
-  assert(ckt->isGroundNode(inputNodeId) == false);
-  return inputNodeId;
+  return _inputTranNode;
 }
 
 size_t 

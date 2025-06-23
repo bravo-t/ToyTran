@@ -15,7 +15,10 @@ class Plotter {
   public:
     Plotter(const NetlistParser& parser, const std::vector<Circuit>& ckts, const std::vector<SimResult>& results); 
     void plot() const;
-
+    static void plot(const PlotData& data, const std::vector<Circuit>& ckts, 
+                     const std::vector<SimResult>& results, 
+                     size_t width = -1, size_t height = -1);
+  
   private:
     void plotNodeVoltage(const std::string& nodeName, const std::string& simName, 
                          const std::vector<SimResult>& results) const;

@@ -90,7 +90,8 @@ findResultByName(const std::vector<SimResult>& results, const std::string& name)
 }
 
 void
-Plotter::plot(const PlotData& data) const
+Plotter::plot(const PlotData& data, const std::vector<Circuit>& ckts, 
+              const std::vector<SimResult>& results, size_t width, size_t height)
 {
   double max = std::numeric_limits<double>::lowest();
   double min = std::numeric_limits<double>::max();
@@ -103,12 +104,12 @@ Plotter::plot(const PlotData& data) const
   for (size_t i=0; i<data._nodeToPlot.size(); ++i) {
     const std::string& nodeName = data._nodeToPlot[i];
     const std::string& simName = data._nodeSimName[i];
-    const SimResult* result = findResultByName(_results, simName);
+    const SimResult* result = findResultByName(results, simName);
     if (result == nullptr) {
       printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
       return;
     }
-    const Circuit* ckt = findCircuitByName(_circuits, simName);
+    const Circuit* ckt = findCircuitByName(ckts, simName);
     if (ckt == nullptr) {
       printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
       return;
@@ -130,12 +131,12 @@ Plotter::plot(const PlotData& data) const
   for (size_t i=0; i<data._deviceToPlot.size(); ++i) {
     const std::string& devName = data._deviceToPlot[i];
     const std::string& simName = data._devSimName[i];
-    const SimResult* result = findResultByName(_results, simName);
+    const SimResult* result = findResultByName(results, simName);
     if (result == nullptr) {
       printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
       return;
     }
-    const Circuit* ckt = findCircuitByName(_circuits, simName);
+    const Circuit* ckt = findCircuitByName(ckts, simName);
     if (ckt == nullptr) {
       printf("Plot ERROR: Analysis named \"%s\" does not exist\n", simName.data());
       return;
@@ -155,7 +156,7 @@ Plotter::plot(const PlotData& data) const
     }
   }
   std::vector<std::string> canvas;
-  initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
+  initCanvas(width, height, canvas);
   for (size_t i=0; i<simData.size(); ++i) {
     char marker = markers[i];
     plotData(simData[i], max, min, canvas, marker);
@@ -166,6 +167,12 @@ Plotter::plot(const PlotData& data) const
   for (const std::string& line : legend) {
     printf("  %s\n", line.data());
   }
+}
+
+void
+Plotter::plot(const PlotData& data) const
+{
+  plot(data, _circuits, _results, _parser.plotWidth(), _parser.plotHeight());
 }
 
 void

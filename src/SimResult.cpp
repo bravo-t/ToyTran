@@ -402,6 +402,9 @@ SimResult::nodeVoltageWaveform(const std::string& nodeName,
     return std::vector<WaveformPoint>();
   }
   size_t rowIndex = nodeVectorIndex(node._nodeId);
+  if (rowIndex == static_cast<size_t>(-1)) {
+    return std::vector<WaveformPoint>();
+  }
   return waveformData(rowIndex, &max, &min); 
 }
 
@@ -415,6 +418,9 @@ SimResult::deviceCurrentWaveform(const std::string& devName,
     return std::vector<WaveformPoint>();
   }
   size_t rowIndex = deviceVectorIndex(device._devId);
+  if (rowIndex == static_cast<size_t>(-1)) {
+    return std::vector<WaveformPoint>();
+  }
   return waveformData(rowIndex, &max, &min); 
 }
 

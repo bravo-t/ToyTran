@@ -3,6 +3,7 @@
 #include "RampVCellDelay.h"
 #include "Simulator.h"
 #include "Debug.h"
+#include "Plotter.h"
 
 namespace NA {
 
@@ -107,6 +108,17 @@ measureVoltage(const SimResult& result, size_t nodeId, const LibData* libData,
   }
 }
 
+static const char* simName = "fd";
+
+void 
+populatePlotData(PlotData& plotData, size_t fromNodeId, size_t toNodeId, const Circuit* ckt)
+{
+  plotData._nodeToPlot.push_back(ckt->node(fromNodeId)._name);
+  plotData._nodeSimName.push_back(simName);
+  plotData._nodeToPlot.push_back(ckt->node(toNodeId)._name);
+  plotData._nodeSimName.push_back(simName);
+}
+
 void
 RampVDelay::calculateArc(const CellArc* driverArc)
 {
@@ -117,7 +129,7 @@ RampVDelay::calculateArc(const CellArc* driverArc)
   }
   double tOffset = cellDelayCalc.tZero();
   AnalysisParameter simParam;
-  simParam._name = "Delay calculation";
+  simParam._name = simName;
   simParam._type = AnalysisType::Tran;
   simParam._simTime = 1e99;
   simParam._simTick = cellDelayCalc.tDelta() / 1000;
@@ -127,8 +139,8 @@ RampVDelay::calculateArc(const CellArc* driverArc)
   sim.run();
   const SimResult& simResult = sim.simulationResult();
   const LibData* libData = driverArc->libData();
-  const Device& inputSrc = _ckt.device(driverArc->inputSourceDevId(&_ckt));
-  size_t inputNodeId = driverArc->inputNode(&_ckt);
+  //const Device& inputSrc = _ckt.device(driverArc->inputSourceDevId(&_ckt));
+  size_t inputNodeId = driverArc->inputNode();
   double inputT50;
   double inputTran;
   measureVoltage(simResult, inputNodeId, libData, inputT50, inputTran);
@@ -139,14 +151,28 @@ RampVDelay::calculateArc(const CellArc* driverArc)
   double cellDelay = outputT50 - inputT50 + tOffset;
   printf("Cell delay of %s:%s->%s: %G, transition on output pin: %G\n", driverArc->instance().data(), driverArc->fromPin().data(), 
           driverArc->toPin().data(), cellDelay, outputTran);
+  if (Debug::enabled(DebugModule::NLDM)) {
+    PlotData cellArcPlotData;
+    cellArcPlotData._canvasName = "Cell Delay";
+    size_t nodeId = driverArc->outputNode(&_ckt);
+    cellArcPlotData._nodeToPlot.push_back(_ckt.node(nodeId)._name);
+    cellArcPlotData._nodeSimName.push_back(simName);
+    Plotter::plot(cellArcPlotData, {_ckt}, {simResult});
+  }
   for (const CellArc* loadArc : loadArcs) {
-    size_t loadNode = loadArc->inputNode(&_ckt);
+    size_t loadNode = loadArc->inputNode();
     double loadT50;
     double loadTran;
     measureVoltage(simResult, loadNode, loadArc->libData(), loadT50, loadTran);
     double netDelay = loadT50 - outputT50;
     printf("Net delay of %s->%s: %G, transition on %s: %G\n", driverArc->toPinFullName().data(), 
            loadArc->fromPinFullName().data(), netDelay, loadArc->fromPinFullName().data(), loadTran);
+    if (Debug::enabled(DebugModule::NLDM)) {
+      PlotData netArcPlotData;
+      netArcPlotData._canvasName = "Net Delay";
+      populatePlotData(netArcPlotData, driverArc->outputNode(&_ckt), loadArc->inputNode(), &_ckt);
+      Plotter::plot(netArcPlotData, {_ckt}, {simResult});
+    }
   }
 }
 

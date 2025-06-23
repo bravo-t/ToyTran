@@ -41,7 +41,7 @@ class CellArc {
       return libData;
     }
 
-    size_t inputNode(const Circuit* ckt) const;
+    size_t inputNode() const;
     size_t outputNode(const Circuit* ckt) const;
 
     std::string fromPinFullName() const { return _instName + "/" + _fromPin; }

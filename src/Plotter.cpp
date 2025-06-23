@@ -115,7 +115,7 @@ Plotter::plot(const PlotData& data) const
     }
     double nodeMax = 0;
     double nodeMin = 0;
-    const std::vector<WaveformPoint>& nodeData = result->nodeVoltageWaveform(nodeName, nodeMax, nodeMin);
+    const std::vector<WaveformPoint>& nodeData = result->nodeVoltageWaveform(nodeName, nodeMax, nodeMin).data();
     if (nodeData.size() > 0) {
       simData.push_back(nodeData);
       max = std::max(max, nodeMax);
@@ -142,7 +142,7 @@ Plotter::plot(const PlotData& data) const
     }
     double devMax = 0;
     double devMin = 0;
-    const std::vector<WaveformPoint>& devData = result->deviceCurrentWaveform(devName, devMax, devMin);
+    const std::vector<WaveformPoint>& devData = result->deviceCurrentWaveform(devName, devMax, devMin).data();
     if (devData.size() > 0) {
       simData.push_back(devData);
       max = std::max(max, devMax);
@@ -179,7 +179,7 @@ Plotter::plotNodeVoltage(const std::string& nodeName, const std::string& simName
   }
   double max = 0;
   double min = 0;
-  const std::vector<WaveformPoint>& data = result->nodeVoltageWaveform(nodeName, max, min);
+  const std::vector<WaveformPoint>& data = result->nodeVoltageWaveform(nodeName, max, min).data();
   if (data.size() > 0) {
     std::vector<std::string> canvas;
     initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
@@ -202,7 +202,7 @@ Plotter::plotDeviceCurrent(const std::string& devName, const std::string& simNam
   }
   double max = 0;
   double min = 0;
-  const std::vector<WaveformPoint>& data = result->deviceCurrentWaveform(devName, max, min);
+  const std::vector<WaveformPoint>& data = result->deviceCurrentWaveform(devName, max, min).data();
   if (data.size() > 0) {
     std::vector<std::string> canvas;
     initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);

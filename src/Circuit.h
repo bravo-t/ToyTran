@@ -32,6 +32,17 @@ class CellArc {
     bool isInvertedArc() const { return _nldmArc->isInverted(); }
     const NLDMArc* nldmData() const { return _nldmArc; }
     const CCSArc* ccsData() const { return _ccsArc; }
+    const LibData* libData() const 
+    {
+      const LibData* libData = _nldmArc->owner();
+      if (libData == nullptr) {
+        libData = _ccsArc->owner();
+      }
+      return libData;
+    }
+
+    size_t inputNode(const Circuit* ckt) const;
+    size_t outputNode(const Circuit* ckt) const;
 
     std::string fromPinFullName() const { return _instName + "/" + _fromPin; }
     std::string toPinFullName() const { return _instName + "/" + _toPin; }

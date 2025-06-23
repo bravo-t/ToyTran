@@ -359,7 +359,7 @@ SimResult::deviceCurrentDerivative(const Device& device, size_t order, size_t st
   return calcDerivative(current, time);
 }
 
-std::vector<WaveformPoint>
+Waveform
 SimResult::waveformData(size_t rowIndex, double* max, double* min) const
 {
   std::vector<WaveformPoint> data;
@@ -375,24 +375,24 @@ SimResult::waveformData(size_t rowIndex, double* max, double* min) const
       data.push_back({tick(tIndex), value});
     }
   }
-  return data;
+  return Waveform(data);
 }
     
-std::vector<WaveformPoint> 
+Waveform 
 SimResult::nodeVoltageWaveform(size_t nodeId) const
 {
   size_t rowIndex = nodeVectorIndex(nodeId);
   return waveformData(rowIndex, nullptr, nullptr); 
 }
 
-std::vector<WaveformPoint> 
+Waveform
 SimResult::deviceCurrentWaveform(size_t devId) const
 {
   size_t rowIndex = deviceVectorIndex(devId);
   return waveformData(rowIndex, nullptr, nullptr); 
 }
 
-std::vector<WaveformPoint> 
+Waveform 
 SimResult::nodeVoltageWaveform(const std::string& nodeName, 
                                double& max, double& min) const
 {
@@ -405,7 +405,7 @@ SimResult::nodeVoltageWaveform(const std::string& nodeName,
   return waveformData(rowIndex, &max, &min); 
 }
 
-std::vector<WaveformPoint> 
+Waveform 
 SimResult::deviceCurrentWaveform(const std::string& devName, 
                                  double& max, double& min) const
 {

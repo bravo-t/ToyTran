@@ -181,6 +181,8 @@ class CCSArc {
                                 _riseRecvCap.empty() && _fallRecvCap.empty() &&
                                 _dcCurrent.empty(); }
 
+    const LibData* owner() const { return _owner; }
+
   private:
     const LibData* _owner = nullptr;
     std::string    _fromPin;

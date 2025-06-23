@@ -22,6 +22,7 @@ class RampVCellDelay {
     double Rd() const { return _rd; }
     double effCap() const { return _effCap; }
     SimResult result() const { return _finalResult; }
+    bool isRiseOnOutputPin() const { return _isRiseOnDriverPin; }
 
   private:
     void initParameters();

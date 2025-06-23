@@ -9,7 +9,6 @@
 
 namespace NA {
 
-
 class RampVDelay {
   public:
     RampVDelay(const AnalysisParameter& param, const NetlistParser& parser);
@@ -22,6 +21,7 @@ class RampVDelay {
   private:
     Circuit _ckt;
     std::vector<const CellArc*> _cellArcs;
+
 };
 
 }

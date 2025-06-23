@@ -19,6 +19,8 @@ struct Waveform {
   : _points(points) {}
 
   double measure(double targetValue) const;
+  bool isRise() const { return _points[0]._value < _points.back()._value; }
+  std::vector<WaveformPoint> data() const { return _points; }
 
   std::vector<WaveformPoint> _points;
 };
@@ -30,12 +32,26 @@ struct Waveform {
 struct SimResultMap {
   SimResultMap() = default;
   
+  void clear() 
+  {
+    _dimension = 0;
+    _nodeVoltageMap.clear();
+    _deviceCurrentMap.clear();
+  }
   void copy(const SimResultMap& other) 
   {
+    clear();
     _dimension = other._dimension;
     _nodeVoltageMap = other._nodeVoltageMap;
     _deviceCurrentMap =other._deviceCurrentMap;
   }
+  void swap(SimResultMap& other) 
+  {
+    _dimension = other._dimension;
+    _nodeVoltageMap.swap(other._nodeVoltageMap);
+    _deviceCurrentMap.swap(other._deviceCurrentMap);
+  }
+
   static size_t invalidValue() { return static_cast<size_t>(-2); }
   size_t _dimension = 0;
   std::vector<size_t> _nodeVoltageMap; /// node ID to matrix index
@@ -51,13 +67,31 @@ class SimResult {
     SimResult(const Circuit* ckt, const std::string& name);
     SimResult() = default;
 
+    void clear()
+    {
+      _name.clear();
+      _map.clear();
+      _ticks.clear();
+      _values.clear();
+    }
+
     void copy(const SimResult& other)
     {
+      clear();
       _ckt = other._ckt;
       _name = other._name;
       _map.copy(other._map);
       _ticks = other._ticks;
       _values = other._values;
+    }
+    
+    void swap(SimResult& other)
+    {
+      _ckt = other._ckt;
+      _name.swap(other._name);
+      _map.swap(other._map);
+      _ticks.swap(other._ticks);
+      _values.swap(other._values);
     }
 
     std::string name() const { return _name; }
@@ -117,10 +151,10 @@ class SimResult {
     double deviceCurrentDerivative(const Device& device, size_t order, size_t steps) const;
 
     /// Get waveform data
-    std::vector<WaveformPoint> nodeVoltageWaveform(const std::string& nodeName, double& max, double& min) const;
-    std::vector<WaveformPoint> deviceCurrentWaveform(const std::string& devName, double& max, double& min) const;
-    std::vector<WaveformPoint> nodeVoltageWaveform(size_t nodeId) const;
-    std::vector<WaveformPoint> deviceCurrentWaveform(size_t devId) const;
+    Waveform nodeVoltageWaveform(const std::string& nodeName, double& max, double& min) const;
+    Waveform deviceCurrentWaveform(const std::string& devName, double& max, double& min) const;
+    Waveform nodeVoltageWaveform(size_t nodeId) const;
+    Waveform deviceCurrentWaveform(size_t devId) const;
 
   
   private:
@@ -129,7 +163,7 @@ class SimResult {
     double deviceCurrentImp(size_t devId, size_t timeStep) const;
     double nodeVoltageBackstepImp(size_t nodeId, size_t steps) const;
     double deviceCurrentBackstepImp(size_t devId, size_t steps) const;
-    std::vector<WaveformPoint> waveformData(size_t rowIndex, double* max, double* min) const;
+    Waveform waveformData(size_t rowIndex, double* max, double* min) const;
   
   private:
     const Circuit*      _ckt = nullptr;

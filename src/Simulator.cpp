@@ -192,13 +192,13 @@ Simulator::checkTerminateCondition() const
   if (_termNodeIds.empty() && _termDeviceIds.empty()) {
     return false;
   }
-  for (size_t id : _termNodeIds) {
-    if (checkTermCondition(id, true, _termValue, _result) == false) {
+  for (const auto& kv : _termVoltages) {
+    if (checkTermCondition(kv.first, true, kv.second, _result) == false) {
       return false;
     }
   }
-  for (size_t id : _termDeviceIds) {
-    if (checkTermCondition(id, false, _termValue, _result) == false) {
+  for (const auto& kv : _termCurrents) {
+    if (checkTermCondition(kv.first, false, kv.second, _result) == false) {
       return false;
     }
   }

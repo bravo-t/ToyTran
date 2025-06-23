@@ -34,17 +34,13 @@ class Simulator {
     double relTotal() const { return _param._relTotal; }
     IntegrateMethod intMethod() const { return _param._intMethod; }
 
-    void setTerminationValue(double value) 
+    void setTerminationVoltage(size_t nodeId, double value)
     {
-      _termValue = value;
+      _termVoltages.insert({nodeId, value});
     }
-    void addTerminationDeviceId(size_t devId) 
+    void setTerminationCurrent(size_t devId, double value)
     {
-      _termDeviceIds.push_back(devId);
-    }
-    void addTerminationNodeId(size_t nodeId) 
-    {
-      _termNodeIds.push_back(nodeId);
+      _termCurrents.insert({devId, value});
     }
 
   private:
@@ -67,11 +63,10 @@ class Simulator {
     SimResult          _result;
     Eigen::VectorXd    _b;
     /// Cache data
-    Eigen::FullPivLU<Eigen::MatrixXd> _Alu;
+    Eigen::FullPivLU<Eigen::MatrixXd>    _Alu;
 
-    std::vector<size_t>               _termNodeIds;
-    std::vector<size_t>               _termDeviceIds;
-    double                            _termValue = 0;
+    std::unordered_map<size_t, double>   _termVoltages;
+    std::unordered_map<size_t, double>   _termCurrents;
 };
 
 }

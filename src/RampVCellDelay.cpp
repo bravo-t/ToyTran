@@ -225,8 +225,7 @@ populatePWLData(double tDelta, double vdd,
   double v1 = 0;
   double v2 = vdd;
   if (isRise == false) {
-    v1 = vdd;
-    v2 = 0;
+    v2 = -vdd;
   }
   pwlData._time.push_back(0);
   pwlData._value.push_back(v1);

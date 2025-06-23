@@ -261,8 +261,8 @@ simCapCharge(const SimResult& result, const Device& device)
     return 0;
   }
   if (device._type == DeviceType::Resistor) {
-    const std::vector<WaveformPoint>& posWaveform = result.nodeVoltageWaveform(device._posNode);
-    const std::vector<WaveformPoint>& negWaveform = result.nodeVoltageWaveform(device._negNode);
+    const std::vector<WaveformPoint>& posWaveform = result.nodeVoltageWaveform(device._posNode).data();
+    const std::vector<WaveformPoint>& negWaveform = result.nodeVoltageWaveform(device._negNode).data();
     std::vector<WaveformPoint> currentWaveform;
     currentWaveform.reserve(posWaveform.size());
     for (size_t i = 0; i < posWaveform.size(); ++i) {
@@ -272,7 +272,7 @@ simCapCharge(const SimResult& result, const Device& device)
       return totalCharge(currentWaveform);
     }
   } else {
-    const std::vector<WaveformPoint>& currentWaveform = result.deviceCurrentWaveform(device._devId);
+    const std::vector<WaveformPoint>& currentWaveform = result.deviceCurrentWaveform(device._devId).data();
     return totalCharge(currentWaveform);
   }
   return 0;

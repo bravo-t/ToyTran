@@ -784,7 +784,7 @@ CellArc::inputSourceDevId(const Circuit* ckt) const
 size_t 
 CellArc::inputNode(const Circuit* ckt) const
 {
-  const Dev& inputSrc = ckt->device(inputSourceDevId(ckt));
+  const Device& inputSrc = ckt->device(inputSourceDevId(ckt));
   size_t inputNodeId;
   if (ckt->isGroundNode(inputSrc._posNode)) {
     inputNodeId = inputSrc._negNode;
@@ -798,7 +798,7 @@ CellArc::inputNode(const Circuit* ckt) const
 size_t 
 CellArc::outputNode(const Circuit* ckt) const
 {
-  const Dev& rd = ckt->device(driverResistorId(ckt));
+  const Device& rd = ckt->device(driverResistorId());
   return rd._negNode;
 }
 

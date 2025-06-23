@@ -189,7 +189,7 @@ checkTermCondition(size_t id, bool isNodeId, double value, const SimResult& resu
 bool
 Simulator::checkTerminateCondition() const
 {
-  if (_termNodeIds.empty() && _termDeviceIds.empty()) {
+  if (_termVoltages.empty() && _termCurrents.empty()) {
     return false;
   }
   for (const auto& kv : _termVoltages) {

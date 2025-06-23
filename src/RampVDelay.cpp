@@ -127,7 +127,7 @@ RampVDelay::calculateArc(const CellArc* driverArc)
   sim.run();
   const SimResult& simResult = sim.simulationResult();
   const LibData* libData = driverArc->libData();
-  const Device& inputSrc = _ckt->device(driverArc->inputSourceDevId(_ckt));
+  const Device& inputSrc = _ckt.device(driverArc->inputSourceDevId(&_ckt));
   size_t inputNodeId = driverArc->inputNode(&_ckt);
   double inputT50;
   double inputTran;
@@ -138,7 +138,7 @@ RampVDelay::calculateArc(const CellArc* driverArc)
   measureVoltage(simResult, outputNodeId, libData, outputT50, outputTran);
   double cellDelay = outputT50 - inputT50 + tOffset;
   printf("Cell delay of %s:%s->%s: %G, transition on output pin: %G\n", driverArc->instance().data(), driverArc->fromPin().data(), 
-          cellDelay, driverArc->toPin().data(), outputTran);
+          driverArc->toPin().data(), cellDelay, outputTran);
   for (const CellArc* loadArc : loadArcs) {
     size_t loadNode = loadArc->inputNode(&_ckt);
     double loadT50;

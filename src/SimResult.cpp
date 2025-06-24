@@ -8,12 +8,31 @@
 
 namespace NA {
 
+Waveform::Waveform(const PWLValue& pwlValue)
+{
+  _points.reserve(pwlValue._value.size());
+  for (size_t i=0; i<pwlValue._value.size(); ++i) {
+    _points.push_back({pwlValue._time[i], pwlValue._value[i]});
+  }
+}
+
+void
+Waveform::range(double& max, double& min) const
+{
+  for (const WaveformPoint& p : _points) {
+    max = std::max(max, p._value);
+    min = std::min(min, p._value);
+  }
+}
+
 double
 Waveform::measure(double targetValue) const
 {
+  bool isRise = this->isRise();
   double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
   for (size_t i=1; i<_points.size(); ++i) {
-    if (_points[i-1]._value <= targetValue && _points[i]._value >= targetValue) {
+    if ((isRise && _points[i-1]._value <= targetValue && _points[i]._value >= targetValue) || 
+       (!isRise && _points[i-1]._value >= targetValue && _points[i]._value <= targetValue)) {
       x1 = _points[i-1]._time;
       y1 = _points[i-1]._value;
       x2 = _points[i]._time;
@@ -119,7 +138,7 @@ SimResult::nodeVoltageImp(size_t nodeId, size_t timeStep) const
 {
   assert(_ticks.size() > timeStep);
   size_t nodeIndex = nodeVectorIndex(nodeId);
-  assert(nodeIndex != static_cast<size_t>(-1) && "Incorrect nodeId");
+  assert(nodeIndex != SimResultMap::invalidValue() && "Incorrect nodeId");
   size_t resultIndex = timeStep * _map.size() + nodeIndex;
   return _values[resultIndex];
 }
@@ -156,7 +175,7 @@ SimResult::deviceCurrentImp(size_t deviceId, size_t timeStep) const
 {
   assert(_ticks.size() > timeStep);
   size_t devIndex = deviceVectorIndex(deviceId);
-  assert(devIndex != static_cast<size_t>(-1) && "Incorrect deviceId");
+  assert(devIndex != SimResultMap::invalidValue() && "Incorrect deviceId");
   size_t resultIndex = timeStep * _map.size() + devIndex;
   return _values[resultIndex];
 }
@@ -187,7 +206,7 @@ SimResult::nodeVoltageBackstepImp(size_t nodeId, size_t steps) const
     return 0;
   }
   size_t nodeIndex = nodeVectorIndex(nodeId);
-  assert(nodeIndex != static_cast<size_t>(-1) && "Incorrect nodeId");
+  assert(nodeIndex != SimResultMap::invalidValue() && "Incorrect nodeId");
   steps -= 1;
   size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + nodeIndex;
   return _values[resultIndex];
@@ -223,7 +242,7 @@ SimResult::deviceCurrentBackstepImp(size_t deviceId, size_t steps) const
     return 0;
   }
   size_t devIndex = deviceVectorIndex(deviceId);
-  assert(devIndex != static_cast<size_t>(-1) && "Incorrect deviceId");
+  assert(devIndex != SimResultMap::invalidValue() && "Incorrect deviceId");
   steps -= 1;
   size_t resultIndex = (_ticks.size() - steps - 1) * _map.size() + devIndex;
   return _values[resultIndex];
@@ -377,11 +396,31 @@ SimResult::waveformData(size_t rowIndex, double* max, double* min) const
   }
   return Waveform(data);
 }
+
+size_t
+tryFindPWLVoltageDev(const Circuit* ckt, const Node& node) 
+{
+  for (size_t devId : node._connection) {
+    const Device& dev = ckt->device(devId);
+    if (dev._type == DeviceType::VoltageSource && dev._isPWLValue) {
+      return devId;
+    }
+  }
+  return SimResultMap::invalidValue();
+}
     
 Waveform 
 SimResult::nodeVoltageWaveform(size_t nodeId) const
 {
   size_t rowIndex = nodeVectorIndex(nodeId);
+  if (rowIndex == SimResultMap::invalidValue()) {
+    const Node& node = _ckt->node(nodeId);
+    size_t devId = tryFindPWLVoltageDev(_ckt, node);
+    if (devId != SimResultMap::invalidValue()) {
+      return Waveform(_ckt->PWLData(_ckt->device(devId)));
+    }
+    return std::vector<WaveformPoint>();
+  }
   return waveformData(rowIndex, nullptr, nullptr); 
 }
 
@@ -389,6 +428,13 @@ Waveform
 SimResult::deviceCurrentWaveform(size_t devId) const
 {
   size_t rowIndex = deviceVectorIndex(devId);
+  if (rowIndex == SimResultMap::invalidValue()) {
+    const Device& device = _ckt->device(devId);
+    if (device._isPWLValue) {
+      return Waveform(_ckt->PWLData(device));
+    }
+    return std::vector<WaveformPoint>();
+  }
   return waveformData(rowIndex, nullptr, nullptr); 
 }
 
@@ -397,12 +443,18 @@ SimResult::nodeVoltageWaveform(const std::string& nodeName,
                                double& max, double& min) const
 {
   const Node& node = _ckt->findNodeByName(nodeName);
-  if (node._nodeId == static_cast<size_t>(-1)) {
+  if (node._nodeId == SimResultMap::invalidValue()) {
     printf("Node %s not found\n", nodeName.data());
     return std::vector<WaveformPoint>();
   }
   size_t rowIndex = nodeVectorIndex(node._nodeId);
-  if (rowIndex == static_cast<size_t>(-1)) {
+  if (rowIndex == SimResultMap::invalidValue()) {
+    size_t devId = tryFindPWLVoltageDev(_ckt, node);
+    if (devId != SimResultMap::invalidValue()) {
+      Waveform waveform(_ckt->PWLData(_ckt->device(devId)));
+      waveform.range(max, min);
+      return waveform;
+    }
     return std::vector<WaveformPoint>();
   }
   return waveformData(rowIndex, &max, &min); 
@@ -418,7 +470,12 @@ SimResult::deviceCurrentWaveform(const std::string& devName,
     return std::vector<WaveformPoint>();
   }
   size_t rowIndex = deviceVectorIndex(device._devId);
-  if (rowIndex == static_cast<size_t>(-1)) {
+  if (rowIndex == SimResultMap::invalidValue()) {
+    if (device._isPWLValue) {
+      Waveform waveform(_ckt->PWLData(device));
+      waveform.range(max, min);
+      return waveform;
+    }
     return std::vector<WaveformPoint>();
   }
   return waveformData(rowIndex, &max, &min); 

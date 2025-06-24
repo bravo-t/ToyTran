@@ -104,6 +104,12 @@ measureVoltage(const SimResult& result, size_t nodeId, const LibData* libData,
     double lowerVoltage = (lowerThres - 100) / 100 * libVoltage;
     double transLower = nodeVoltage.measure(lowerVoltage);
     double transUpper = nodeVoltage.measure(upperVoltage);
+    if (transLower == 1e99 && transUpper == 1e99 && upperVoltage < 0 && lowerVoltage < 0 && libVoltage > 0) {
+      upperVoltage = libVoltage + upperVoltage;
+      lowerVoltage = libVoltage + lowerVoltage;
+      transLower = nodeVoltage.measure(lowerVoltage);
+      transUpper = nodeVoltage.measure(upperVoltage);
+    }
     trans = transLower - transUpper;
   }
 }
@@ -154,9 +160,7 @@ RampVDelay::calculateArc(const CellArc* driverArc)
   if (Debug::enabled(DebugModule::NLDM)) {
     PlotData cellArcPlotData;
     cellArcPlotData._canvasName = "Cell Delay";
-    size_t nodeId = driverArc->outputNode(&_ckt);
-    cellArcPlotData._nodeToPlot.push_back(_ckt.node(nodeId)._name);
-    cellArcPlotData._nodeSimName.push_back(simName);
+    populatePlotData(cellArcPlotData, driverArc->inputNode(), driverArc->outputNode(&_ckt), &_ckt);
     Plotter::plot(cellArcPlotData, {_ckt}, {simResult});
   }
   for (const CellArc* loadArc : loadArcs) {

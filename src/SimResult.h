@@ -18,9 +18,12 @@ struct Waveform {
   Waveform(const std::vector<WaveformPoint>& points)
   : _points(points) {}
 
+  Waveform(const PWLValue& pwlValue);
+
   double measure(double targetValue) const;
   bool isRise() const { return _points[0]._value < _points.back()._value; }
   std::vector<WaveformPoint> data() const { return _points; }
+  void range(double& max, double& min) const;
 
   std::vector<WaveformPoint> _points;
 };
@@ -52,7 +55,7 @@ struct SimResultMap {
     _deviceCurrentMap.swap(other._deviceCurrentMap);
   }
 
-  static size_t invalidValue() { return static_cast<size_t>(-2); }
+  static size_t invalidValue() { return static_cast<size_t>(-1); }
   size_t _dimension = 0;
   std::vector<size_t> _nodeVoltageMap; /// node ID to matrix index
   std::vector<size_t> _deviceCurrentMap; /// device ID to matrix index

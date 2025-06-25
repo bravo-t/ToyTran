@@ -55,7 +55,7 @@ Gate cell instances: `Xinst LibCellName pinA nodeA pinB nodeB ...` (Only support
     |                                                               |  
     |                    Instance/driverPin/VPOS                    |  
     | loaderPin                 |                         driverPin |  
-  +---+                        v           +--------+             +---+
+  +---+                         v          +--------+             +---+
   |   +---------+           +--------------|        +-------------+   |
   +---+         |           |              +----+---+             +---+
     |            |           |                  ^                   |  

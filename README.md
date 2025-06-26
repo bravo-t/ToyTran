@@ -26,7 +26,7 @@ CCCS: `Fname N+ N- NC+ NC- Value`
 ### Commands and options for transient simulation
 `.tran [name] tstep tstop`: Specifies simulation time step and total simulation time. The `name` is useful when you would like to run the simulation on the same circuit with different options. `name` part is optional.
 
-`.option [name] method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler), `gear2` (Gear2 or BDF2) and `trap` (tapezoidal method).
+`.option [name] method=euler`: Specifies the method used to perform numerical integration. Valid methods are `euler` (backward Euler), `gear2` (Gear2 or BDF2) and `trap` (trapezoidal method).
 
 ### Commands and options for pole-zero analysis
 

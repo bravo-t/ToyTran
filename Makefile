@@ -21,14 +21,11 @@ BIN_DIR     = .
 CFLAG+=-I$(SRC_DIR)/submodule/eigen
 
 SRC_LIST = main.cpp \
-		   DelayCalculator.cpp \
 		   NetworkAnalyzer.cpp \
 		   Plotter.cpp \
 		   TR0Writer.cpp \
 		   Debug.cpp \
 		   Measure.cpp \
-		   RampVDelay.cpp \
-		   RampVCellDelay.cpp \
 		   PoleZero.cpp \
 		   Simulator.cpp \
 		   StepControl.cpp \

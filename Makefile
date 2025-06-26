@@ -10,6 +10,7 @@ endif
 
 CC          = g++
 LD          = g++
+AR 			= ar
 CFLAG       = -Wall -Wextra $(PRE_CFLAGS)
 PROG_NAME   = trans
 
@@ -47,8 +48,11 @@ DEP_FILES = $(OBJ_FULL_LIST:%.o=%.d)
 
 default: $(PROG_NAME)
 
-$(PROG_NAME): src/main.cpp $(OBJ_FULL_LIST)
+$(PROG_NAME): src/main.cpp libtrans.a
 	$(LD) $(OBJ_FULL_LIST) -o $(BIN_DIR)/$@
+
+libtrans.a: $(OBJ_FULL_LIST)
+	$(AR) rcs $@ $(OBJ_FULL_LIST)
 
 $(BUILD_DIR)/%.d: $(SRC_DIR)/%.cpp
 	$(eval obj_file := $(subst .d,.o,$@))

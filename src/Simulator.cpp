@@ -8,8 +8,6 @@
 
 namespace NA {
 
-static size_t invalidId = static_cast<size_t>(-1);
-
 IntegrateMethod
 Simulator::integrateMethod() const
 {

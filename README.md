@@ -1,6 +1,6 @@
 # ToyTran: A toy circuit (or rather, network) transient simulator
 
-## NOTE: All delay calculation related parts have been moving to https://github.com/bravo-t/ToyDelay
+## NOTE: All delay calculation related parts have been moving to [ToyDelay](https://github.com/bravo-t/ToyDelay)
 
 ## Supported devices
 Voltage: `Vname N+ N- value/pwl(t v t v ...)`

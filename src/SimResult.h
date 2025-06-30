@@ -159,6 +159,9 @@ class SimResult {
     Waveform nodeVoltageWaveform(size_t nodeId) const;
     Waveform deviceCurrentWaveform(size_t devId) const;
 
+    /// get total charge in simulation time
+    double totalCharge(const Device& dev) const;
+
   
   private:
     void init(const Circuit* ckt);

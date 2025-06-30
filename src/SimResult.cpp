@@ -481,5 +481,50 @@ SimResult::deviceCurrentWaveform(const std::string& devName,
   return waveformData(rowIndex, &max, &min); 
 }
 
+static inline double
+chargeInTimeInterval(double I0, double I1, double timeInterval)
+{
+  return (I0 + I1) * timeInterval / 2;
+}
+
+static double
+totalCharge(const std::vector<WaveformPoint>& waveform)
+{
+  double charge = 0;
+  double prevT = 0;
+  double prevI = 0;
+  for (const WaveformPoint& p : waveform) {
+    charge += chargeInTimeInterval(prevI, p._value, p._time - prevT);
+    prevT = p._time;
+    prevI = p._value;
+  }
+  return charge;
+}
+
+double
+SimResult::totalCharge(const Device& device) const
+{
+  if (device._type != DeviceType::Resistor && device._type != DeviceType::VoltageSource) {
+    printf("ERROR: total charge calculation is only supported on resistors and voltage sources\n");
+    return 0;
+  }
+  if (device._type == DeviceType::Resistor) {
+    const std::vector<WaveformPoint>& posWaveform = nodeVoltageWaveform(device._posNode).data();
+    const std::vector<WaveformPoint>& negWaveform = nodeVoltageWaveform(device._negNode).data();
+    std::vector<WaveformPoint> currentWaveform;
+    currentWaveform.reserve(posWaveform.size());
+    for (size_t i = 0; i < posWaveform.size(); ++i) {
+      const WaveformPoint& posData = posWaveform[i];
+      const WaveformPoint& negData = negWaveform[i];
+      currentWaveform.push_back({posData._time, (posData._value - negData._value)/device._value});
+      return NA::totalCharge(currentWaveform);
+    }
+  } else {
+    const std::vector<WaveformPoint>& currentWaveform = deviceCurrentWaveform(device._devId).data();
+    return NA::totalCharge(currentWaveform);
+  }
+  return 0;
+}
+
 
 }

@@ -252,13 +252,15 @@ class LibData {
     double fallDelayThres() const { return _delayFallThres; }
     
   private:
-    double _delayRiseThres = 50;
-    double _delayFallThres = 50;
-    double _transitionRiseLowThres = 10;
-    double _transitionRiseHighThres = 90;
-    double _transitionFallHighThres = 90;
-    double _transitionFallLowThres = 10;
-    double _voltage = 0;
+    double    _delayRiseThres = 50;
+    double    _delayFallThres = 50;
+    double    _transitionRiseLowThres = 10;
+    double    _transitionRiseHighThres = 90;
+    double    _transitionFallHighThres = 90;
+    double    _transitionFallLowThres = 10;
+    double    _voltage = 0;
+    NLDMLUT   _riseDriverWaveform;
+    NLDMLUT   _fallDriverWaveform;
     std::unordered_map<std::string, std::vector<NLDMArc>>      _nldmData;
     std::unordered_map<std::string, std::vector<CCSArc>>       _ccsData;
     std::unordered_map<std::string, std::vector<FixedLoadCap>> _loadCaps;

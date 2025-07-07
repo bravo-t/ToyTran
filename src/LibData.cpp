@@ -456,6 +456,16 @@ LibReader::readFile(const char* datFile)
             _owner->_voltage = std::stod(strs[i]);
           }
         }
+      } else if (strs[0] == ".DRIVWAVE") {
+        for (size_t i=0; i<2; ++i) {
+          std::getline(infile, line);
+          line = trim(line);
+          if (line == "Rise") {
+            readNLDMLUT(infile, _owner->_riseDriverWaveform, timeUnit, voltageUnit, voltageUnit);
+          } else if (line == "Fall") {
+            readNLDMLUT(infile, _owner->_fallDriverWaveform, timeUnit, voltageUnit, voltageUnit);
+          }
+        }
       } else {
         cellName = strs[0];
         std::vector<FixedLoadCap> pinCaps;

@@ -136,6 +136,7 @@ class CCSGroup {
     void sortTable();
 
     bool empty() const { return _ccsluts.empty(); }
+    std::vector<CCSLUT> tables() const { return _ccsluts; }
 
   private:
     std::vector<CCSLUT> _ccsluts;

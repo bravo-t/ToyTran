@@ -104,6 +104,9 @@ class CCSLUT {
 
     double inputTransition() const { return _index1; }
     double outputLoad() const { return _index2; }
+    double referenceTime() const { return _referenceTime; }
+    std::vector<double> times() const { return _index3; }
+    std::vector<double> values() const { return _values; }
 
     void reset()
     {

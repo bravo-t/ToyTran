@@ -20,6 +20,11 @@ struct Waveform {
 
   Waveform(const PWLValue& pwlValue);
 
+  void addPoint(double time, double value) 
+  {
+    _points.push_back({time, value});
+  }
+
   double measure(double targetValue) const;
   bool isRise() const { return _points[0]._value < _points.back()._value; }
   std::vector<WaveformPoint> data() const { return _points; }

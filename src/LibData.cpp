@@ -248,7 +248,18 @@ struct SortCCSLUT {
 void 
 CCSGroup::sortTable()
 {
+  if (_ccsluts.empty()) {
+    return;
+  }
   std::sort(_ccsluts.begin(), _ccsluts.end(), SortCCSLUT());
+  double prevTrans = _ccsluts[0].inputTransition();
+  _transDiv.push_back(0);
+  for (size_t i=1; i<_ccsluts.size(); ++i) {
+    if (_ccsluts[i].inputTransition() != prevTrans) {
+      _transDiv.push_back(i);
+      prevTrans = _ccsluts[i].inputTransition();
+    }
+  }
 }
 
 class LibReader {

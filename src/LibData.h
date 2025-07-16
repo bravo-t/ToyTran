@@ -134,12 +134,14 @@ class CCSGroup {
     void reset() { _ccsluts.clear(); }
     CCSLUT value(double inputTran, double outputLoad) const;
     void sortTable();
+    std::vector<size_t> searchSteps() const { return _transDiv; }
 
     bool empty() const { return _ccsluts.empty(); }
     std::vector<CCSLUT> tables() const { return _ccsluts; }
 
   private:
     std::vector<CCSLUT> _ccsluts;
+    std::vector<size_t> _transDiv;
 };
 
 class CCSArc {

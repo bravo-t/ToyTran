@@ -260,6 +260,8 @@ CCSGroup::sortTable()
       prevTrans = _ccsluts[i].inputTransition();
     }
   }
+  /// something works like the end() iterator of std::vector
+  _transDiv.push_back(_ccsluts.size());
 }
 
 class LibReader {

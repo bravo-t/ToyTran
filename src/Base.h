@@ -174,6 +174,65 @@ struct PWLValue {
   std::vector<double> _value;
 };
 
+struct WaveformPoint {
+  double _time = 0;
+  double _value = 0;
+};
+
+struct Waveform {
+  Waveform(const std::vector<WaveformPoint>& points)
+  : _points(points) {}
+
+  Waveform(const PWLValue& pwlValue)
+  {
+    _points.reserve(pwlValue._value.size());
+    for (size_t i=0; i<pwlValue._value.size(); ++i) {
+      _points.push_back({pwlValue._time[i], pwlValue._value[i]});
+    }
+  }
+
+  void addPoint(double time, double value) 
+  {
+    _points.push_back({time, value});
+  }
+
+  double measure(double targetValue) const
+  {
+    bool isRise = this->isRise();
+    double x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    for (size_t i=1; i<_points.size(); ++i) {
+      if ((isRise && _points[i-1]._value <= targetValue && _points[i]._value >= targetValue) || 
+         (!isRise && _points[i-1]._value >= targetValue && _points[i]._value <= targetValue)) {
+        x1 = _points[i-1]._time;
+        y1 = _points[i-1]._value;
+        x2 = _points[i]._time;
+        y2 = _points[i]._value;
+        break;
+      }
+    }
+    if (x1 == 0 && x2 == 0) {
+      return 1e99;
+    }
+    double k = (y2 - y1) / (x2 - x1);
+    double b = y1 - k * x1;
+    return (targetValue - b) / k;
+  }
+  
+  bool isRise() const { return _points[0]._value < _points.back()._value; }
+  
+  std::vector<WaveformPoint> data() const { return _points; }
+  
+  void range(double& max, double& min) const
+  {
+    for (const WaveformPoint& p : _points) {
+      max = std::max(max, p._value);
+      min = std::min(min, p._value);
+    }
+  }
+
+  std::vector<WaveformPoint> _points;
+};
+
 inline bool
 isAnySource(const Device& dev) {
   return dev._type >= DeviceType::VoltageSource && dev._type <= DeviceType::CCVS;

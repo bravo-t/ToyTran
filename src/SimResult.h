@@ -9,31 +9,6 @@
 
 namespace NA {
 
-struct WaveformPoint {
-  double _time = 0;
-  double _value = 0;
-};
-
-struct Waveform {
-  Waveform(const std::vector<WaveformPoint>& points)
-  : _points(points) {}
-
-  Waveform(const PWLValue& pwlValue);
-
-  void addPoint(double time, double value) 
-  {
-    _points.push_back({time, value});
-  }
-
-  double measure(double targetValue) const;
-  bool isRise() const { return _points[0]._value < _points.back()._value; }
-  std::vector<WaveformPoint> data() const { return _points; }
-  void range(double& max, double& min) const;
-
-  std::vector<WaveformPoint> _points;
-};
-
-
 /// @brief The map between numbers in x of Ax=b, and the actual meaning of 
 ///        the number
 ///        size() should be the dimention of vector x

@@ -230,6 +230,44 @@ struct Waveform {
     }
   }
 
+  size_t indexTime(double time) const 
+  {
+    size_t lower = 1;
+    size_t upper = _points.size()-2;
+    if (time <= _points[lower]._time) {
+      return 0;
+    }
+    if (time >= _points[upper]._time) {
+      return upper;
+    }
+    size_t idx = 0;
+    while (upper - lower > 1) {
+      idx = (lower + upper) >> 1;
+      if (_points[idx]._time > time) {
+        upper = idx;
+      } else {
+        lower = idx;
+      }
+    }
+    if (_points[idx]._time > time) {
+      --idx;
+    }
+    return idx;
+  }
+
+  double value(double time) const 
+  {
+    size_t idx1 = indexTime(time);
+    size_t idx2 = idx1 + 1;
+    double t1 = _points[idx1]._time;
+    double v1 = _points[idx1]._value;
+    double t2 = _points[idx2]._time;
+    double v2 = _points[idx2]._value;
+    
+    double k = (v2 - v1) / (t2 - t1);
+    double b = v1 - k * t1;
+    return k * time + b;
+  }
   std::vector<WaveformPoint> _points;
 };
 

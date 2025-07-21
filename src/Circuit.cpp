@@ -265,7 +265,8 @@ Circuit::createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap)
 }
 
 void
-Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap)
+Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap, 
+                             const std::vector<std::stirng>& cellOutPinsToCalcDelay)
 {
   std::vector<Device> devs;
   const std::string& libCell = dev._libCellName;
@@ -283,6 +284,16 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
     }
   }
   for (const std::string& outPin : outputPins) {
+    bool useCSM = false;
+    if (_param._driverModel == DriverModel::PWLCurrent) {
+      for (const std::string& nameToCalc : cellOutPinsToCalcDelay) {
+        if (nameToCalc == outPin) {
+          useCSM = true;
+          break;
+        }
+      }
+    }
+    for (const std::string)
     const std::vector<std::string>& inputPins = _libData.cellArcInputPins(libCell, outPin);
     if (inputPins.empty()) {
       printf("ERROR: Lib data for cell arc to pin %s of cell %s is missing\n", outPin.data(), libCell.data());
@@ -308,7 +319,7 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
          cellArcData.setInputTranNode(inputNodeId);
          const std::string& outputNode = foundOutputNode->second;
          size_t outputNodeId = ::NA::findNodeByName(nodeIdMap, outputNode);
-         if (_param._driverModel == DriverModel::RampVoltage) {
+         if (useCSM == false) {
            const ParserDevice& VRampPDev = createDriverVoltageSourceParserDevice(dev._name, outPin, gndNode);
            Device* driverSource = createDevice(VRampPDev, nodeIdMap);
            driverSource->_isPWLValue = true;
@@ -324,7 +335,7 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
            std::pair<std::string, std::string> key({cellArcData.fromPinFullName(), cellArcData.toPinFullName()});
            _cellArcMap.insert({key, _cellArcs.size()});
            _cellArcs.push_back(cellArcData);
-         } else if (_param._driverModel == DriverModel::PWLCurrent) {
+         } else {
            const ParserDevice& Id = createDriverCurrentSourceParserDevice(dev._name, outPin, gndNode, outputNode);
            Device* driverSource = createDevice(Id, nodeIdMap);
            driverSource->_isPWLValue = true;
@@ -465,7 +476,7 @@ Circuit::buildCircuit(const NetlistParser& parser)
   _devices.reserve(parserDevs.size());
   for (const ParserDevice& pDev : parserDevs) {
     if (pDev._type == DeviceType::Cell) {
-      elaborateGateDevice(pDev, nodeIdMap);
+      elaborateGateDevice(pDev, nodeIdMap, parser.cellOutPinsToCalcDelay());
     } else {
       createDevice(pDev, nodeIdMap);
     }

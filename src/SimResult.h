@@ -103,6 +103,7 @@ class SimResult {
     double currentTime() const;
     /// @brief Get size of the simulation result
     size_t size() const { return _ticks.size(); }
+    bool empty() const { return _ticks.empty(); }
     /// @brief Get simulation time step size of previous n steps
     ///        If steps is -1, it means the step size of previous 
     ///        step to current step is returned

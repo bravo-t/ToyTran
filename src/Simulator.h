@@ -15,6 +15,9 @@ class Circuit;
 class Simulator {
   public:
     Simulator(const Circuit& ckt, const AnalysisParameter& param);
+    /// For resuming simulation
+    Simulator(const SimResult& result);
+
     void initData();
 
     bool needRebuildEquation() const { return _needRebuild; }
@@ -43,6 +46,9 @@ class Simulator {
       _termCurrents.insert({devId, value});
     }
 
+    void setSimulationTick(double tick) { _param._simTick = tick; }
+    void setSimEnd(double t) { _param._simTime = t; }
+
   private:
     void formulateEquation();
     void updateEquation();
@@ -55,7 +61,7 @@ class Simulator {
   private:
     size_t             _eqnDim = 0;
     bool               _needIterate = true;
-    bool               _needRebuild = false;
+    bool               _needRebuild = true;
     bool               _needUpdateA = false;
     const Circuit&     _circuit;
     AnalysisParameter  _param;

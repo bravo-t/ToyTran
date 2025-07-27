@@ -185,6 +185,14 @@ class CCBData {
     void setFallOutputVoltage(const CCBOutputVoltage& val) { _fallVoltage = val; }
 
     double dcCurrent(double Vin, double Vout) const;
+    double millerCap(bool isRise) const
+    {
+      if (isRise) {
+        return _millerCapRise;
+      } else {
+        return _millerCapFall;
+      }
+    }
 
   private:
     bool _isInverting = true;

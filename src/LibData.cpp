@@ -59,10 +59,11 @@ axisIndex(const std::vector<double>& values, double val)
   return static_cast<size_t>(-1);
 }
 
-static inline void
-indexValues(const std::vector<double>& values, size_t X, size_t Y, size_t YDim, 
-            double& Z1, double& Z2, double& Z3, double& Z4) 
+inline void
+NLDMLUT::indexValues(const std::vector<double>& values, size_t X, size_t Y, 
+                     double& Z1, double& Z2, double& Z3, double& Z4) const
 {
+  size_t YDim = _index2.size();
   size_t i = 0;
   i = X * YDim + Y;
   Z1 = values[i];
@@ -91,14 +92,13 @@ NLDMLUT::value(double inputTran, double outputLoad) const
   size_t index2 = binaryIndex(_index2, outputLoad);
   //size_t index1 = axisIndex(_index1, inputTran);
   //size_t index2 = axisIndex(_index2, outputLoad);
-  size_t index2Dim = _index2.size();
 
   double x1 = _index1[index1];
   double x2 = _index1[index1+1];
   double y1 = _index2[index2];
   double y2 = _index2[index2+1];
   double z1, z2, z3, z4;
-  indexValues(_values, index1, index2, index2Dim, z1, z2, z3, z4);
+  indexValues(_values, index1, index2, z1, z2, z3, z4);
   if (false) {
     printf("DEBUG: inputTran: %G ([%G, %G]), outputLoad: %G ([%G, %G])\n", 
            inputTran, x1, x2, outputLoad, y1, y2);

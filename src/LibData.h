@@ -7,6 +7,7 @@
 namespace NA {
 
 class LibData;
+class CCSArc;
 
 enum class LUTType {
   RiseDelay,
@@ -23,6 +24,7 @@ enum class LUTType {
 class NLDMLUT {
   public:
     NLDMLUT() = default;
+    NLDMLUT(const NLDMLUT& other) = default;
 
     void reset()
     {
@@ -41,6 +43,8 @@ class NLDMLUT {
 
     bool empty() const { return _values.empty(); }
 
+    void indexValues(const std::vector<double>& values, size_t X, size_t Y, 
+                     double& Z1, double& Z2, double& Z3, double& Z4) const;
   private:
     std::vector<double> _index1;
     std::vector<double> _index2;
@@ -147,6 +151,50 @@ class CCSGroup {
     std::vector<size_t> _transDiv;
 };
 
+class CCBOutputVoltageLUT {
+  public:
+    CCBOutputVoltageLUT() = default;
+    void init(double inputTran, double outputLoad, 
+              const std::vector<double>& time,
+              const std::vector<double>& voltage);
+    
+
+  private:  
+    double _inputTran = 0;
+    double _outputLoad = 0;
+    std::vector<double> _time;
+    std::vector<double> _voltage;
+};
+
+class CCBOutputVoltage {
+  public:
+    CCBOutputVoltage() = default;
+    void addLUT(const CCBOutputVoltageLUT& lut) { _lutData.push_back(lut); }
+
+  private:  
+    std::vector<CCBOutputVoltageLUT> _lutData;
+};
+
+class CCBData {
+  public: 
+    CCBData() = default;
+    void setIsInverting(bool val) { _isInverting = val; }
+    void setMillerCaps(double rise, double fall) { _millerCapRise = rise; _millerCapFall = fall; }
+    void setDcCurrent(const NLDMLUT& val) { _dcCurrent = val; }
+    void setRiseOutputVoltage(const CCBOutputVoltage& val) { _riseVoltage = val; }
+    void setFallOutputVoltage(const CCBOutputVoltage& val) { _fallVoltage = val; }
+
+    double dcCurrent(double Vin, double Vout) const;
+
+  private:
+    bool _isInverting = true;
+    double _millerCapRise = 0;
+    double _millerCapFall = 0;
+    NLDMLUT _dcCurrent;
+    CCBOutputVoltage _riseVoltage;
+    CCBOutputVoltage _fallVoltage;
+};
+
 class CCSArc {
   public:
     CCSArc(const LibData* owner)
@@ -192,6 +240,8 @@ class CCSArc {
 
     const LibData* owner() const { return _owner; }
 
+    const CCBData* ccbData() const { return &_ccbData; }
+
   private:
     const LibData* _owner = nullptr;
     std::string    _fromPin;
@@ -203,7 +253,8 @@ class CCSArc {
     CCSGroup       _fallCurrent;
     NLDMLUT        _riseRecvCap;
     NLDMLUT        _fallRecvCap;
-    NLDMLUT        _dcCurrent;
+    NLDMLUT        _dcCurrent; /// TODO deprecate this
+    CCBData        _ccbData;
 };
 
 class FixedLoadCap {

@@ -72,6 +72,18 @@ indexValues(const std::vector<double>& values, size_t X, size_t Y, size_t YDim,
   Z4 = values[i+1];
 }
 
+size_t 
+NLDMLUT::axis1Index(double value) const
+{
+  return binaryIndex(_index1, value);
+}
+
+size_t 
+NLDMLUT::axis2Index(double value) const
+{
+  return binaryIndex(_index2, value);
+}
+
 double 
 NLDMLUT::value(double inputTran, double outputLoad) const
 {

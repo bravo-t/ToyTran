@@ -266,7 +266,7 @@ Circuit::createDevice(const ParserDevice& pDev, const StringIdMap& nodeIdMap)
 
 void
 Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap, 
-                             const std::vector<std::stirng>& cellOutPinsToCalcDelay)
+                             const std::vector<std::string>& cellOutPinsToCalcDelay)
 {
   std::vector<Device> devs;
   const std::string& libCell = dev._libCellName;
@@ -293,7 +293,6 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
         }
       }
     }
-    for (const std::string)
     const std::vector<std::string>& inputPins = _libData.cellArcInputPins(libCell, outPin);
     if (inputPins.empty()) {
       printf("ERROR: Lib data for cell arc to pin %s of cell %s is missing\n", outPin.data(), libCell.data());

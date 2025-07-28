@@ -180,6 +180,7 @@ struct WaveformPoint {
 };
 
 struct Waveform {
+  Waveform() = default;
   Waveform(const std::vector<WaveformPoint>& points)
   : _points(points) {}
 

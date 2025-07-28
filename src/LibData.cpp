@@ -399,6 +399,94 @@ struct SortArcDataByPin {
   }
 };
 
+struct SortCCBOutputVoltageLUT {
+  bool operator()(const CCBOutputVoltageLUT& a, const CCBOutputVoltageLUT& b) const 
+  {
+    if (a.inputTransition() == b.inputTransition()) {
+      return a.outputLoad() < b.outputLoad();
+    } 
+    return a.inputTransition() < b.inputTransition();
+  }
+};
+
+void 
+CCBOutputVoltage::sortTable()
+{
+  if (_lutData.empty()) {
+    return;
+  }
+  std::sort(_lutData.begin(), _lutData.end(), SortCCBOutputVoltageLUT());
+  double prevTrans = _lutData[0].inputTransition();
+  _transDiv.push_back(0);
+  for (size_t i=1; i<_ccsluts.size(); ++i) {
+    if (_lutData[i].inputTransition() != prevTrans) {
+      _transDiv.push_back(i);
+      prevTrans = _lutData[i].inputTransition();
+    }
+  }
+  /// something works like the end() iterator of std::vector
+  _transDiv.push_back(_lutData.size());
+}
+
+void
+readOutputVoltageLUT(std::ifstream& infile, CCBOutputVoltageLUT& data, 
+                     double timeUnit, double capUnit, double timeUnit, double voltageUnit)
+{
+  std::string line;
+  std::getline(infile, line);
+  line = trim(line);
+  double index1 = parseLineNumber(line, timeUnit);
+  std::getline(infile, line);
+  line = trim(line);
+  double index2 = parseLineNumber(line, capUnit);
+  std::getline(infile, line);
+  line = trim(line);
+  std::vector<double> index3 = parseLineNumbers(line, timeUnit);
+  std::getline(infile, line);
+  line = trim(line);
+  std::vector<double> values = parseLineNumbers(line, voltageUnit);
+  data.init(index1, index2, index3, values);
+}
+
+void
+readCCBStage(std::ifstream& infile, CCBData& data, 
+             double timeUnit, double voltageUnit, 
+             double currentUnit, double capUnit)
+{
+  std::string line;
+  std::getline(infile, line);
+  line = trim(line);
+  const std::vector<double> caps = parseLineNumbers(line, capUnit);
+  data.setMillerCaps(caps[0], caps[1]);
+  std::getline(infile, line);
+  line = trim(line);
+  if (line == "DC Current") {
+    readNLDMLUT(infile, data.getDCCurrent(), voltageUnit, voltageUnit, currentUnit);
+  }
+  for (size_t i=0; i<2; ++i) {
+    std::getline(infile, line);
+    line = trim(line);
+    if (line == "Voltage Fall" || line == "Voltage Rise") {
+      std::string numLine;
+      std::getline(infile, numLine);
+      numLine = trim(numLine);
+      size_t tableCount = std::stoi(numLine);
+      CCBOutputVoltage* voltageTable = nullptr;
+      if (line == "Voltage Rise") {
+        voltageTable = &(data.getRiseOutputVoltage());
+      } else if (line == "Voltage Fall") {
+        voltageTable = &(data.getFallOutputVoltage());
+      }
+      for (size_t i=0; i<tableCount; ++i) {
+        CCBOutputVoltageLUT voltageData;
+        readOutputVoltageLUT(infile, lut, timeUnit, capUnit, timeUnit, voltageUnit);
+        voltageTable->addLUT(voltageData);
+      }
+      voltageTable->sortTable();
+    }
+  }
+}
+
 void
 LibReader::readFile(const char* datFile)
 {
@@ -528,13 +616,12 @@ LibReader::readFile(const char* datFile)
         readNLDMLUT(infile, nldmArc.getLUT(LUTType::RiseTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "Fall Transition") {
         readNLDMLUT(infile, nldmArc.getLUT(LUTType::FallTransition), timeUnit, capUnit, timeUnit);
-      } else if (line == "DC Current") {
-        std::string capLine;
-        std::getline(infile, capLine);
-        capLine = trim(capLine);
-        const std::vector<double> caps = parseLineNumbers(capLine, capUnit);
-        ccsArc.setMillerCaps(caps[0], caps[1]);
-        readNLDMLUT(infile, ccsArc.getDCCurrent(), voltageUnit, voltageUnit, currentUnit);
+      } else if (line == "CCSN First Stage") {
+        CCBData ccbData;
+        readCCBStage(infile, ccsArc.getFirstStageCCBData(), timeUnit, voltageUnit, currentUnit, capUnit);
+      } else if (line == "CCSN Last Stage") {
+        CCBData ccbData;
+        readCCBStage(infile, ccsArc.getLastStageCCBData(), timeUnit, voltageUnit, currentUnit, capUnit);
       } else if (line == "Current Rise") {
         std::string numLine;
         std::getline(infile, numLine);

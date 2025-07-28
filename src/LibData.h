@@ -158,6 +158,8 @@ class CCBOutputVoltageLUT {
               const std::vector<double>& time,
               const std::vector<double>& voltage);
     
+    double inputTransition() const { return _inputTran; }
+    double outputLoad() const { return _outputLoad; }
 
   private:  
     double _inputTran = 0;
@@ -171,8 +173,10 @@ class CCBOutputVoltage {
     CCBOutputVoltage() = default;
     void addLUT(const CCBOutputVoltageLUT& lut) { _lutData.push_back(lut); }
 
+    void sortTable();
   private:  
     std::vector<CCBOutputVoltageLUT> _lutData;
+    std::vector<size_t> _transDiv;
 };
 
 class CCBData {
@@ -180,7 +184,9 @@ class CCBData {
     CCBData() = default;
     void setIsInverting(bool val) { _isInverting = val; }
     void setMillerCaps(double rise, double fall) { _millerCapRise = rise; _millerCapFall = fall; }
-    void setDcCurrent(const NLDMLUT& val) { _dcCurrent = val; }
+    NLDMLUT& getDcCurrent() { return _dcCurrent; }
+    CCBOutputVoltage& getRiseOutputVoltage() { return _riseVoltage; }
+    CCBOutputVoltage& getFallOutputVoltage() { return _fallVoltage; }
     void setRiseOutputVoltage(const CCBOutputVoltage& val) { _riseVoltage = val; }
     void setFallOutputVoltage(const CCBOutputVoltage& val) { _fallVoltage = val; }
 
@@ -234,6 +240,8 @@ class CCSArc {
     NLDMLUT& getRecvCap(LUTType dataType);
     CCSGroup& getCurrent(LUTType dataType);
     NLDMLUT& getDCCurrent();
+    CCBData& ccbFirstStageData() { return _firstStageCCBData; }
+    CCBData& ccbLastStageData() { return _lastStageCCBData; }
     const NLDMLUT& getRecvCap(LUTType dataType) const;
     const CCSGroup& getCurrent(LUTType dataType) const;
     const NLDMLUT& getDCCurrent() const; 
@@ -262,7 +270,8 @@ class CCSArc {
     NLDMLUT        _riseRecvCap;
     NLDMLUT        _fallRecvCap;
     NLDMLUT        _dcCurrent; /// TODO deprecate this
-    CCBData        _ccbData;
+    CCBData        _firstStageCCBData;
+    CCBData        _lastStageCCBData;
 };
 
 class FixedLoadCap {

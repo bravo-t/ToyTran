@@ -418,7 +418,7 @@ CCBOutputVoltage::sortTable()
   std::sort(_lutData.begin(), _lutData.end(), SortCCBOutputVoltageLUT());
   double prevTrans = _lutData[0].inputTransition();
   _transDiv.push_back(0);
-  for (size_t i=1; i<_ccsluts.size(); ++i) {
+  for (size_t i=1; i<_lutData.size(); ++i) {
     if (_lutData[i].inputTransition() != prevTrans) {
       _transDiv.push_back(i);
       prevTrans = _lutData[i].inputTransition();
@@ -430,7 +430,7 @@ CCBOutputVoltage::sortTable()
 
 void
 readOutputVoltageLUT(std::ifstream& infile, CCBOutputVoltageLUT& data, 
-                     double timeUnit, double capUnit, double timeUnit, double voltageUnit)
+                     double timeUnit, double capUnit, double voltageUnit)
 {
   std::string line;
   std::getline(infile, line);
@@ -461,7 +461,7 @@ readCCBStage(std::ifstream& infile, CCBData& data,
   std::getline(infile, line);
   line = trim(line);
   if (line == "DC Current") {
-    readNLDMLUT(infile, data.getDCCurrent(), voltageUnit, voltageUnit, currentUnit);
+    readNLDMLUT(infile, data.getDcCurrent(), voltageUnit, voltageUnit, currentUnit);
   }
   for (size_t i=0; i<2; ++i) {
     std::getline(infile, line);
@@ -479,7 +479,7 @@ readCCBStage(std::ifstream& infile, CCBData& data,
       }
       for (size_t i=0; i<tableCount; ++i) {
         CCBOutputVoltageLUT voltageData;
-        readOutputVoltageLUT(infile, lut, timeUnit, capUnit, timeUnit, voltageUnit);
+        readOutputVoltageLUT(infile, voltageData, timeUnit, capUnit, voltageUnit);
         voltageTable->addLUT(voltageData);
       }
       voltageTable->sortTable();
@@ -618,10 +618,10 @@ LibReader::readFile(const char* datFile)
         readNLDMLUT(infile, nldmArc.getLUT(LUTType::FallTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "CCSN First Stage") {
         CCBData ccbData;
-        readCCBStage(infile, ccsArc.getFirstStageCCBData(), timeUnit, voltageUnit, currentUnit, capUnit);
+        readCCBStage(infile, ccsArc.ccbFirstStageData(), timeUnit, voltageUnit, currentUnit, capUnit);
       } else if (line == "CCSN Last Stage") {
         CCBData ccbData;
-        readCCBStage(infile, ccsArc.getLastStageCCBData(), timeUnit, voltageUnit, currentUnit, capUnit);
+        readCCBStage(infile, ccsArc.ccbLastStageData(), timeUnit, voltageUnit, currentUnit, capUnit);
       } else if (line == "Current Rise") {
         std::string numLine;
         std::getline(infile, numLine);

@@ -156,7 +156,13 @@ class CCBOutputVoltageLUT {
     CCBOutputVoltageLUT() = default;
     void init(double inputTran, double outputLoad, 
               const std::vector<double>& time,
-              const std::vector<double>& voltage);
+              const std::vector<double>& voltage)
+    {
+      _inputTran = inputTran;
+      _outputLoad = outputLoad;
+      _time.assign(time.begin(), time.end());
+      _voltage.assign(voltage.begin(), voltage.end());
+    }
     
     double inputTransition() const { return _inputTran; }
     double outputLoad() const { return _outputLoad; }
@@ -242,6 +248,8 @@ class CCSArc {
     NLDMLUT& getDCCurrent();
     CCBData& ccbFirstStageData() { return _firstStageCCBData; }
     CCBData& ccbLastStageData() { return _lastStageCCBData; }
+    const CCBData* ccbFirstStageData() const { return &_firstStageCCBData; }
+    const CCBData* ccbLastStageData() const { return &_lastStageCCBData; }
     const NLDMLUT& getRecvCap(LUTType dataType) const;
     const CCSGroup& getCurrent(LUTType dataType) const;
     const NLDMLUT& getDCCurrent() const; 
@@ -255,8 +263,6 @@ class CCSArc {
                                 _dcCurrent.empty(); }
 
     const LibData* owner() const { return _owner; }
-
-    const CCBData* ccbData() const { return &_ccbData; }
 
   private:
     const LibData* _owner = nullptr;

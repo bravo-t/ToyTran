@@ -192,6 +192,15 @@ struct Waveform {
     }
   }
 
+  Waveform(double startTime, double rampTime, double voltage) 
+  {
+    _points.push_back({0, 0});
+    if (startTime > 0) {
+      _points.push_back({startTime, 0});
+    }
+    _points.push_back({startTime+rampTime, voltage});
+  }
+
   void addPoint(double time, double value) 
   {
     _points.push_back({time, value});

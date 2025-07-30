@@ -196,7 +196,7 @@ class CCBData {
     void setRiseOutputVoltage(const CCBOutputVoltage& val) { _riseVoltage = val; }
     void setFallOutputVoltage(const CCBOutputVoltage& val) { _fallVoltage = val; }
 
-    double dcCurrent(double Vin, double Vout) const;
+    double dcCurrent(double Vin, double Vout) const { return _dcCurrent.value(Vin, Vout); }
     double millerCap(bool isRise) const
     {
       if (isRise) {

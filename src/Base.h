@@ -278,6 +278,9 @@ struct Waveform {
     double b = v1 - k * t1;
     return k * time + b;
   }
+  size_t size() const { return _points.size(); }
+  WaveformPoint operator[](size_t index) const { return _points[index]; }
+  WaveformPoint& operator[](size_t index) { return _points[index]; }
   std::vector<WaveformPoint> _points;
 };
 

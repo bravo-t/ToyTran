@@ -1,6 +1,7 @@
 #ifndef _TRAN_PLTR_H_
 #define _TRAN_PLTR_H_
 
+#include "Base.h"
 #include <string>
 #include <vector>
 
@@ -18,7 +19,8 @@ class Plotter {
     static void plot(const PlotData& data, const std::vector<Circuit>& ckts, 
                      const std::vector<SimResult>& results, 
                      size_t width = -1, size_t height = -1);
-  
+    
+    static void plotWaveforms(const std::vector<Waveform>& waveforms);
   private:
     void plotNodeVoltage(const std::string& nodeName, const std::string& simName, 
                          const std::vector<SimResult>& results) const;

@@ -205,6 +205,8 @@ class CCBData {
         return _millerCapFall;
       }
     }
+    
+    bool isInverting() const { return _isInverting; }
 
   private:
     bool _isInverting = true;

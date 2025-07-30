@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <unistd.h>
 #include <algorithm>
+#include <vector>
 #include "Plotter.h"
 #include "NetlistParser.h"
 #include "Circuit.h"
@@ -75,6 +76,48 @@ plotData(const std::vector<WaveformPoint>& data,
     //printf("DEBUG: y value: %g, y div: %lu, x value: %g, x div: %lu, dataScale: %g, timeScale: %g\n", 
     //  point.second, y, point.first, x, dataScale, timeScale);
     canvas[y][x] = marker;
+  }
+}
+
+void
+Plotter::plotWaveforms(const std::vector<Waveform>& waveforms)
+{
+  if (waveforms.size() > 4) {
+    printf("Cannot plot more than 4 waveforms.\n");
+    return;
+  }
+  std::vector<char> markers = {'*', 'o', 'x', '+'};
+  
+  std::vector<std::string> canvas;
+  initCanvas(widthLimit-10, heightLimit-10, canvas);
+  double maxValue = -1e99;
+  double minValue = 1e99;
+  double timeMax = -1e99;
+  for (const Waveform& wave : waveforms) {
+    wave.range(maxValue, minValue);
+    timeMax = std::max(timeMax, wave.data().back()._time);
+  }
+  size_t width = canvas[0].size() - 1;
+  size_t height = canvas.size() - 2;
+  double dataScale = (maxValue - minValue) / height;
+  double timeScale = timeMax / width;
+  size_t markerIndex = 0;
+  for (const Waveform& wave : waveforms) {
+    char marker = markers[markerIndex];
+    for (const auto& point : wave.data()) {
+      double offsetValue = point._value - minValue;
+      size_t y = offsetValue / dataScale;
+      y = height - y;
+      size_t x = point._time / timeScale;
+      //printf("DEBUG: y value: %g, y div: %lu, x value: %g, x div: %lu, dataScale: %g, timeScale: %g\n", 
+      //  point.second, y, point.first, x, dataScale, timeScale);
+      canvas[y][x] = marker;
+    }
+    ++markerIndex;
+  }
+
+  for (const std::string& line : canvas) {
+    printf("%s\n", line.data());
   }
 }
 

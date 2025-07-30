@@ -513,6 +513,14 @@ LibReader::readFile(const char* datFile)
     size_t numSpace = numLeadSpaces(line);
     line = trim(line);
     if (numSpace == 0) {
+      if (fromPin.size() > 0 || toPin.size() > 0) {
+        if (nldmArc.empty() == false) nldmData.push_back(nldmArc);
+        if (ccsArc.empty() == false) ccsData.push_back(ccsArc);
+        nldmArc.reset();
+        ccsArc.reset();
+        fromPin.clear();
+        toPin.clear();
+      }
       if (cellName.size() > 0) {
         if (nldmData.empty() == false) {
           std::sort(nldmData.begin(), nldmData.end(), SortArcDataByPin());

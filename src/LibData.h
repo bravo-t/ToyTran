@@ -1,6 +1,7 @@
 #ifndef _NA_LIBDAT_H_
 #define _NA_LIBDAT_H_
 
+#include <cstddef>
 #include <unordered_map>
 #include <vector>
 
@@ -180,6 +181,9 @@ class CCBOutputVoltage {
     void addLUT(const CCBOutputVoltageLUT& lut) { _lutData.push_back(lut); }
 
     void sortTable();
+
+    std::vector<CCBOutputVoltageLUT> tables() const { return _lutData; }
+    std::vector<size_t> searchSteps() const { return _transDiv; }
   private:  
     std::vector<CCBOutputVoltageLUT> _lutData;
     std::vector<size_t> _transDiv;
@@ -352,6 +356,7 @@ class LibData {
 
   friend class LibReader;
 };
+
 }
 
 #endif

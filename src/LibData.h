@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <unordered_map>
 #include <vector>
+#include <string>
 
 namespace NA {
 
@@ -167,6 +168,8 @@ class CCBOutputVoltageLUT {
     
     double inputTransition() const { return _inputTran; }
     double outputLoad() const { return _outputLoad; }
+    std::vector<double> times() const { return _time; }
+    std::vector<double> values() const { return _voltage; }
 
   private:  
     double _inputTran = 0;

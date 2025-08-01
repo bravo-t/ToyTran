@@ -200,6 +200,8 @@ class CCBData {
     NLDMLUT& getDcCurrent() { return _dcCurrent; }
     CCBOutputVoltage& getRiseOutputVoltage() { return _riseVoltage; }
     CCBOutputVoltage& getFallOutputVoltage() { return _fallVoltage; }
+    const CCBOutputVoltage& getRiseOutputVoltage() const { return _riseVoltage; }
+    const CCBOutputVoltage& getFallOutputVoltage() const { return _fallVoltage; }
     void setRiseOutputVoltage(const CCBOutputVoltage& val) { _riseVoltage = val; }
     void setFallOutputVoltage(const CCBOutputVoltage& val) { _fallVoltage = val; }
 

@@ -304,7 +304,19 @@ struct Waveform {
     double b = v1 - k * t1;
     return k * time + b;
   }
-
+  
+  double valueAtBackStep(size_t backStep) const {
+    if (backStep >= _points.size()) {
+      return 0;
+    }
+    return _points[_points.size()-1-backStep]._value;
+  }
+  double timeAtBackStep(size_t backStep) const {
+    if (backStep >= _points.size()) {
+      return 0;
+    }
+    return _points[_points.size()-1-backStep]._time;
+  }
 
   size_t size() const { return _points.size(); }
   WaveformPoint operator[](size_t index) const { return _points[index]; }

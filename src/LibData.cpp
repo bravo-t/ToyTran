@@ -582,9 +582,9 @@ LibReader::readFile(const char* datFile)
           std::getline(infile, line);
           line = trim(line);
           if (line == "Rise") {
-            readNLDMLUT(infile, _owner->_riseDriverWaveform, timeUnit, voltageUnit, voltageUnit);
+            readNLDMLUT(infile, _owner->_riseDriverWaveform, timeUnit, voltageUnit, timeUnit);
           } else if (line == "Fall") {
-            readNLDMLUT(infile, _owner->_fallDriverWaveform, timeUnit, voltageUnit, voltageUnit);
+            readNLDMLUT(infile, _owner->_fallDriverWaveform, timeUnit, voltageUnit, timeUnit);
           }
         }
       } else {

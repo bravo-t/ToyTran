@@ -337,6 +337,9 @@ class LibData {
     bool isOutputPin(const std::string& cell, const std::string& pin) const;
     double fixedLoadCap(const std::string& cell, const std::string& pin, bool isRise) const;
 
+    NLDMLUT riseDriverWaveform() const { return _riseDriverWaveform; }
+    NLDMLUT fallDriverWaveform() const { return _fallDriverWaveform; }
+
     size_t cellCount() const { return _nldmData.size(); }
 
     std::vector<std::string> cellArcInputPins(const std::string& cell, const std::string& outPin) const;

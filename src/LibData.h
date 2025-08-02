@@ -47,6 +47,11 @@ class NLDMLUT {
 
     void indexValues(const std::vector<double>& values, size_t X, size_t Y, 
                      double& Z1, double& Z2, double& Z3, double& Z4) const;
+
+    std::vector<double> index1Values() const { return _index1; }
+    std::vector<double> index2Values() const { return _index2; }
+    std::vector<double> values() const { return _values; }
+
   private:
     std::vector<double> _index1;
     std::vector<double> _index2;

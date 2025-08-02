@@ -27,6 +27,11 @@ class NLDMLUT {
   public:
     NLDMLUT() = default;
     NLDMLUT(const NLDMLUT& other) = default;
+    /*
+    : _index1(other._index1), 
+      _index2(other._index2), 
+      _values(other._values) {}
+      */
 
     void reset()
     {

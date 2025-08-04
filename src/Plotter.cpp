@@ -80,16 +80,16 @@ plotData(const std::vector<WaveformPoint>& data,
 }
 
 void
-Plotter::plotWaveforms(const std::vector<Waveform>& waveforms)
+Plotter::plotWaveforms(const std::vector<Waveform>& waveforms, 
+                       std::vector<char> markers)
 {
-  if (waveforms.size() > 4) {
-    printf("Cannot plot more than 4 waveforms.\n");
+  if (waveforms.size() > markers.size()) {
+    printf("Cannot plot more than %ld waveforms.\n", markers.size());
     return;
   }
-  std::vector<char> markers = {'*', 'o', 'x', '+'};
   
   std::vector<std::string> canvas;
-  initCanvas(widthLimit-10, heightLimit-10, canvas);
+  initCanvas(-1, -1, canvas);
   double maxValue = -1e99;
   double minValue = 1e99;
   double timeMax = -1e99;

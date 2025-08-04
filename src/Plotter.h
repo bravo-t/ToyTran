@@ -20,7 +20,8 @@ class Plotter {
                      const std::vector<SimResult>& results, 
                      size_t width = -1, size_t height = -1);
     
-    static void plotWaveforms(const std::vector<Waveform>& waveforms);
+    static void plotWaveforms(const std::vector<Waveform>& waveforms, std::vector<char> markers = {'*', 'o', 'x', '+'});
+
   private:
     void plotNodeVoltage(const std::string& nodeName, const std::string& simName, 
                          const std::vector<SimResult>& results) const;

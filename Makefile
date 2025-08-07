@@ -34,6 +34,7 @@ SRC_LIST = main.cpp \
 		   MNAStamper.cpp \
 		   NetlistParser.cpp \
 		   LibData.cpp \
+		   Base.cpp \
 		   rpoly.cpp
 
 SRC_LIST_TMP = $(patsubst %,./%,$(SRC_LIST))

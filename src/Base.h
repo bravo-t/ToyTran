@@ -161,6 +161,7 @@ struct Waveform {
   std::vector<WaveformPoint> data() const { return _points; }
   size_t size() const { return _points.size(); }
   bool empty() const { return _points.empty(); }
+  void clear() { _points.clear(); }
 
   double measure(double targetValue) const;
   void range(double& max, double& min) const;

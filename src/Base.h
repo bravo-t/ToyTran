@@ -182,6 +182,14 @@ isAnySource(const Device& dev) {
   return dev._type >= DeviceType::VoltageSource && dev._type <= DeviceType::CCVS;
 }
 
+inline double
+linearInterpolate(double x1, double x2, double v1, double v2, double x)
+{
+  double k = (v1-v2)/(x1-x2);
+  double b = v1 - x1*k;
+  return k*x + b;
+}
+
 /// v11 = f(x1, y1)
 /// v12 = f(x1, y2)
 /// v21 = f(x2, y1)
@@ -197,6 +205,12 @@ bilinearInterpolate(double x1, double y1, double x2, double y2,
   double dy2 = y2 - y;
   double dy1 = y - y1;
   double dy21 = y2 - y1;
+  if (dx1 == 0 && dx2 == 0) {
+    return linearInterpolate(y1, y2, v11, v12, y);
+  } 
+  if (dy1 == 0 && dy2 == 0) {
+    return linearInterpolate(x1, x2, v11, v21, x);
+  }
   double div = 1 / (dx21 * dy21);
   double w11 = dx2 * dy2 * div;
   double w12 = dx2 * dy1 * div;

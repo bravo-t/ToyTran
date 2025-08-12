@@ -184,12 +184,6 @@ CCSArc::getCurrent(LUTType dataType) const
   }
 }
 
-const NLDMLUT&
-CCSArc::getDCCurrent() const
-{
-  return _dcCurrent;
-}
-
 NLDMLUT&
 NLDMArc::getLUT(LUTType dataType) 
 {
@@ -239,12 +233,6 @@ CCSArc::getCurrent(LUTType dataType)
     default:
       assert(false);
   }
-}
-
-NLDMLUT&
-CCSArc::getDCCurrent()
-{
-  return _dcCurrent;
 }
 
 struct SortCCSLUT {
@@ -525,13 +513,13 @@ LibReader::readFile(const char* datFile)
         if (nldmData.empty() == false) {
           std::sort(nldmData.begin(), nldmData.end(), SortArcDataByPin());
           _owner->_nldmData.insert({cellName, nldmData});
+          nldmData.clear();
         }
         if (ccsData.empty() == false) {
           std::sort(ccsData.begin(), ccsData.end(), SortArcDataByPin());
           _owner->_ccsData.insert({cellName, ccsData});
+          ccsData.clear();
         }
-        nldmData.clear();
-        ccsData.clear();
         cellName.clear();
       }
       std::vector<std::string> strs;
@@ -625,10 +613,8 @@ LibReader::readFile(const char* datFile)
       } else if (line == "Fall Transition") {
         readNLDMLUT(infile, nldmArc.getLUT(LUTType::FallTransition), timeUnit, capUnit, timeUnit);
       } else if (line == "CCSN First Stage") {
-        CCBData ccbData;
         readCCBStage(infile, ccsArc.ccbFirstStageData(), timeUnit, voltageUnit, currentUnit, capUnit);
       } else if (line == "CCSN Last Stage") {
-        CCBData ccbData;
         readCCBStage(infile, ccsArc.ccbLastStageData(), timeUnit, voltageUnit, currentUnit, capUnit);
       } else if (line == "Current Rise") {
         std::string numLine;

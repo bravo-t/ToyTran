@@ -150,13 +150,18 @@ class CCSGroup {
   public:
     CCSGroup() = default;
     void addLUT(const CCSLUT& data) { _ccsluts.push_back(data); }
-    void reset() { _ccsluts.clear(); }
     CCSLUT value(double inputTran, double outputLoad) const;
     void sortTable();
     std::vector<size_t> searchSteps() const { return _transDiv; }
 
     bool empty() const { return _ccsluts.empty(); }
     std::vector<CCSLUT> tables() const { return _ccsluts; }
+    
+    void reset() 
+    { 
+      _ccsluts.clear(); 
+      _transDiv.clear();
+    }
 
   private:
     std::vector<CCSLUT> _ccsluts;
@@ -194,6 +199,11 @@ class CCBOutputVoltage {
     void addLUT(const CCBOutputVoltageLUT& lut) { _lutData.push_back(lut); }
 
     void sortTable();
+    void reset() 
+    {
+      _lutData.clear();
+      _transDiv.clear();
+    }
 
     std::vector<CCBOutputVoltageLUT> tables() const { return _lutData; }
     std::vector<size_t> searchSteps() const { return _transDiv; }
@@ -226,6 +236,14 @@ class CCBData {
     }
     
     bool isInverting() const { return _isInverting; }
+    void reset() 
+    {
+      _millerCapRise = 0;
+      _millerCapFall = 0;
+      _dcCurrent.reset();
+      _riseVoltage.reset();
+      _fallVoltage.reset();
+    }
 
   private:
     bool _isInverting = true;
@@ -250,7 +268,8 @@ class CCSArc {
       _fallCurrent.reset();
       _riseRecvCap.reset();
       _fallRecvCap.reset();
-      _dcCurrent.reset();
+      _firstStageCCBData.reset();
+      _lastStageCCBData.reset();
     }
     void setFromToPin(const std::string& fromPin, const std::string& toPin, bool isInverted)
     {
@@ -280,8 +299,7 @@ class CCSArc {
     bool isInverted() const { return _isInverted; }
 
     bool empty() const { return _riseCurrent.empty() && _fallCurrent.empty() &&
-                                _riseRecvCap.empty() && _fallRecvCap.empty() &&
-                                _dcCurrent.empty(); }
+                                _riseRecvCap.empty() && _fallRecvCap.empty(); }
 
     const LibData* owner() const { return _owner; }
 
@@ -296,7 +314,6 @@ class CCSArc {
     CCSGroup       _fallCurrent;
     NLDMLUT        _riseRecvCap;
     NLDMLUT        _fallRecvCap;
-    NLDMLUT        _dcCurrent; /// TODO deprecate this
     CCBData        _firstStageCCBData;
     CCBData        _lastStageCCBData;
 };

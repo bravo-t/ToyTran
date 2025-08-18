@@ -465,7 +465,7 @@ double
 SimResult::totalCharge(const Device& device) const
 {
   if (device._type != DeviceType::Resistor && device._type != DeviceType::VoltageSource) {
-    printf("ERROR: total charge calculation is only supported on resistors and voltage sources\n");
+    printf("ERROR: Charge calculation is only supported on resistors and voltage sources\n");
     return 0;
   }
   if (device._type == DeviceType::Resistor) {
@@ -484,6 +484,51 @@ SimResult::totalCharge(const Device& device) const
     return NA::totalCharge(currentWaveform);
   }
   return 0;
+}
+
+double
+SimResult::chargeBetween(const Device& device, double timeStart, double timeEnd) const
+{
+  if (device._type != DeviceType::Resistor && device._type != DeviceType::VoltageSource) {
+    printf("ERROR: Charge calculation is only supported on resistors and voltage sources\n");
+    return 0;
+  }
+  Waveform currentWaveform;
+  if (device._type == DeviceType::Resistor) {
+    const std::vector<WaveformPoint>& posWaveform = nodeVoltageWaveform(device._posNode).data();
+    const std::vector<WaveformPoint>& negWaveform = nodeVoltageWaveform(device._negNode).data();
+    std::vector<WaveformPoint> currentWaveform;
+    currentWaveform.reserve(posWaveform.size());
+    for (size_t i = 0; i < posWaveform.size(); ++i) {
+      const WaveformPoint& posData = posWaveform[i];
+      const WaveformPoint& negData = negWaveform[i];
+      currentWaveform.addPoint(posData._time, (posData._value - negData._value)/device._value);
+    }
+  } else {
+    currentWaveform = deviceCurrentWaveform(device._devId);
+  }
+  const std::vector<WaveformPoint>& dataPoints = currentWaveform.data();
+  const auto lowerPos = std::lower_bound(dataPoints.begin(), dataPoints.end(), timeStart, 
+    [](const WaveformPoint& a, double time) {
+      return a._time < time;
+    });
+  double charge = 0;
+  double prevI = currentWaveform.value(timeStart);
+  double prevT = timeStart;
+  double endI = currentWaveform.value(timeEnd);
+  double endT = timeEnd;
+  for (auto it=lowerPos; it!=dataPoints.end(); ++it) {
+    if (it->_time >= endT) {
+      charge += chargeInTimeInterval(prevI, endI, endT - prevT);
+      break;
+    }
+    if (it->_time > timeStart) {
+      charge += chargeInTimeInterval(prevI, (it->_value), (it->_time) - prevT);
+    }
+    prevI = it->_value;
+    prevT = it->_time;
+  }
+  return charge;
 }
 
 

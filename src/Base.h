@@ -171,6 +171,7 @@ struct Waveform {
   double valueAtBackStep(size_t backStep) const;
   double timeAtBackStep(size_t backStep) const;
   double transitionTime(const LibData* libData) const;
+  std::vector<WaveformPoint>& data() { return _points; }
 
   WaveformPoint operator[](size_t index) const { return _points[index]; }
   WaveformPoint& operator[](size_t index) { return _points[index]; }

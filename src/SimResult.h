@@ -142,6 +142,7 @@ class SimResult {
 
     /// get total charge in simulation time
     double totalCharge(const Device& dev) const;
+    double chargeBetween(const Device& dev, double timeStart, double timeEnd) const;
 
   
   private:

@@ -441,6 +441,28 @@ SimResult::deviceCurrentWaveform(const std::string& devName,
   return waveformData(rowIndex, &max, &min); 
 }
 
+double 
+SimResult::latestVoltage(size_t nodeId) const
+{
+  size_t steps = _ticks.size();
+  assert(steps > 1 && "Invalid call of latestVoltage");
+  size_t nodeIndex = nodeVectorIndex(nodeId);
+  assert(nodeIndex != SimResultMap::invalidValue() && "Incorrect nodeId");
+  size_t resultIndex = (steps - 1) * _map.size() + nodeIndex;
+  return _values[resultIndex];
+}
+
+double 
+SimResult::latestCurrent(size_t devId) const
+{
+  size_t steps = _ticks.size();
+  assert(steps > 0 && "Invalid call of latestCurrent");
+  size_t devIndex = deviceVectorIndex(devId);
+  assert(devIndex != SimResultMap::invalidValue() && "Incorrect devId");
+  size_t resultIndex = (steps - 1) * _map.size() + devIndex;
+  return _values[resultIndex];
+}
+
 static inline double
 chargeInTimeInterval(double I0, double I1, double timeInterval)
 {

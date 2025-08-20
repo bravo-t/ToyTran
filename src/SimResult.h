@@ -144,6 +144,9 @@ class SimResult {
     double totalCharge(const Device& dev) const;
     double chargeBetween(const Device& dev, double timeStart, double timeEnd) const;
 
+    /// Get the most recent voltage and current of specified node and device
+    double latestVoltage(size_t nodeId) const;
+    double latestCurrent(size_t devId) const;
   
   private:
     void init(const Circuit* ckt);

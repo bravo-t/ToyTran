@@ -266,8 +266,8 @@ class CCSArc {
       _isInverted = false;
       _riseCurrent.reset();
       _fallCurrent.reset();
-      _riseRecvCap.reset();
-      _fallRecvCap.reset();
+      _riseRecvCaps.clear();
+      _fallRecvCaps.clear();
       _firstStageCCBData.reset();
       _lastStageCCBData.reset();
     }
@@ -283,14 +283,14 @@ class CCSArc {
       _riseMillerCap = riseCap; _fallMillerCap = fallCap;
     }
 
-    NLDMLUT& getRecvCap(LUTType dataType);
+    std::vector<NLDMLUT>& getRecvCap(LUTType dataType);
     CCSGroup& getCurrent(LUTType dataType);
     NLDMLUT& getDCCurrent();
     CCBData& ccbFirstStageData() { return _firstStageCCBData; }
     CCBData& ccbLastStageData() { return _lastStageCCBData; }
     const CCBData* ccbFirstStageData() const { return &_firstStageCCBData; }
     const CCBData* ccbLastStageData() const { return &_lastStageCCBData; }
-    const NLDMLUT& getRecvCap(LUTType dataType) const;
+    const std::vector<NLDMLUT>& getRecvCap(LUTType dataType) const;
     const CCSGroup& getCurrent(LUTType dataType) const;
     const NLDMLUT& getDCCurrent() const; 
     
@@ -299,23 +299,23 @@ class CCSArc {
     bool isInverted() const { return _isInverted; }
 
     bool empty() const { return _riseCurrent.empty() && _fallCurrent.empty() &&
-                                _riseRecvCap.empty() && _fallRecvCap.empty(); }
+                                _riseRecvCaps.empty() && _fallRecvCaps.empty(); }
 
     const LibData* owner() const { return _owner; }
 
   private:
-    const LibData* _owner = nullptr;
-    std::string    _fromPin;
-    std::string    _toPin;
-    double         _riseMillerCap;
-    double         _fallMillerCap;
-    bool           _isInverted; /// negative_unate -> true
-    CCSGroup       _riseCurrent;
-    CCSGroup       _fallCurrent;
-    NLDMLUT        _riseRecvCap;
-    NLDMLUT        _fallRecvCap;
-    CCBData        _firstStageCCBData;
-    CCBData        _lastStageCCBData;
+    const LibData*        _owner = nullptr;
+    std::string           _fromPin;
+    std::string           _toPin;
+    double                _riseMillerCap;
+    double                _fallMillerCap;
+    bool                  _isInverted; /// negative_unate -> true
+    CCSGroup              _riseCurrent;
+    CCSGroup              _fallCurrent;
+    std::vector<NLDMLUT>  _riseRecvCaps;
+    std::vector<NLDMLUT>  _riseRecvCaps;
+    CCBData               _firstStageCCBData;
+    CCBData               _lastStageCCBData;
 };
 
 class FixedLoadCap {

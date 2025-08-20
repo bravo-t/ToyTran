@@ -641,9 +641,29 @@ LibReader::readFile(const char* datFile)
         }
         fallCurrents.sortTable();
       } else if (line == "Receiver Cap Rise") {
-        readNLDMLUT(infile, ccsArc.getRecvCap(LUTType::RiseRecvCap), timeUnit, capUnit, timeUnit);
+        std::string numLine;
+        std::getline(infile, numLine);
+        numLine = trim(numLine);
+        size_t tableCount = std::stoi(numLine);
+        std::vector<NLDM> rcvCaps;
+        for (size_t i=0; i<tableCount; ++i) {
+          NLDMLUT lut;
+          readNLDMLUT(infile, lut, timeUnit, capUnit, timeUnit);
+          rcvCaps.push_back(lut);
+        }
+        ccsArc.getRecvCap(LUTType::RiseRecvCap) = rcvCaps;
       } else if (line == "Receiver Cap Fall") {
-        readNLDMLUT(infile, ccsArc.getRecvCap(LUTType::FallRecvCap), timeUnit, capUnit, timeUnit);
+        std::string numLine;
+        std::getline(infile, numLine);
+        numLine = trim(numLine);
+        size_t tableCount = std::stoi(numLine);
+        std::vector<NLDM> rcvCaps;
+        for (size_t i=0; i<tableCount; ++i) {
+          NLDMLUT lut;
+          readNLDMLUT(infile, lut, timeUnit, capUnit, timeUnit);
+          rcvCaps.push_back(lut);
+        }
+        ccsArc.getRecvCap(LUTType::FallRecvCap) = rcvCaps;
       }
     }
   }

@@ -151,6 +151,9 @@ Simulator::run()
   while (!converged()) {
     checkNeedRebuild();
     adjustSimTick();
+    if (_updateFunc) {
+      _updateFunc();
+    }
     updateEquation();
     solveEquation();
   }

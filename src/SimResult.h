@@ -147,6 +147,12 @@ class SimResult {
     /// Get the most recent voltage and current of specified node and device
     double latestVoltage(size_t nodeId) const;
     double latestCurrent(size_t devId) const;
+
+    void clear() 
+    {
+      _ticks.clear();
+      _values.clear();
+    }
   
   private:
     void init(const Circuit* ckt);

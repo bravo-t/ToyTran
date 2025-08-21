@@ -804,4 +804,18 @@ CellArc::outputNode(const Circuit* ckt) const
   return rd._negNode;
 }
 
+size_t 
+CellArc::inputLoadCapacitor(const Circuit* ckt) const
+{
+  const Node& node = ckt->node(_inputTranNode);
+  const std::vector<size_t>& connDev = node->_connection;
+  for (size_t devId : connDev) {
+    const Device& dev = ckt->device(devId);
+    if (dev._type == DeviceType::Capacitor && dev._isInternal) {
+      return devId;
+    }
+  }
+  return invalidId;
+}
+
 }

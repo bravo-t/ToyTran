@@ -56,6 +56,8 @@ class CellArc {
       return _nldmArc->owner()->fixedLoadCap(_cellName, _fromPin, isRise);
     }
 
+    size_t inputLoadCapacitor(const Circuit* ckt) const;
+
   private:
     size_t         _inputTranNode = static_cast<size_t>(-1);
     size_t         _driverResistor = static_cast<size_t>(-1);

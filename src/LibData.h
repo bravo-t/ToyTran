@@ -313,7 +313,7 @@ class CCSArc {
     CCSGroup              _riseCurrent;
     CCSGroup              _fallCurrent;
     std::vector<NLDMLUT>  _riseRecvCaps;
-    std::vector<NLDMLUT>  _riseRecvCaps;
+    std::vector<NLDMLUT>  _fallRecvCaps;
     CCBData               _firstStageCCBData;
     CCBData               _lastStageCCBData;
 };

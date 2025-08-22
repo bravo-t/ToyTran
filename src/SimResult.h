@@ -148,7 +148,7 @@ class SimResult {
     double latestVoltage(size_t nodeId) const;
     double latestCurrent(size_t devId) const;
 
-    void clear() 
+    void reset() 
     {
       _ticks.clear();
       _values.clear();

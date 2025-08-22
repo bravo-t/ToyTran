@@ -60,15 +60,15 @@ initCanvas(size_t width, size_t height,
 }
 
 void 
-plotData(const std::vector<WaveformPoint>& data, 
+plotData(const Waveform& data, 
          double max, double min, 
          std::vector<std::string>& canvas, char marker)
 {
   size_t width = canvas[0].size() - 1;
   size_t height = canvas.size() - 2;
   double dataScale = (max - min) / height;
-  double timeScale = data.back()._time / width;
-  for (const auto& point : data) {
+  double timeScale = data.data().back()._time / width;
+  for (const auto& point : data.data()) {
     double offsetValue = point._value - min;
     size_t y = offsetValue / dataScale;
     y = height - y;
@@ -143,7 +143,7 @@ Plotter::plot(const PlotData& data, const std::vector<Circuit>& ckts,
   std::vector<std::string> legend;
 
   size_t plotCounter = 0;
-  std::vector<std::vector<WaveformPoint>> simData;
+  std::vector<Waveform> simData;
   for (size_t i=0; i<data._nodeToPlot.size(); ++i) {
     const std::string& nodeName = data._nodeToPlot[i];
     const std::string& simName = data._nodeSimName[i];
@@ -159,7 +159,7 @@ Plotter::plot(const PlotData& data, const std::vector<Circuit>& ckts,
     }
     double nodeMax = 0;
     double nodeMin = 0;
-    const std::vector<WaveformPoint>& nodeData = result->nodeVoltageWaveform(nodeName, nodeMax, nodeMin).data();
+    const Waveform& nodeData = result->nodeVoltageWaveform(nodeName, nodeMax, nodeMin);
     if (nodeData.size() > 0) {
       simData.push_back(nodeData);
       max = std::max(max, nodeMax);
@@ -186,7 +186,7 @@ Plotter::plot(const PlotData& data, const std::vector<Circuit>& ckts,
     }
     double devMax = 0;
     double devMin = 0;
-    const std::vector<WaveformPoint>& devData = result->deviceCurrentWaveform(devName, devMax, devMin).data();
+    const Waveform& devData = result->deviceCurrentWaveform(devName, devMax, devMin);
     if (devData.size() > 0) {
       simData.push_back(devData);
       max = std::max(max, devMax);
@@ -229,7 +229,7 @@ Plotter::plotNodeVoltage(const std::string& nodeName, const std::string& simName
   }
   double max = 0;
   double min = 0;
-  const std::vector<WaveformPoint>& data = result->nodeVoltageWaveform(nodeName, max, min).data();
+  const Waveform& data = result->nodeVoltageWaveform(nodeName, max, min);
   if (data.size() > 0) {
     std::vector<std::string> canvas;
     initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);
@@ -252,7 +252,7 @@ Plotter::plotDeviceCurrent(const std::string& devName, const std::string& simNam
   }
   double max = 0;
   double min = 0;
-  const std::vector<WaveformPoint>& data = result->deviceCurrentWaveform(devName, max, min).data();
+  const Waveform& data = result->deviceCurrentWaveform(devName, max, min);
   if (data.size() > 0) {
     std::vector<std::string> canvas;
     initCanvas(_parser.plotWidth(), _parser.plotHeight(), canvas);

@@ -470,12 +470,12 @@ chargeInTimeInterval(double I0, double I1, double timeInterval)
 }
 
 static double
-totalCharge(const std::vector<WaveformPoint>& waveform)
+totalCharge(const Waveform& waveform)
 {
   double charge = 0;
   double prevT = 0;
   double prevI = 0;
-  for (const WaveformPoint& p : waveform) {
+  for (const WaveformPoint& p : waveform.data()) {
     charge += chargeInTimeInterval(prevI, p._value, p._time - prevT);
     prevT = p._time;
     prevI = p._value;
@@ -491,18 +491,18 @@ SimResult::totalCharge(const Device& device) const
     return 0;
   }
   if (device._type == DeviceType::Resistor) {
-    const std::vector<WaveformPoint>& posWaveform = nodeVoltageWaveform(device._posNode).data();
-    const std::vector<WaveformPoint>& negWaveform = nodeVoltageWaveform(device._negNode).data();
-    std::vector<WaveformPoint> currentWaveform;
-    currentWaveform.reserve(posWaveform.size());
+    const Waveform& posWaveform = nodeVoltageWaveform(device._posNode);
+    const Waveform& negWaveform = nodeVoltageWaveform(device._negNode);
+    Waveform currentWaveform;
+    currentWaveform.data().reserve(posWaveform.size());
     for (size_t i = 0; i < posWaveform.size(); ++i) {
       const WaveformPoint& posData = posWaveform[i];
       const WaveformPoint& negData = negWaveform[i];
-      currentWaveform.push_back({posData._time, (posData._value - negData._value)/device._value});
-      return NA::totalCharge(currentWaveform);
+      currentWaveform.addPoint(posData._time, (posData._value - negData._value)/device._value);
     }
+    return NA::totalCharge(currentWaveform);
   } else {
-    const std::vector<WaveformPoint>& currentWaveform = deviceCurrentWaveform(device._devId).data();
+    const Waveform& currentWaveform = deviceCurrentWaveform(device._devId);
     return NA::totalCharge(currentWaveform);
   }
   return 0;
@@ -517,10 +517,10 @@ SimResult::chargeBetween(const Device& device, double timeStart, double timeEnd)
   }
   Waveform currentWaveform;
   if (device._type == DeviceType::Resistor) {
-    const std::vector<WaveformPoint>& posWaveform = nodeVoltageWaveform(device._posNode).data();
-    const std::vector<WaveformPoint>& negWaveform = nodeVoltageWaveform(device._negNode).data();
-    std::vector<WaveformPoint> currentWaveform;
-    currentWaveform.reserve(posWaveform.size());
+    const Waveform& posWaveform = nodeVoltageWaveform(device._posNode);
+    const Waveform& negWaveform = nodeVoltageWaveform(device._negNode);
+    Waveform currentWaveform;
+    currentWaveform.data().reserve(posWaveform.size());
     for (size_t i = 0; i < posWaveform.size(); ++i) {
       const WaveformPoint& posData = posWaveform[i];
       const WaveformPoint& negData = negWaveform[i];

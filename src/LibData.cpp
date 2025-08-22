@@ -154,15 +154,15 @@ NLDMArc::getLUT(LUTType dataType) const
   }
 }
 
-const NLDMLUT&
+const std::vector<NLDMLUT>&
 CCSArc::getRecvCap(LUTType dataType) const
 {
   switch (dataType) {
     case LUTType::RiseRecvCap: {
-      return _riseRecvCap;
+      return _riseRecvCaps;
     } 
     case LUTType::FallRecvCap: {
-      return _fallRecvCap;
+      return _fallRecvCaps;
     } 
     default:
       assert(false);
@@ -205,15 +205,15 @@ NLDMArc::getLUT(LUTType dataType)
   }
 }
 
-NLDMLUT&
+std::vector<NLDMLUT>&
 CCSArc::getRecvCap(LUTType dataType)
 {
   switch (dataType) {
     case LUTType::RiseRecvCap: {
-      return _riseRecvCap;
+      return _riseRecvCaps;
     } 
     case LUTType::FallRecvCap: {
-      return _fallRecvCap;
+      return _fallRecvCaps;
     } 
     default:
       assert(false);
@@ -645,7 +645,7 @@ LibReader::readFile(const char* datFile)
         std::getline(infile, numLine);
         numLine = trim(numLine);
         size_t tableCount = std::stoi(numLine);
-        std::vector<NLDM> rcvCaps;
+        std::vector<NLDMLUT> rcvCaps;
         for (size_t i=0; i<tableCount; ++i) {
           NLDMLUT lut;
           readNLDMLUT(infile, lut, timeUnit, capUnit, timeUnit);
@@ -657,7 +657,7 @@ LibReader::readFile(const char* datFile)
         std::getline(infile, numLine);
         numLine = trim(numLine);
         size_t tableCount = std::stoi(numLine);
-        std::vector<NLDM> rcvCaps;
+        std::vector<NLDMLUT> rcvCaps;
         for (size_t i=0; i<tableCount; ++i) {
           NLDMLUT lut;
           readNLDMLUT(infile, lut, timeUnit, capUnit, timeUnit);

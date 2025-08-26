@@ -124,7 +124,8 @@ class Circuit {
     void debugPrint() const;
 
   private:
-    std::string allNodes(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodes);
+    std::string allNodes(const std::vector<ParserDevice>& devs, std::vector<std::string>& allNodes, 
+                         const std::vector<std::string>& pinNameToCalcDelay);
     typedef std::unordered_map<std::string, size_t> StringIdMap;
     void elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdMap, 
                              const std::vector<std::string>& cellOutPinsToCalcDelay);

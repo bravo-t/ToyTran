@@ -106,15 +106,32 @@ addInternalPosNodeForGate(StringIdMap& countMap, const ParserDevice& dev, const 
 
 std::string
 Circuit::allNodes(const std::vector<ParserDevice>& devs, 
-                  std::vector<std::string>& allNodeNames)
+                  std::vector<std::string>& allNodeNames, 
+                  const std::vector<std::string>& driverPinNames)
 {
-  bool addInternalVPosNode = (_param._type == AnalysisType::FD && 
-                              _param._driverModel == DriverModel::RampVoltage);
+  bool addInternalVPosNode = false;
+  if (_param._type == AnalysisType::FD) {
+    if (_param._driverModel == DriverModel::RampVoltage) {
+      addInternalVPosNode = true;
+    } 
+  }
+  
   StringIdMap nodeConnectionCount;
   for (const ParserDevice& dev : devs) {
     if (dev._type == DeviceType::Cell) {
       if (addInternalVPosNode) {
         addInternalPosNodeForGate(nodeConnectionCount, dev, _libData);
+      } else if (_param._driverModel == DriverModel::PWLCurrent) {
+        bool add = false;
+        for (const std::string& driverPinName : driverPinNames) {
+          if (driverPinName.find(dev._name) != 0) {
+            add = true;
+            break;
+          }
+        }
+        if (add) {
+          addInternalPosNodeForGate(nodeConnectionCount, dev, _libData);
+        }
       }
     } else {
       incrCountMap(nodeConnectionCount, dev._posNode);
@@ -284,10 +301,11 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
     }
   }
   for (const std::string& outPin : outputPins) {
+    std::string outPinFullName = dev._name + "/" + outPin;
     bool useCSM = false;
     if (_param._driverModel == DriverModel::PWLCurrent) {
       for (const std::string& nameToCalc : cellOutPinsToCalcDelay) {
-        if (nameToCalc == outPin) {
+        if (nameToCalc == outPinFullName) {
           useCSM = true;
           break;
         }
@@ -446,7 +464,7 @@ Circuit::buildCircuit(const NetlistParser& parser)
 {
   const std::vector<ParserDevice>& parserDevs = parser.devices();
   std::vector<std::string> allNodeNames;
-  std::string groundNodeName = allNodes(parserDevs, allNodeNames);
+  std::string groundNodeName = allNodes(parserDevs, allNodeNames, parser.cellOutPinsToCalcDelay());
   if (parser.userGroundNet().size() > 0) {
     groundNodeName = parser.userGroundNet();
   }

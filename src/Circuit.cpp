@@ -71,7 +71,7 @@ internalDriverResistorName(const std::string& inst, const std::string& pin)
 static inline std::string
 internalCurrentSourceName(const std::string& inst, const std::string& pin)
 {
-  std::string devName = inst + "/" + pin + "/Id";
+  std::string devName = inst + "/" + pin + "/Vd";
   return devName;
 }
 
@@ -243,7 +243,7 @@ createDriverCurrentSourceParserDevice(const std::string& inst, const std::string
   dev._name = internalCurrentSourceName(inst, pin);
   dev._posNode = pinNode;
   dev._negNode = gnd;
-  dev._type = DeviceType::CurrentSource;
+  dev._type = DeviceType::VoltageSource;
   dev._isPWLValue = false;
   dev._isInternal = true;
   dev._value = 1;
@@ -361,6 +361,7 @@ Circuit::elaborateGateDevice(const ParserDevice& dev, const StringIdMap& nodeIdM
            empty._time.push_back(1e99);
            empty._value.push_back(0);
            _PWLData.push_back(empty);
+           cellArcData.setDriverSourceId(driverSource->_devId);
            std::pair<std::string, std::string> key({cellArcData.fromPinFullName(), cellArcData.toPinFullName()});
            _cellArcMap.insert({key, _cellArcs.size()});
            _cellArcs.push_back(cellArcData);

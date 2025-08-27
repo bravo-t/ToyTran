@@ -78,6 +78,7 @@ class SimResult {
     }
 
     std::string name() const { return _name; }
+    void setName(const std::string& name) { _name = name; }
     /// Return Time of given step
     double stepTime(size_t step) const;
 

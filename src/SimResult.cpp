@@ -445,7 +445,7 @@ double
 SimResult::latestVoltage(size_t nodeId) const
 {
   size_t steps = _ticks.size();
-  assert(steps > 1 && "Invalid call of latestVoltage");
+  assert(steps > 0 && "Invalid call of latestVoltage");
   size_t nodeIndex = nodeVectorIndex(nodeId);
   assert(nodeIndex != SimResultMap::invalidValue() && "Incorrect nodeId");
   size_t resultIndex = (steps - 1) * _map.size() + nodeIndex;

@@ -818,9 +818,15 @@ CellArc::inputNode() const
 
 size_t 
 CellArc::outputNode(const Circuit* ckt) const
-{
-  const Device& rd = ckt->device(driverResistorId());
-  return rd._negNode;
+{ 
+
+  if (_driverResistor != static_cast<size_t>(-1)) {
+    const Device& rd = ckt->device(_driverResistor);
+    return rd._negNode;
+  } else {
+    const Device& vsrc = ckt->device(_driverSource);
+    return vsrc._posNode;
+  }
 }
 
 size_t 

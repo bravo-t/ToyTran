@@ -50,7 +50,7 @@ class Simulator {
     void setSimulationTick(double tick) { _param._simTick = tick; }
     void setSimEnd(double t) { _param._simTime = t; }
 
-    void setUpdateFunction(const std::function<void(void)>& f) { _updateFunc = f; }
+    void setUpdateFunction(const std::function<bool(void)>& f) { _updateFunc = f; }
 
   private:
     void formulateEquation();
@@ -77,7 +77,7 @@ class Simulator {
     std::unordered_map<size_t, double>   _termVoltages;
     std::unordered_map<size_t, double>   _termCurrents;
 
-    std::function<void(void)> _updateFunc = std::function<void(void)>(nullptr);
+    std::function<bool(void)> _updateFunc = std::function<bool(void)>(nullptr);
 };
 
 }

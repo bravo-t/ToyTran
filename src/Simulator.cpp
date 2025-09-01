@@ -146,6 +146,9 @@ void
 Simulator::run()
 {
   initData();
+  if (_updateFunc) {
+    _needRebuild = _updateFunc();
+  }
   formulateEquation();
   solveEquation();
   while (!converged()) {

@@ -173,7 +173,7 @@ Simulator::checkNeedRebuild()
 }
 
 static bool
-checkTermCondition(size_t id, bool isNodeId, double value, const SimResult& result)
+checkTermCondition(size_t id, bool isNodeId, bool isRise, double value, const SimResult& result)
 {
   double val1, val2;
   if (isNodeId) {
@@ -183,8 +183,10 @@ checkTermCondition(size_t id, bool isNodeId, double value, const SimResult& resu
     val1 = result.deviceCurrentBackstep(id, 1);
     val2 = result.deviceCurrentBackstep(id, 2);
   }
-  if ((val1 <= value && val2 >= value) || 
-      (val1 >= value && val2 <= value)) {
+  if (isRise && ((val1 <= value && val2 >= value) || (val1 >= value && val2 >= value))) {
+    return true;
+  }
+  if (isRise == false && ((val1 >= value && val2 <= value) || (val1 <= value && val2 <= value))) {
     return true;
   }
   return false;
@@ -197,15 +199,18 @@ Simulator::checkTerminateCondition() const
     return false;
   }
   for (const auto& kv : _termVoltages) {
-    if (checkTermCondition(kv.first, true, kv.second, _result) == false) {
+    const TermVoltage& v = kv.second;
+    if (checkTermCondition(kv.first, true, v.first, v.second, _result) == false) {
       return false;
     }
   }
+  /*
   for (const auto& kv : _termCurrents) {
     if (checkTermCondition(kv.first, false, kv.second, _result) == false) {
       return false;
     }
   }
+  */
   return true;
 }
 

@@ -38,9 +38,11 @@ class Simulator {
     double relTotal() const { return _param._relTotal; }
     IntegrateMethod intMethod() const { return _param._intMethod; }
 
-    void setTerminationVoltage(size_t nodeId, double value)
-    {
-      _termVoltages.insert({nodeId, value});
+    typedef std::pair<bool, double> TermVoltage;
+    void setTerminationVoltage(size_t nodeId, bool isRise, double value)
+    { 
+      TermVoltage v({isRise, value});
+      _termVoltages.insert({nodeId, v});
     }
     void setTerminationCurrent(size_t devId, double value)
     {
@@ -74,8 +76,8 @@ class Simulator {
     /// Cache data
     Eigen::FullPivLU<Eigen::MatrixXd>    _Alu;
 
-    std::unordered_map<size_t, double>   _termVoltages;
-    std::unordered_map<size_t, double>   _termCurrents;
+    std::unordered_map<size_t, TermVoltage>   _termVoltages;
+    std::unordered_map<size_t, double>        _termCurrents;
 
     std::function<bool(void)> _updateFunc = std::function<bool(void)>(nullptr);
 };

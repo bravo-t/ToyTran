@@ -504,7 +504,7 @@ SimResult::totalCharge(const Device& device) const
     return NA::totalCharge(currentWaveform);
   } else {
     const Waveform& currentWaveform = deviceCurrentWaveform(device._devId);
-    return NA::totalCharge(currentWaveform);
+    return -NA::totalCharge(currentWaveform);
   }
   return 0;
 }
@@ -550,6 +550,11 @@ SimResult::chargeBetween(const Device& device, double timeStart, double timeEnd)
     }
     prevI = it->_value;
     prevT = it->_time;
+  }
+  if (dev._type == DeviceType::VoltageSource) {
+    /// the current flows from negative to positive internally for voltage sources,
+    /// So the calculated charge will be negative
+    charge = -charge;
   }
   return charge;
 }

@@ -5,6 +5,7 @@
 #include "MNAStamper.h"
 #include "StepControl.h"
 #include "Debug.h"
+#include "MNASymbolStamper.h"
 
 namespace NA {
 
@@ -59,6 +60,14 @@ Simulator::updateEquation()
     if (Debug::enabled(DebugModule::Sim)) {
       double prevTime = _result.ticks().back();
       Debug::printVector(prevTime+simulationTick(), "b", _b);
+      if (Debug::enabled(DebugModule::Sim, 4)) {
+        StringMatrix GSym(_eqnDim, _eqnDim);
+        StringMatrix CSym(_eqnDim, _eqnDim);
+        StringMatrix bSym(_eqnDim, 1);
+        MNASymbolStamper sStamper(_param, _circuit, _result);
+        sStamper.stamp(GSym, CSym, bSym, integrateMethod());
+        printf("b = \n"); bSym.print();
+    }
     }
   }
 }
@@ -85,6 +94,17 @@ Simulator::formulateEquation()
       printf("  %f+%fi\n", std::real(value), std::imag(value));
     }
     */
+    if (Debug::enabled(DebugModule::Sim, 1)) {
+      StringMatrix GSym(_eqnDim, _eqnDim);
+      StringMatrix CSym(_eqnDim, _eqnDim);
+      StringMatrix bSym(_eqnDim, 1);
+      MNASymbolStamper sStamper(_param, _circuit, _result);
+      sStamper.stamp(GSym, CSym, bSym, integrateMethod());
+      printf("A = G + C\n");
+      printf("G = \n"); GSym.print();
+      printf("C = \n"); CSym.print();
+      printf("b = \n"); bSym.print();
+    }
   }
   _Alu = A.fullPivLu();
 }

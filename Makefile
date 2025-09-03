@@ -32,6 +32,7 @@ SRC_LIST = main.cpp \
 		   SimResult.cpp \
 		   Circuit.cpp \
 		   MNAStamper.cpp \
+		   MNASymbolStamper.cpp \
 		   NetlistParser.cpp \
 		   LibData.cpp \
 		   Base.cpp \

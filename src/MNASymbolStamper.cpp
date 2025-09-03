@@ -3,6 +3,7 @@
 #include "Circuit.h"
 #include "Simulator.h"
 #include "MNASymbolStamper.h"
+#include "Debug.h"
 
 namespace NA {
 
@@ -116,9 +117,11 @@ MNASymbolStamper::updatebCapacitorBE(StringMatrix& b,
   double negVoltage = _simResult.nodeVoltageBackstep(cap._negNode, 1);
   double voltageDiff = posVoltage - negVoltage;
   double bValue = stampValue * voltageDiff; 
-  //printf("DEBUG: T@%G BE posNode: %lu, negNode: %lu, diff: %G-%G=%G current: %G\n", 
-  //  sim->simulationResult().currentTime(), cap._posNode, cap._negNode, posVoltage, 
-  //  negVoltage, voltageDiff, bValue);
+  if (Debug::enabled(DebugModule::Sim, 9)) {
+    printf("DEBUG: T@%G BE %s posNode: %lu, negNode: %lu, bPosRow: %lu, bNegRow: %lu, diff: %G-%G=%G current: %G\n", 
+      _simResult.currentTime(), cap._name.data(), cap._posNode, cap._negNode, posNodeIndex, negNodeIndex, posVoltage, 
+      negVoltage, voltageDiff, bValue);
+  }
   std::string symbol = "dV("+cap._name+")[t]*Cap/Tick";
   if (isNodeOmitted(cap._posNode) == false) {
     b(posNodeIndex, 0) += stampSymbol(symbol, bValue);
@@ -171,10 +174,12 @@ MNASymbolStamper::updatebCapacitorGear2(StringMatrix& b,
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double voltageDiff2 = posVoltage2 - negVoltage2;
   double stampValue = baseValue * (2 * voltageDiff1 - 0.5 * voltageDiff2);
-  //printf("DEBUG: T@%G BDF posNode: %lu, negNode: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G\n", 
-  //  sim->simulationResult().currentTime(), cap._posNode, cap._negNode, 
-  //    posVoltage1, negVoltage1, voltageDiff1, 
-  //    posVoltage2, negVoltage2, voltageDiff2);
+  if (Debug::enabled(DebugModule::Sim, 9)) {
+    printf("DEBUG: T@%G BDF %s posNode: %lu, negNode: %lu, bPosRow: %lu, bNegRow: %lu, diff1: %G-%G=%G, diff2: %G-%G=%G, current: %G\n", 
+      _simResult.currentTime(), cap._name.data(), cap._posNode, cap._negNode, posNodeIndex, negNodeIndex,
+      posVoltage1, negVoltage1, voltageDiff1, 
+      posVoltage2, negVoltage2, voltageDiff2, stampValue);
+  }
   std::string symbol = "(dV("+cap._name+")[t]*2-dV("+cap._name+")[t-1]*0.5))*Cap/Tick";
   if (isNodeOmitted(cap._posNode) == false) {
     b(posNodeIndex, 0) += stampSymbol(symbol, stampValue);
@@ -219,6 +224,11 @@ MNASymbolStamper::updatebCapacitorTrap(StringMatrix& b,
   double dV1dt = _simResult.deviceVoltageDerivative(cap, 1, 1);
   double voltageDiff1 = posVoltage1 - negVoltage1;
   double stampValue = 2 * baseValue * voltageDiff1 + cap._value * dV1dt;
+  if (Debug::enabled(DebugModule::Sim, 9)) {
+    printf("DEBUG: T@%G BDF %s posNode: %lu, negNode: %lu, bPosRow: %lu, bNegRow: %lu, diff1: %G-%G=%G, dV1dt: %G, current: %G\n", 
+      _simResult.currentTime(), cap._name.data(), cap._posNode, cap._negNode, posNodeIndex, negNodeIndex,
+      posVoltage1, negVoltage1, voltageDiff1, dV1dt, stampValue);
+  }
   std::string symbol = "(dV("+cap._name+")[t]*2-ddV("+cap._name+")[t]*Tick))*Cap/Tick";
   if (isNodeOmitted(cap._posNode) == false) {
     b(posNodeIndex, 0) += stampSymbol(symbol, stampValue);

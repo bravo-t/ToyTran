@@ -179,12 +179,19 @@ SimResult::nodeVoltageBackstep(size_t nodeId, size_t steps) const
   if (_ckt->isGroundNode(nodeId)) {
     return .0f;
   }
+  assert(steps > 0 && "Incorrect input parameter");
   double voltage = std::numeric_limits<double>::lowest();
   const Node& node = _ckt->node(nodeId);
   for (size_t devId : node._connection) {
     const Device& dev = _ckt->device(devId);
     if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
-      voltage = std::max(voltage, dev._value);
+      if (dev._isPWLValue) {
+        const PWLValue& data = _ckt->PWLData(_ckt->device(devId));
+        double simTime = stepTime(size()-steps-1);
+        voltage = std::max(voltage, data.valueAtTime(simTime));
+      } else {
+        voltage = std::max(voltage, dev._value);
+      }
     }
   }
   if (voltage != std::numeric_limits<double>::lowest()) {
@@ -214,7 +221,13 @@ SimResult::deviceCurrentBackstep(size_t deviceId, size_t steps) const
 {
   const Device& dev = _ckt->device(deviceId);
   if (dev._type == DeviceType::CurrentSource) {
-    return dev._value;
+    if (dev._isPWLValue) {
+      const PWLValue& data = _ckt->PWLData(_ckt->device(dev._devId));
+      double simTime = stepTime(size()-steps-1);
+      return data.valueAtTime(simTime);
+    } else {
+      return dev._value;
+    }
   }
   return deviceCurrentBackstepImp(deviceId, steps);
 }

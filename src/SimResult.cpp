@@ -572,5 +572,46 @@ SimResult::chargeBetween(const Device& device, double timeStart, double timeEnd)
   return charge;
 }
 
+size_t
+SimResult::stepNumber(double simTime) const
+{
+  const auto& iter = std::lower_bound(_ticks.begin(), _ticks.end(), simTime);
+  if (iter == _ticks.end()) {
+    return static_cast<size_t>(-1);
+  }
+  return std::distance(_ticks.begin(), iter);
+}
+
+double 
+SimResult::nodeVoltage(size_t nodeId, double simTime) const
+{
+  size_t step1 = stepNumber(simTime);
+  assert(step1 != static_cast<size_t>(-1));
+  size_t step2 = step1 + 1;
+  assert(step2 < _ticks.size());
+  double v1 = nodeVoltage(nodeId, step1);
+  double v2 = nodeVoltage(nodeId, step2);
+  double t1 = stepTime(step1);
+  double t2 = stepTime(step2);
+  double k = (v2 - v1) / (t2 - t1);
+  double b = v1 - k * t1;
+  return k * simTime + b;
+}
+
+double 
+SimResult::deviceCurrent(size_t devId, double simTime) const
+{
+  size_t step1 = stepNumber(simTime);
+  assert(step1 != static_cast<size_t>(-1));
+  size_t step2 = step1 + 1;
+  assert(step2 < _ticks.size());
+  double i1 = deviceCurrent(devId, step1);
+  double i2 = deviceCurrent(devId, step2);
+  double t1 = stepTime(step1);
+  double t2 = stepTime(step2);
+  double k = (i2 - i1) / (t2 - t1);
+  double b = i1 - k * t1;
+  return k * simTime + b;
+}
 
 }

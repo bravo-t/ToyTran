@@ -109,12 +109,16 @@ class SimResult {
     ///        If steps is -1, it means the step size of previous 
     ///        step to current step is returned
     double stepSize(size_t steps) const;
+    /// Return the step number of the least smaller simulation time
+    size_t stepNumber(double simTime) const;
     
     /// @brief Get voltage or current of given node id or device id
     ///        This function returns the data in a forward manner
     ///        Means a timeStep of 0 gives the voltage/current @ 0 tick
     double nodeVoltage(size_t nodeId, size_t timeStep) const;
     double deviceCurrent(size_t devId, size_t timeStep) const;
+    double nodeVoltage(size_t nodeId, double simTime) const;
+    double deviceCurrent(size_t devId, double simTime) const;
     /// @brief Get the voltage of given node id
     /// @param nodeId 
     /// @param steps: number of steps BACK with respect to current time

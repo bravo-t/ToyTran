@@ -686,7 +686,7 @@ findPlotData(const std::string& canvas, std::vector<PlotData>& plotData)
 void 
 processPlot(const std::string& line, 
             std::vector<PlotData>& plotCmds,
-            size_t& plotWidth, size_t& plotHeight)
+            int& plotWidth, int& plotHeight)
 {
   std::vector<std::string> strs;
   splitWithAny(line, " =", strs);

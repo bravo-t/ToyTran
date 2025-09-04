@@ -218,6 +218,9 @@ Simulator::checkTerminateCondition() const
   if (_termVoltages.empty() && _termCurrents.empty()) {
     return false;
   }
+  if (_result.size() < 10) {
+    return false;
+  }
   for (const auto& kv : _termVoltages) {
     const TermVoltage& v = kv.second;
     if (checkTermCondition(kv.first, true, v.first, v.second, _result) == false) {

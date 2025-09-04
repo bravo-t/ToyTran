@@ -87,8 +87,8 @@ class NetlistParser {
     std::vector<AnalysisParameter>    _analysisParams;
     std::vector<std::string>          _cellOutPinsToCalc;
     bool                              _saveData = false;
-    size_t                            _plotWidth = static_cast<size_t>(-1);
-    size_t                            _plotHeight = static_cast<size_t>(-1);
+    int                               _plotWidth = -1;
+    int                               _plotHeight = -1;
     std::string                       _groundNet;
     std::vector<PlotData>             _plotData;
 };

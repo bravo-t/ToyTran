@@ -16,10 +16,15 @@ static unsigned int heightLimit = 100;
 static void
 terminalSize(size_t& width, size_t& height)
 {
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  width = w.ws_col > widthLimit ? widthLimit : w.ws_col;
-  height = w.ws_row > heightLimit ? heightLimit : w.ws_row;
+  if (isatty(STDOUT_FILENO)) {
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    width = w.ws_col > widthLimit ? widthLimit : w.ws_col;
+    height = w.ws_row > heightLimit ? heightLimit : w.ws_row;
+  } else {
+    width = widthLimit;
+    height = heightLimit/2;
+  }
 }
 
 Plotter::Plotter(const NetlistParser& parser, const std::vector<Circuit>& ckts, 

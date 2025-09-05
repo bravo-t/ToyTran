@@ -1,4 +1,4 @@
-# ToyTran: A toy circuit (or rather, network) transient simulator
+# ToyTran: A toy RLC network transient simulator
 
 ## NOTE: All delay calculation related parts have been moved to [ToyDelay](https://github.com/bravo-t/ToyDelay)
 
@@ -60,5 +60,6 @@ To run, just give the executable the spice deck you want to simulate.
 https://github.com/l-chang/gwave/blob/b362dd6d98c255b35a96d9a69a80563b26c2612c/doc/hspice-output.txt
 
 The output tr0 format still cannot be recognized by waveform viewer tools, not sure where the problem is.
+
 
 

@@ -200,6 +200,12 @@ Waveform::transitionTime(const LibData* libData) const
   }
   double t1 = measure(v1);
   double t2 = measure(v2);
+  if (isRise() == false && t1 == 1e99 && t2 == 1e99) {
+    v1 = v1 - vol;
+    v2 = v2 - vol;
+    t1 = measure(v1);
+    t2 = measure(v2);
+  }
   if (t1 == 1e99 || t2 == 1e99) {
     return 1e99;
   } 

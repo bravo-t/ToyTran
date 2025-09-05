@@ -61,10 +61,4 @@ https://github.com/l-chang/gwave/blob/b362dd6d98c255b35a96d9a69a80563b26c2612c/d
 
 The output tr0 format still cannot be recognized by waveform viewer tools, not sure where the problem is.
 
-## Features under development
 
-Note below features will not follow spice netlist grammar.
-
-### Transfer function analysis
-
-New instruction `.TF` will be implemented. Details TBD.

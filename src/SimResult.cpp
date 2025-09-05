@@ -113,8 +113,8 @@ SimResult::nodeVoltage(size_t nodeId, size_t timeStep) const
   const Node& node = _ckt->node(nodeId);
   for (size_t devId : node._connection) {
     const Device& dev = _ckt->device(devId);
-    double nodeVoltage = 0;
     if (dev._type == DeviceType::VoltageSource && dev._posNode == nodeId) {
+      double nodeVoltage = 0;
       if (dev._isPWLValue) {
         double simTime = stepTime(timeStep);
         const PWLValue& pwlData = _ckt->PWLData(dev);
@@ -122,8 +122,8 @@ SimResult::nodeVoltage(size_t nodeId, size_t timeStep) const
       } else {
         nodeVoltage = dev._value;
       }
+      voltage = std::max(voltage, nodeVoltage);
     }
-    voltage = std::max(voltage, nodeVoltage);
   }
   if (voltage != std::numeric_limits<double>::lowest()) {
     return voltage;
